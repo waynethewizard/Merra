@@ -72,12 +72,13 @@ The site reads published prose from `docs/` and selected deterministic evidence
 from `golden/`; those remain the canonical sources.
 
 ```sh
-npm install --prefix site
+npm install
 npm run site:dev
 ```
 
 Use `npm run site:validate`, `npm run site:check`, and `npm run site:build`
-before publishing.
+before publishing. `npm run site:build:sites` also verifies the managed
+OpenNext artifact used by the connected public deployment.
 
 ## License
 

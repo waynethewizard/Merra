@@ -6,6 +6,8 @@
 /dist/
 /site/node_modules/
 /site/.next/
+/site/.open-next/
+/site/.wrangler/
 /site/dist/
 /site/out/
 /site/src/generated/content.json

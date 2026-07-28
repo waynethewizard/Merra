@@ -1,11 +1,12 @@
 FROM node:22-alpine AS dependencies
-WORKDIR /app/site
-COPY site/package.json site/package-lock.json ./
-RUN npm ci
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY site/package.json ./site/package.json
+RUN npm ci --workspace @merra/site
 
 FROM node:22-alpine AS builder
 WORKDIR /app
-COPY --from=dependencies /app/site/node_modules ./site/node_modules
+COPY --from=dependencies /app/node_modules ./node_modules
 COPY site ./site
 COPY Cargo.toml ./Cargo.toml
 COPY docs ./docs

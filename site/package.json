@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "npm run validate && next dev",
     "build": "npm run validate && next build",
-    "build:sites": "npm run validate && vinext build",
+    "build:sites": "npm run validate && SITES_BUILD=1 opennextjs-cloudflare build",
     "check": "npm run validate && next typegen && tsc --noEmit",
-    "check:sites": "npm run validate && vinext check",
+    "check:sites": "npm run validate && SITES_BUILD=1 next typegen && tsc --noEmit",
     "validate": "tsx scripts/validate-content.ts"
   },
   "dependencies": {
@@ -19,16 +19,13 @@
     "remark-gfm": "4.0.1"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "1.19.11",
     "@types/node": "24.10.1",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
-    "@vitejs/plugin-react": "6.0.4",
-    "@vitejs/plugin-rsc": "0.5.30",
-    "react-server-dom-webpack": "19.2.8",
     "tsx": "4.20.6",
     "typescript": "5.9.3",
-    "vinext": "1.0.0-beta.4",
-    "vite": "8.1.5"
+    "wrangler": "4.114.0"
   },
   "overrides": {
     "postcss": "8.5.23",

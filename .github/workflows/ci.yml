@@ -70,10 +70,10 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: site/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install site dependencies
-        run: npm ci --prefix site
+        run: npm ci
 
       - name: Validate public content
         run: npm run site:validate
@@ -83,3 +83,6 @@ jobs:
 
       - name: Build static site
         run: npm run site:build
+
+      - name: Build managed-host artifact
+        run: npm run site:build:sites

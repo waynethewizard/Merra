@@ -2,8 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../..");
-const source = path.join(repositoryRoot, "site", "dist");
+const source = path.join(repositoryRoot, "site", ".open-next");
+const workerSource = path.join(source, "worker.js");
 const destination = path.join(repositoryRoot, "dist");
+const serverDestination = path.join(destination, "server");
 const hostingSource = path.join(
   repositoryRoot,
   ".openai",
@@ -14,13 +16,9 @@ const hostingDestination = path.join(
   ".openai",
   "hosting.json"
 );
-const serverSource = ["index.js", "index.mjs"]
-  .map((fileName) => path.join(source, "server", fileName))
-  .find((filePath) => fs.existsSync(filePath));
-const serverDestination = path.join(destination, "server", "index.js");
 
-if (!serverSource) {
-  throw new Error("Vinext server bundle is missing from site/dist/.");
+if (!fs.existsSync(workerSource)) {
+  throw new Error("The OpenNext worker bundle is missing.");
 }
 if (!fs.existsSync(hostingSource)) {
   throw new Error("The connected site descriptor is missing.");
@@ -28,13 +26,16 @@ if (!fs.existsSync(hostingSource)) {
 
 fs.rmSync(destination, { recursive: true, force: true });
 fs.cpSync(source, destination, { recursive: true });
-if (!fs.existsSync(serverDestination)) {
-  fs.copyFileSync(
-    path.join(destination, "server", path.basename(serverSource)),
-    serverDestination
-  );
-}
+fs.mkdirSync(serverDestination, { recursive: true });
+fs.writeFileSync(
+  path.join(serverDestination, "index.js"),
+  'export { default } from "../worker.js";\n'
+);
+fs.writeFileSync(
+  path.join(destination, "package.json"),
+  `${JSON.stringify({ type: "module" }, null, 2)}\n`
+);
 fs.mkdirSync(path.dirname(hostingDestination), { recursive: true });
 fs.copyFileSync(hostingSource, hostingDestination);
 
-console.log("Packaged the Vinext site bundle in dist/.");
+console.log("Packaged the OpenNext worker bundle in dist/.");
