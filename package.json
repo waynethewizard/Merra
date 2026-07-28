@@ -6,7 +6,7 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace @merra/site",
-    "build": "npm run build --workspace @merra/site",
+    "build": "npm run build --workspace @merra/site && node site/scripts/copy-dist.mjs",
     "site:dev": "npm --prefix site run dev",
     "site:build": "npm --prefix site run build",
     "site:check": "npm --prefix site run check",
