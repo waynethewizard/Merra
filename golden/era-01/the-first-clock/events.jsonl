@@ -1,3 +1,11 @@
 {"id":1,"time":{"day":0},"kind":"simulation_started","actors":[],"location":null,"causes":[],"tags":["simulation"],"payload":{"type":"simulation_started","scenario_id":"era-01-smoke","seed":42}}
-{"id":2,"time":{"day":360},"kind":"time_advanced","actors":[],"location":null,"causes":[1],"tags":["time"],"payload":{"type":"time_advanced","from_day":0,"to_day":360,"elapsed_days":360}}
-{"id":3,"time":{"day":360},"kind":"simulation_completed","actors":[],"location":null,"causes":[2],"tags":["simulation"],"payload":{"type":"simulation_completed","final_day":360,"elapsed_years":1}}
+{"id":2,"time":{"day":0},"kind":"season_began","actors":[],"location":null,"causes":[1],"tags":["time","season"],"payload":{"type":"season_began","season_id":"thaw","season_name":"Thaw","year":0}}
+{"id":3,"time":{"day":90},"kind":"time_advanced","actors":[],"location":null,"causes":[2],"tags":["time"],"payload":{"type":"time_advanced","from_day":0,"to_day":90,"elapsed_days":90}}
+{"id":4,"time":{"day":90},"kind":"season_began","actors":[],"location":null,"causes":[3],"tags":["time","season"],"payload":{"type":"season_began","season_id":"bloom","season_name":"Bloom","year":0}}
+{"id":5,"time":{"day":180},"kind":"time_advanced","actors":[],"location":null,"causes":[4],"tags":["time"],"payload":{"type":"time_advanced","from_day":90,"to_day":180,"elapsed_days":90}}
+{"id":6,"time":{"day":180},"kind":"season_began","actors":[],"location":null,"causes":[5],"tags":["time","season"],"payload":{"type":"season_began","season_id":"highsun","season_name":"Highsun","year":0}}
+{"id":7,"time":{"day":270},"kind":"time_advanced","actors":[],"location":null,"causes":[6],"tags":["time"],"payload":{"type":"time_advanced","from_day":180,"to_day":270,"elapsed_days":90}}
+{"id":8,"time":{"day":270},"kind":"season_began","actors":[],"location":null,"causes":[7],"tags":["time","season"],"payload":{"type":"season_began","season_id":"emberfall","season_name":"Emberfall","year":0}}
+{"id":9,"time":{"day":360},"kind":"time_advanced","actors":[],"location":null,"causes":[8],"tags":["time"],"payload":{"type":"time_advanced","from_day":270,"to_day":360,"elapsed_days":90}}
+{"id":10,"time":{"day":360},"kind":"season_began","actors":[],"location":null,"causes":[9],"tags":["time","season"],"payload":{"type":"season_began","season_id":"thaw","season_name":"Thaw","year":1}}
+{"id":11,"time":{"day":360},"kind":"simulation_completed","actors":[],"location":null,"causes":[10],"tags":["simulation"],"payload":{"type":"simulation_completed","final_day":360,"elapsed_years":1}}
