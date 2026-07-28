@@ -30,3 +30,9 @@ interfaces stabilize.
 - Static public project site with a development chronicle and interactive
   explorer for curated, reproducible golden runs.
 - Railway container and deployment configuration for the public site.
+
+### Fixed
+
+- Final family records now clear a dead person's current household membership,
+  and households emptied by partnership-driven departures dissolve on the same
+  simulation day instead of remaining temporarily active and empty.

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getFoundationRun } from "@/lib/content";
+import { getCurrentCycle, getFoundationRun } from "@/lib/content";
 
 const cycles = [
   "Time & death",
@@ -13,6 +13,9 @@ const cycles = [
 
 export default function HomePage() {
   const run = getFoundationRun();
+  const cycle = getCurrentCycle();
+  const cycleLabel =
+    cycle.status === "complete" ? "Latest milestone" : "Now building";
 
   return (
     <>
@@ -22,7 +25,8 @@ export default function HomePage() {
           <div className="hero-copy">
             <div className="status-pill">
               <span />
-              Now building · Era I, Cycle 01
+              {cycleLabel} · Era {cycle.era}, Cycle{" "}
+              {String(cycle.cycle).padStart(2, "0")}
             </div>
             <p className="kicker">An open-source historical simulation</p>
             <h1>

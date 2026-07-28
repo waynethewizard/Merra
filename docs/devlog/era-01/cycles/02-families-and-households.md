@@ -3,10 +3,10 @@ era = 1
 cycle = 2
 slug = "families-and-households"
 title = "Families and Households"
-status = "in_progress"
+status = "complete"
 started = "2026-07-28"
-completed = ""
-code_tag = ""
+completed = "2026-07-28"
+code_tag = "era-01-cycle-02"
 scenario = "scenarios/era-01/dynasty.ron"
 seeds = [42]
 +++
@@ -19,7 +19,7 @@ Can Merra preserve understandable kinship while people form and lose
 partnerships, move between households, inherit surnames, and create four
 generations of descendants?
 
-The first implementation reaches that observable target. It remains a
+The completed implementation reaches that observable target. It remains a
 deliberately explicit family mechanism rather than a demographic claim.
 
 ## Intended Evidence
@@ -64,6 +64,12 @@ day, parent IDs, current household, current partner, and generation.
 Households are ECS entities with separate stable `HouseholdId` values, current
 members, surname, founding and dissolution days, birth spacing, and child
 counts. Neither output contract serializes Bevy `Entity`.
+
+Final membership is genuinely current state: death clears the person's current
+household and partnership references, and a household emptied when its last
+member forms a new household dissolves in the same family-maintenance pass.
+The departure-caused dissolution cites the new partnership event rather than
+waiting for an unrelated future season boundary.
 
 The CLI writes `households.json` for every run; it is empty when families are
 disabled. Ratatui adds a third `Genealogy` view that lists generations and
@@ -115,6 +121,14 @@ Fen" after the actual seed evidence showed which surnames the inspector made
 prominent. Scenario prose should follow the simulation rather than predeclare
 its story.
 
+The completion audit found two final-state bugs that the canonical genealogy
+screen did not reveal. Dead people were removed from household member lists but
+still retained a `household_id`, contradicting the field's current-state
+contract. Separately, an adult leaving a singleton household could leave that
+household active and empty until the next annual maintenance pass. Both defects
+were fixed before the tag, with focused regression scenarios for death and
+departure.
+
 ## Tests and Invariants
 
 - Family age thresholds must be ordered and enabled limits must be positive.
@@ -126,8 +140,19 @@ its story.
   chronicle, and genealogy-screen fixtures.
 - Current partnerships are symmetric.
 - Partnerships stay within one generation and do not pair siblings.
-- Active households cannot have an empty member list.
+- Every living person belongs to exactly one active household, every household
+  member resolves back to that household, and dead people have no current
+  household or partner.
+- Active households cannot be empty, dissolved households cannot retain
+  members, and a departure that empties a household dissolves it immediately.
 - Every causal event reference points backward.
+- Event IDs are contiguous, event time is nondecreasing, actors resolve to
+  stable people, and event kinds match their typed payloads.
+- Repeated canonical reports are equal across events, people, households,
+  summaries, and chronicles.
+- Every one of the fixed 100 dynasty seeds satisfies the same family, household,
+  event, and summary invariants; the aggregate ranges are exact regression
+  evidence.
 - Existing annual mortality and caller-step invariants remain green.
 
 ## Reproduction
@@ -158,6 +183,10 @@ cargo xtask seed-lab \
   --count 100 \
   --years 60 \
   --output runs/dynasty-seed-lab
+
+cargo test --locked -p merra-testkit dynasty_cohort_preserves_family_invariants
+cargo xtask verify-docs
+cargo xtask preflight
 ```
 
 The headless command creates `manifest.json`, `events.jsonl`,
@@ -180,7 +209,7 @@ previously nonexistent directory.
 - Household history is visible in events, while the final household report
   intentionally contains current rather than time-sliced membership.
 - The family implementation should move out of the growing simulation root
-  module once its system boundary settles.
+  module when a later cycle needs to extend its internal system boundary.
 
 ## Newsletter Candidates
 

@@ -38,6 +38,13 @@ births, households formed, generations reached, and distinct surnames. This
 turns "the golden family tree still looks right" into a broader stability check
 without treating one seed as a demographic model.
 
+The testkit also runs those same 100 dynasty seeds through structural
+invariants on every repository test pass. It requires reciprocal living
+partnerships, exact parent generations, bidirectional current household
+membership, empty dissolved households, typed and backward-causal events, and
+the published cohort ranges. The scheduled laboratory remains the inspectable
+CSV/JSON artifact; the test is the fast regression gate over the same cohort.
+
 Statistical gates should be added only after a behavior has an intentional
 acceptable range. Early cohort output informs tuning without pretending the
 first model is correct.

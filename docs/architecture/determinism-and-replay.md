@@ -61,6 +61,12 @@ limits rather than a probabilistic fertility claim. Every child receives the
 next stable `PersonId`, two earlier parent IDs, its household surname, and one
 generation greater than its parents.
 
+Family report determinism covers the full events, people, households, summary,
+and chronicle result. A fixed 100-seed regression cohort additionally checks
+that current membership is bidirectional, dead people retain no current
+household or partner, active households are nonempty, dissolved households are
+empty, and every causal reference points to an earlier event.
+
 ## Run products
 
 The headless runner writes:

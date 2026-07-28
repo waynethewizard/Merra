@@ -393,6 +393,14 @@ fn maintain_families(
         .filter(|person| person.alive)
         .map(|person| person.id)
         .collect();
+    for person in snapshot
+        .iter()
+        .filter(|person| !person.alive && person.household_id.is_some())
+    {
+        if let Ok((_, mut person)) = people.get_mut(person.entity) {
+            person.household_id = None;
+        }
+    }
     let mut household_ids: Vec<_> = households
         .iter()
         .filter(|household| household.dissolved_day.is_none())
@@ -469,6 +477,7 @@ fn maintain_families(
         partnerships.push((first, second));
     }
 
+    let mut departure_causes = BTreeMap::new();
     for (first, second) in partnerships {
         let household_id = HouseholdId(runtime.next_household_id);
         runtime.next_household_id = runtime.next_household_id.saturating_add(1);
@@ -479,6 +488,7 @@ fn maintain_families(
         };
         let name = format!("{surname} household");
         let partners = [first.id, second.id];
+        let mut previous_households = BTreeSet::new();
 
         for founder in [&first, &second] {
             if let Some(previous_id) = founder.household_id
@@ -486,6 +496,7 @@ fn maintain_families(
                     .iter_mut()
                     .find(|household| household.id == previous_id)
             {
+                previous_households.insert(previous_id);
                 previous
                     .member_ids
                     .retain(|person_id| *person_id != founder.id);
@@ -531,7 +542,7 @@ fn maintain_families(
                 member_ids: partners.to_vec(),
             },
         );
-        log.push(
+        let partnership_event = log.push(
             now,
             EventKindV1::PartnershipFormed,
             partners.to_vec(),
@@ -541,6 +552,31 @@ fn maintain_families(
                 household_id,
                 partners,
             },
+        );
+        for previous_household in previous_households {
+            departure_causes.insert(previous_household, partnership_event);
+        }
+    }
+
+    for (household_id, cause) in departure_causes {
+        let Some(mut household) = households
+            .iter_mut()
+            .find(|household| household.id == household_id)
+        else {
+            continue;
+        };
+        if household.dissolved_day.is_some() || !household.member_ids.is_empty() {
+            continue;
+        }
+        household.dissolved_day = Some(now.day());
+        let name = household.name.clone();
+        log.push(
+            now,
+            EventKindV1::HouseholdDissolved,
+            Vec::new(),
+            vec![cause],
+            vec![String::from("family"), String::from("household")],
+            EventPayloadV1::HouseholdDissolved { household_id, name },
         );
     }
 
@@ -1483,6 +1519,88 @@ mod tests {
                         .any(|parent| partner.parent_ids.contains(parent))
             }));
         }
+        Ok(())
+    }
+
+    #[test]
+    fn household_membership_is_current_after_death_and_departure()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let family = FamilyConfigV1 {
+            enabled: true,
+            minimum_partnership_age: 18,
+            minimum_parent_age: 100,
+            maximum_parent_age: 100,
+            birth_interval_years: 1,
+            maximum_children_per_household: 1,
+            maximum_generation: 1,
+        };
+        let mortality_bands = |rate| {
+            vec![MortalityBandV1 {
+                through_age: u16::MAX,
+                annual_deaths_per_10_000: rate,
+            }]
+        };
+        let moving_founders = ScenarioV1 {
+            schema_version: SCENARIO_SCHEMA_V1,
+            id: String::from("household-departure"),
+            title: String::from("Household Departure"),
+            calendar: calendar(),
+            population: PopulationConfigV1 {
+                initial_people: 3,
+                minimum_starting_age: 17,
+                maximum_starting_age: 17,
+                mortality_bands: mortality_bands(0),
+            },
+            family: family.clone(),
+        };
+        let moved = super::run_years(moving_founders, 42, 1)?;
+
+        assert!(
+            moved
+                .households
+                .iter()
+                .all(|household| household.dissolved_day.is_some()
+                    || !household.member_ids.is_empty())
+        );
+        assert_eq!(
+            moved
+                .households
+                .iter()
+                .filter(|household| household.dissolved_day == Some(360))
+                .count(),
+            2
+        );
+        for person in &moved.people {
+            let household = person.household_id.and_then(|household_id| {
+                moved
+                    .households
+                    .iter()
+                    .find(|household| household.id == household_id)
+            });
+            assert!(household.is_some_and(|household| household.member_ids.contains(&person.id)));
+        }
+
+        let dying_founders = ScenarioV1 {
+            schema_version: SCENARIO_SCHEMA_V1,
+            id: String::from("household-death"),
+            title: String::from("Household Death"),
+            calendar: calendar(),
+            population: PopulationConfigV1 {
+                initial_people: 2,
+                minimum_starting_age: 18,
+                maximum_starting_age: 18,
+                mortality_bands: mortality_bands(10_000),
+            },
+            family,
+        };
+        let died = super::run_years(dying_founders, 42, 1)?;
+
+        assert!(died.people.iter().all(|person| !person.alive
+            && person.household_id.is_none()
+            && person.partner_id.is_none()));
+        assert!(died.households.iter().all(
+            |household| household.dissolved_day == Some(360) && household.member_ids.is_empty()
+        ));
         Ok(())
     }
 }

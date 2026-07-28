@@ -61,6 +61,8 @@ export type CycleRecord = {
   title: string;
   status: string;
   started: string;
+  completed: string;
+  codeTag: string;
   scenario: string;
   seeds: number[];
   body: string;

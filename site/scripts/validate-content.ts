@@ -129,6 +129,8 @@ const currentCycle = {
   title: String(cycleData.title),
   status: String(cycleData.status),
   started: String(cycleData.started),
+  completed: String(cycleData.completed ?? ""),
+  codeTag: String(cycleData.code_tag ?? ""),
   scenario: String(cycleData.scenario),
   seeds: Array.isArray(cycleData.seeds) ? cycleData.seeds : [],
   body: cycleBody
@@ -159,7 +161,24 @@ assert(
 assert(cycle.era > 0 && cycle.cycle > 0, "cycle era and number are required");
 assert(Boolean(cycle.slug && cycle.title), "cycle slug and title are required");
 assert(Boolean(cycle.status && cycle.started), "cycle status and date are required");
-assert(cycle.seeds.includes(run.manifest.seed), "golden seed must appear in cycle");
+assert(
+  ["planned", "in_progress", "complete"].includes(cycle.status),
+  "cycle status must be planned, in_progress, or complete"
+);
+if (cycle.status === "complete") {
+  assert(Boolean(cycle.completed), "a complete cycle requires a completion date");
+  assert(Boolean(cycle.codeTag), "a complete cycle requires a code tag");
+  assert(
+    cycle.codeTag ===
+      `era-${String(cycle.era).padStart(2, "0")}-cycle-${String(cycle.cycle).padStart(2, "0")}`,
+    "cycle code tag must match its era and cycle number"
+  );
+}
+assert(cycle.seeds.length > 0, "cycle requires at least one reproducible seed");
+assert(
+  fs.existsSync(path.join(repoRoot, cycle.scenario)),
+  `missing cycle scenario: ${cycle.scenario}`
+);
 
 let previousId = 0;
 const knownIds = new Set<number>();

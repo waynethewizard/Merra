@@ -29,8 +29,10 @@ export default function ChroniclePage() {
             </div>
             <div className="issue-mark">
               <span>Current record</span>
-              <strong>01</strong>
-              <small>Era I · 2026</small>
+              <strong>{String(cycle.cycle).padStart(2, "0")}</strong>
+              <small>
+                Era {cycle.era} · {cycle.started.slice(0, 4)}
+              </small>
             </div>
           </div>
         </div>
@@ -38,7 +40,9 @@ export default function ChroniclePage() {
 
       <section className="shell journal-layout">
         <aside className="journal-aside">
-          <p className="section-number">Era I / Cycle 01</p>
+          <p className="section-number">
+            Era {cycle.era} / Cycle {String(cycle.cycle).padStart(2, "0")}
+          </p>
           <h2>{cycle.title}</h2>
           <dl>
             <div>
@@ -52,6 +56,18 @@ export default function ChroniclePage() {
               <dt>Started</dt>
               <dd>{cycle.started}</dd>
             </div>
+            {cycle.completed ? (
+              <div>
+                <dt>Completed</dt>
+                <dd>{cycle.completed}</dd>
+              </div>
+            ) : null}
+            {cycle.codeTag ? (
+              <div>
+                <dt>Tagged snapshot</dt>
+                <dd>{cycle.codeTag}</dd>
+              </div>
+            ) : null}
             <div>
               <dt>Scenario</dt>
               <dd>{cycle.scenario}</dd>
@@ -61,7 +77,7 @@ export default function ChroniclePage() {
               <dd>{cycle.seeds.join(", ")}</dd>
             </div>
           </dl>
-          <Link href="/explore/">Inspect this cycle’s evidence →</Link>
+          <Link href="/explore/">Inspect the foundation evidence →</Link>
         </aside>
         <article className="journal-entry">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
