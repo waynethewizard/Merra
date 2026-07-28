@@ -5,6 +5,7 @@ use bevy_ecs::{
     entity::Entity,
     prelude::{Component, Query, Res, ResMut, Resource},
     schedule::{IntoScheduleConfigs, Schedule, ScheduleLabel, SystemSet},
+    system::SystemParam,
 };
 use merra_core::{
     CalendarConfig, EVENT_SCHEMA_V1, EventId, EventKindV1, EventPayloadV1, PersonId,
@@ -20,6 +21,8 @@ use thiserror::Error;
 pub enum SimulationSet {
     /// Advance the authoritative calendar.
     AdvanceTime,
+    /// Record a named season when the clock reaches a boundary.
+    SeasonTransition,
     /// Age living people and evaluate mortality in stable identity order.
     Mortality,
 }
@@ -45,6 +48,19 @@ struct PopulationRules(PopulationConfigV1);
 
 #[derive(Resource)]
 struct MortalityRng(ChaCha12Rng);
+
+#[derive(Resource, Default)]
+struct AnnualMortalityClock {
+    elapsed_days: u64,
+}
+
+#[derive(SystemParam)]
+struct MortalityInputs<'w> {
+    clock: Res<'w, Clock>,
+    request: Res<'w, AdvanceRequest>,
+    calendar: Res<'w, SimulationCalendar>,
+    rules: Res<'w, PopulationRules>,
+}
 
 #[derive(Component)]
 struct SimPerson {
@@ -100,11 +116,20 @@ impl Plugin for MerraSimulationPlugin {
         app.add_schedule(Schedule::new(SimulationStep))
             .configure_sets(
                 SimulationStep,
-                (SimulationSet::AdvanceTime, SimulationSet::Mortality).chain(),
+                (
+                    SimulationSet::AdvanceTime,
+                    SimulationSet::SeasonTransition,
+                    SimulationSet::Mortality,
+                )
+                    .chain(),
             )
             .add_systems(
                 SimulationStep,
                 advance_clock.in_set(SimulationSet::AdvanceTime),
+            )
+            .add_systems(
+                SimulationStep,
+                record_season_boundary.in_set(SimulationSet::SeasonTransition),
             )
             .add_systems(
                 SimulationStep,
@@ -135,15 +160,50 @@ fn advance_clock(
     );
 }
 
-fn age_and_apply_mortality(
-    mut people: Query<(Entity, &mut SimPerson)>,
+fn record_season_boundary(
     clock: Res<Clock>,
-    request: Res<AdvanceRequest>,
     calendar: Res<SimulationCalendar>,
-    rules: Res<PopulationRules>,
-    mut mortality_rng: ResMut<MortalityRng>,
     mut log: ResMut<EventLog>,
 ) {
+    let Some((year, season)) = calendar.0.season_starting_at_day(clock.now.day()) else {
+        return;
+    };
+    let causes = log.last_id().into_iter().collect();
+    log.push(
+        clock.now,
+        EventKindV1::SeasonBegan,
+        Vec::new(),
+        causes,
+        vec![String::from("time"), String::from("season")],
+        EventPayloadV1::SeasonBegan {
+            season_id: season.id.clone(),
+            season_name: season.name.clone(),
+            year,
+        },
+    );
+}
+
+fn age_and_apply_mortality(
+    mut people: Query<(Entity, &mut SimPerson)>,
+    inputs: MortalityInputs<'_>,
+    mut mortality_rng: ResMut<MortalityRng>,
+    mut mortality_clock: ResMut<AnnualMortalityClock>,
+    mut log: ResMut<EventLog>,
+) {
+    mortality_clock.elapsed_days = mortality_clock
+        .elapsed_days
+        .saturating_add(inputs.request.duration.days());
+    let evaluate_mortality = inputs
+        .clock
+        .now
+        .day_of_year(inputs.calendar.0.days_per_year)
+        == 0
+        && inputs.clock.now != SimTime::EPOCH;
+    let mortality_days = mortality_clock.elapsed_days;
+    if evaluate_mortality {
+        mortality_clock.elapsed_days = 0;
+    }
+
     let mut ordered_people: Vec<(PersonId, Entity)> = people
         .iter()
         .filter_map(|(entity, person)| person.alive.then_some((person.id, entity)))
@@ -155,20 +215,25 @@ fn age_and_apply_mortality(
         let Ok((_, mut person)) = people.get_mut(entity) else {
             continue;
         };
-        person.age_days = person.age_days.saturating_add(request.duration.days());
-        let age_years = person.age_days / u64::from(calendar.0.days_per_year);
-        let annual_rate = rules.0.annual_mortality_per_10_000(age_years);
+        person.age_days = person
+            .age_days
+            .saturating_add(inputs.request.duration.days());
+        if !evaluate_mortality {
+            continue;
+        }
+        let age_years = person.age_days / u64::from(inputs.calendar.0.days_per_year);
+        let annual_rate = inputs.rules.0.annual_mortality_per_10_000(age_years);
         let step_rate = u64::from(annual_rate)
-            .saturating_mul(request.duration.days())
-            .div_ceil(u64::from(calendar.0.days_per_year))
+            .saturating_mul(mortality_days)
+            .div_ceil(u64::from(inputs.calendar.0.days_per_year))
             .min(10_000) as u32;
         let roll = mortality_rng.0.random_range(0..10_000_u32);
 
         if roll < step_rate {
             person.alive = false;
-            person.death_day = Some(clock.now.day());
+            person.death_day = Some(inputs.clock.now.day());
             log.push(
-                clock.now,
+                inputs.clock.now,
                 EventKindV1::PersonDied,
                 vec![person_id],
                 causal_event.into_iter().collect(),
@@ -238,6 +303,23 @@ impl Simulation {
                 },
             );
         }
+        let (_, initial_season) = scenario
+            .calendar
+            .season_starting_at_day(SimTime::EPOCH.day())
+            .ok_or(SimulationError::MissingInitialSeason)?;
+        let cause = event_log.last_id().into_iter().collect();
+        event_log.push(
+            SimTime::EPOCH,
+            EventKindV1::SeasonBegan,
+            Vec::new(),
+            cause,
+            vec![String::from("time"), String::from("season")],
+            EventPayloadV1::SeasonBegan {
+                season_id: initial_season.id.clone(),
+                season_name: initial_season.name.clone(),
+                year: 0,
+            },
+        );
 
         let mut app = App::new();
         app.insert_resource(Clock {
@@ -246,9 +328,10 @@ impl Simulation {
         .insert_resource(AdvanceRequest {
             duration: SimDuration::default(),
         })
-        .insert_resource(SimulationCalendar(scenario.calendar))
+        .insert_resource(SimulationCalendar(scenario.calendar.clone()))
         .insert_resource(PopulationRules(scenario.population.clone()))
         .insert_resource(MortalityRng(rng_for_domain(seed, RngDomain::Mortality)))
+        .insert_resource(AnnualMortalityClock::default())
         .insert_resource(event_log)
         .add_plugins(MerraSimulationPlugin);
         spawn_initial_population(&mut app, &scenario, seed);
@@ -267,9 +350,14 @@ impl Simulation {
             return Err(SimulationError::AlreadyFinished);
         }
         let mut remaining_days = duration.days();
-        let maximum_step = u64::from(self.scenario.calendar.days_per_year);
         while remaining_days > 0 {
-            let step = SimDuration::from_days(remaining_days.min(maximum_step));
+            let now = self.app.world().resource::<Clock>().now;
+            let boundary_days = self
+                .scenario
+                .calendar
+                .days_until_next_season(now.day())
+                .ok_or(SimulationError::MissingSeasonBoundary)?;
+            let step = SimDuration::from_days(remaining_days.min(boundary_days));
             self.app
                 .world_mut()
                 .resource_mut::<AdvanceRequest>()
@@ -287,7 +375,7 @@ impl Simulation {
         }
 
         let now = self.app.world().resource::<Clock>().now;
-        let elapsed_years = now.year(self.scenario.calendar);
+        let elapsed_years = now.year(self.scenario.calendar.days_per_year);
         let mut log = self.app.world_mut().resource_mut::<EventLog>();
         let causes = log.last_id().into_iter().collect();
         log.push(
@@ -310,7 +398,7 @@ impl Simulation {
     pub fn report(&self) -> SimulationReport {
         let events = self.app.world().resource::<EventLog>().events.clone();
         let now = self.app.world().resource::<Clock>().now;
-        let elapsed_years = now.year(self.scenario.calendar);
+        let elapsed_years = now.year(self.scenario.calendar.days_per_year);
         let mut people: Vec<PersonRecordV1> = self
             .app
             .world()
@@ -368,9 +456,9 @@ pub fn run_years(
     seed: u64,
     years: u32,
 ) -> Result<SimulationReport, SimulationError> {
-    let calendar = scenario.calendar;
+    let days_per_year = scenario.calendar.days_per_year;
     let mut simulation = Simulation::from_scenario(scenario, seed)?;
-    simulation.advance(SimDuration::from_years(years, calendar))?;
+    simulation.advance(SimDuration::from_years(years, days_per_year))?;
     simulation.finish()?;
     Ok(simulation.report())
 }
@@ -394,12 +482,20 @@ fn render_chronicle(
             people.len()
         )
     };
-    let notable_lives = render_notable_lives(people, scenario.calendar);
+    let notable_lives = render_notable_lives(people, scenario.calendar.days_per_year);
+    let seasons = scenario
+        .calendar
+        .seasons
+        .iter()
+        .map(|season| format!("{} ({} days)", season.name, season.days))
+        .collect::<Vec<_>>()
+        .join(", ");
     format!(
         "# Chronicle: {}\n\n\
          - Scenario: `{}`\n\
          - Seed: `{seed}`\n\
          - Calendar: {} days per year\n\
+         - Seasons: {seasons}\n\
          - Elapsed: {} days ({elapsed_years} complete {year_unit})\n\
          {population_line}\
          - Structured events: {}\n\n\
@@ -414,7 +510,7 @@ fn render_chronicle(
     )
 }
 
-fn render_notable_lives(people: &[PersonRecordV1], calendar: CalendarConfig) -> String {
+fn render_notable_lives(people: &[PersonRecordV1], days_per_year: u16) -> String {
     let first_death = people
         .iter()
         .filter_map(|person| person.death_day.map(|day| (day, person.id, person)))
@@ -433,7 +529,6 @@ fn render_notable_lives(people: &[PersonRecordV1], calendar: CalendarConfig) -> 
     else {
         return String::new();
     };
-
     format!(
         "\n## Notable Lives\n\n\
          - First recorded death: {} at age {} in Year {}.\n\
@@ -441,12 +536,12 @@ fn render_notable_lives(people: &[PersonRecordV1], calendar: CalendarConfig) -> 
          - Final recorded death: {} at age {} in Year {}.\n",
         first.name,
         first.final_age_years,
-        first_day / u64::from(calendar.days_per_year),
+        first_day / u64::from(days_per_year),
         longest.name,
         longest.final_age_years,
         last.name,
         last.final_age_years,
-        final_day / u64::from(calendar.days_per_year),
+        final_day / u64::from(days_per_year),
     )
 }
 
@@ -487,6 +582,12 @@ pub enum SimulationError {
     /// Scenario validation failed.
     #[error(transparent)]
     Scenario(#[from] ScenarioError),
+    /// A validated calendar unexpectedly had no season at the epoch.
+    #[error("validated calendar has no initial season")]
+    MissingInitialSeason,
+    /// A validated calendar unexpectedly had no future season boundary.
+    #[error("validated calendar has no next season boundary")]
+    MissingSeasonBoundary,
     /// A finished run cannot advance or finish twice.
     #[error("simulation has already finished")]
     AlreadyFinished,
@@ -496,17 +597,45 @@ pub enum SimulationError {
 mod tests {
     use merra_core::{
         CalendarConfig, EventPayloadV1, MortalityBandV1, PersonId, PopulationConfigV1,
-        SCENARIO_SCHEMA_V1, ScenarioV1, SimDuration,
+        SCENARIO_SCHEMA_V1, ScenarioV1, SeasonConfigV1, SimDuration,
     };
 
     use super::Simulation;
+
+    fn calendar() -> CalendarConfig {
+        CalendarConfig {
+            days_per_year: 360,
+            seasons: vec![
+                SeasonConfigV1 {
+                    id: String::from("thaw"),
+                    name: String::from("Thaw"),
+                    days: 90,
+                },
+                SeasonConfigV1 {
+                    id: String::from("bloom"),
+                    name: String::from("Bloom"),
+                    days: 90,
+                },
+                SeasonConfigV1 {
+                    id: String::from("highsun"),
+                    name: String::from("Highsun"),
+                    days: 90,
+                },
+                SeasonConfigV1 {
+                    id: String::from("emberfall"),
+                    name: String::from("Emberfall"),
+                    days: 90,
+                },
+            ],
+        }
+    }
 
     fn scenario() -> ScenarioV1 {
         ScenarioV1 {
             schema_version: SCENARIO_SCHEMA_V1,
             id: String::from("test"),
             title: String::from("Test"),
-            calendar: CalendarConfig { days_per_year: 360 },
+            calendar: calendar(),
             population: PopulationConfigV1 {
                 initial_people: 0,
                 minimum_starting_age: 0,
@@ -520,7 +649,7 @@ mod tests {
     fn same_inputs_produce_equal_reports() -> Result<(), Box<dyn std::error::Error>> {
         let mut first = Simulation::from_scenario(scenario(), 42)?;
         let mut second = Simulation::from_scenario(scenario(), 42)?;
-        let duration = SimDuration::from_years(1, scenario().calendar);
+        let duration = SimDuration::from_years(1, scenario().calendar.days_per_year);
 
         first.advance(duration)?;
         first.finish()?;
@@ -538,7 +667,7 @@ mod tests {
             schema_version: SCENARIO_SCHEMA_V1,
             id: String::from("certain-mortality"),
             title: String::from("Certain Mortality"),
-            calendar: CalendarConfig { days_per_year: 360 },
+            calendar: calendar(),
             population: PopulationConfigV1 {
                 initial_people: 3,
                 minimum_starting_age: 10,
@@ -566,6 +695,84 @@ mod tests {
                 .people
                 .iter()
                 .all(|person| !person.alive && person.final_age_years == 11)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn one_year_records_each_named_season_boundary() -> Result<(), Box<dyn std::error::Error>> {
+        let report = super::run_years(scenario(), 42, 1)?;
+        let seasons: Vec<_> = report
+            .events
+            .iter()
+            .filter_map(|event| match &event.payload {
+                EventPayloadV1::SeasonBegan {
+                    season_id, year, ..
+                } => Some((season_id.as_str(), *year)),
+                _ => None,
+            })
+            .collect();
+
+        assert_eq!(
+            seasons,
+            vec![
+                ("thaw", 0),
+                ("bloom", 0),
+                ("highsun", 0),
+                ("emberfall", 0),
+                ("thaw", 1),
+            ]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn caller_step_size_does_not_change_annual_mortality() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let populated = ScenarioV1 {
+            schema_version: SCENARIO_SCHEMA_V1,
+            id: String::from("step-size-invariance"),
+            title: String::from("Step Size Invariance"),
+            calendar: calendar(),
+            population: PopulationConfigV1 {
+                initial_people: 24,
+                minimum_starting_age: 0,
+                maximum_starting_age: 70,
+                mortality_bands: vec![MortalityBandV1 {
+                    through_age: u16::MAX,
+                    annual_deaths_per_10_000: 5_000,
+                }],
+            },
+        };
+        let mut whole_year = Simulation::from_scenario(populated.clone(), 42)?;
+        let mut uneven_steps = Simulation::from_scenario(populated, 42)?;
+
+        whole_year.advance(SimDuration::from_days(360))?;
+        uneven_steps.advance(SimDuration::from_days(17))?;
+        uneven_steps.advance(SimDuration::from_days(73))?;
+        uneven_steps.advance(SimDuration::from_days(101))?;
+        uneven_steps.advance(SimDuration::from_days(169))?;
+
+        whole_year.finish()?;
+        uneven_steps.finish()?;
+        let whole_year = whole_year.report();
+        let uneven_steps = uneven_steps.report();
+        let death_payloads = |report: &super::SimulationReport| {
+            report
+                .events
+                .iter()
+                .filter_map(|event| match &event.payload {
+                    EventPayloadV1::PersonDied { .. } => Some(event.payload.clone()),
+                    _ => None,
+                })
+                .collect::<Vec<_>>()
+        };
+
+        assert_eq!(whole_year.people, uneven_steps.people);
+        assert_eq!(death_payloads(&whole_year), death_payloads(&uneven_steps));
+        assert_eq!(
+            whole_year.summary.living_population,
+            uneven_steps.summary.living_population
         );
         Ok(())
     }

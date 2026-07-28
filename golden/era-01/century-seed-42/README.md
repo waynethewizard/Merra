@@ -16,4 +16,5 @@ cargo tui --snapshot --view people
 The summary and chronicle are exact golden tests. TUI snapshots are checked by
 the terminal crate and provide a readable preview in source review. Full event
 and population files are generated and attached by GitHub Actions rather than
-committed here.
+committed here. The baseline contains 904 events: initialization, four exact
+season transitions per year, annual mortality, and completion.

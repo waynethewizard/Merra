@@ -275,6 +275,9 @@ fn event_short_label(event: &WorldEventV1) -> String {
         EventPayloadV1::TimeAdvanced { to_day, .. } => {
             format!("time advanced to day {to_day}")
         }
+        EventPayloadV1::SeasonBegan {
+            season_name, year, ..
+        } => format!("{season_name} began in Year {year}"),
         EventPayloadV1::PersonDied {
             name, age_years, ..
         } => format!("{name} died at {age_years}"),
@@ -351,7 +354,9 @@ fn infallible<T>(result: Result<T, Infallible>) -> T {
 mod tests {
     use std::path::PathBuf;
 
-    use merra_core::{CalendarConfig, PopulationConfigV1, SCENARIO_SCHEMA_V1, ScenarioV1};
+    use merra_core::{
+        CalendarConfig, PopulationConfigV1, SCENARIO_SCHEMA_V1, ScenarioV1, SeasonConfigV1,
+    };
     use merra_sim::{SimulationReport, run_years};
 
     use super::{View, snapshot, snapshot_view};
@@ -362,7 +367,14 @@ mod tests {
             schema_version: SCENARIO_SCHEMA_V1,
             id: String::from("tui-test"),
             title: String::from("TUI Test"),
-            calendar: CalendarConfig { days_per_year: 360 },
+            calendar: CalendarConfig {
+                days_per_year: 360,
+                seasons: vec![SeasonConfigV1 {
+                    id: String::from("year"),
+                    name: String::from("Year"),
+                    days: 360,
+                }],
+            },
             population: PopulationConfigV1 {
                 initial_people: 0,
                 minimum_starting_age: 0,

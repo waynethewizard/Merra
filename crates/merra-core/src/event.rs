@@ -14,6 +14,8 @@ pub enum EventKindV1 {
     PopulationInitialized,
     /// The clock advanced.
     TimeAdvanced,
+    /// A named season began.
+    SeasonBegan,
     /// A person died.
     PersonDied,
     /// A requested run completed.
@@ -44,6 +46,15 @@ pub enum EventPayloadV1 {
         to_day: u64,
         /// Number of elapsed days.
         elapsed_days: u64,
+    },
+    /// A named season began at an exact calendar boundary.
+    SeasonBegan {
+        /// Stable season identifier from the scenario.
+        season_id: String,
+        /// Human-readable season name.
+        season_name: String,
+        /// Zero-based year containing the season start.
+        year: u64,
     },
     /// An explainable natural death.
     PersonDied {

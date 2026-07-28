@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::CalendarConfig;
+use crate::{CalendarConfig, CalendarError};
 
 /// Current supported scenario schema.
 pub const SCENARIO_SCHEMA_V1: u32 = 1;
@@ -38,9 +38,7 @@ impl ScenarioV1 {
         if self.title.trim().is_empty() {
             return Err(ScenarioError::EmptyTitle);
         }
-        if !self.calendar.is_valid() {
-            return Err(ScenarioError::InvalidCalendar);
-        }
+        self.calendar.validate()?;
         self.population.validate()?;
         Ok(())
     }
@@ -126,9 +124,9 @@ pub enum ScenarioError {
     /// The display title is blank.
     #[error("scenario title must not be empty")]
     EmptyTitle,
-    /// The calendar cannot advance.
-    #[error("scenario calendar must contain at least one day per year")]
-    InvalidCalendar,
+    /// The calendar is internally inconsistent.
+    #[error(transparent)]
+    Calendar(#[from] CalendarError),
     /// The initial age range is inverted.
     #[error("minimum starting age must not exceed maximum starting age")]
     InvalidStartingAges,
@@ -156,7 +154,18 @@ mod tests {
     use super::{
         MortalityBandV1, PopulationConfigV1, SCENARIO_SCHEMA_V1, ScenarioError, ScenarioV1,
     };
-    use crate::CalendarConfig;
+    use crate::{CalendarConfig, SeasonConfigV1};
+
+    fn calendar() -> CalendarConfig {
+        CalendarConfig {
+            days_per_year: 360,
+            seasons: vec![SeasonConfigV1 {
+                id: String::from("year"),
+                name: String::from("Year"),
+                days: 360,
+            }],
+        }
+    }
 
     #[test]
     fn rejects_unknown_schema() {
@@ -164,7 +173,7 @@ mod tests {
             schema_version: SCENARIO_SCHEMA_V1 + 1,
             id: String::from("future"),
             title: String::from("Future"),
-            calendar: CalendarConfig { days_per_year: 360 },
+            calendar: calendar(),
             population: PopulationConfigV1 {
                 initial_people: 0,
                 minimum_starting_age: 0,
@@ -185,7 +194,7 @@ mod tests {
             schema_version: SCENARIO_SCHEMA_V1,
             id: String::from("mortality-test"),
             title: String::from("Mortality Test"),
-            calendar: CalendarConfig { days_per_year: 360 },
+            calendar: calendar(),
             population: PopulationConfigV1 {
                 initial_people: 1,
                 minimum_starting_age: 0,

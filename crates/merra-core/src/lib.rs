@@ -7,7 +7,7 @@ mod output;
 mod rng;
 mod scenario;
 
-pub use calendar::{CalendarConfig, SimDuration, SimTime};
+pub use calendar::{CalendarConfig, CalendarError, SeasonConfigV1, SimDuration, SimTime};
 pub use event::{EventKindV1, EventPayloadV1, WorldEventV1};
 pub use ids::{EventId, HouseholdId, LocationId, PersonId};
 pub use output::{PersonRecordV1, RunManifestV1, SimulationSummaryV1, SourceVersionV1};

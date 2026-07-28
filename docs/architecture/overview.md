@@ -1,7 +1,7 @@
 # Architecture Overview
 
 > Status: Accepted foundation
-> Last reviewed: 2026-07-27
+> Last reviewed: 2026-07-28
 
 Merra separates historical meaning from engine orchestration and presentation.
 
@@ -21,10 +21,10 @@ xtask ───────────▶ repository workflows only
 
 ### `merra-core`
 
-Owns portable values and rules: stable identifiers, calendar values, scenarios,
-event schemas, output schemas, and deterministic random-stream derivation. It
-does not depend on Bevy. A different runtime should be able to consume its data
-contracts.
+Owns portable values and rules: stable identifiers, validated named-season
+calendars, scenarios, event schemas, output schemas, and deterministic
+random-stream derivation. It does not depend on Bevy. A different runtime
+should be able to consume its data contracts.
 
 ### `merra-sim`
 
@@ -44,6 +44,10 @@ optional terminal inspector over completed simulation evidence; it does not
 participate in authoritative world updates. Era II will add a graphical
 application and presentation boundary. Simulation crates must not depend on
 rendering, UI, audio, or platform windows.
+
+The current schedule orders time advancement, season transition, and annual
+mortality explicitly. Large advances are split at data-defined season
+boundaries before that schedule runs.
 
 ### Test and development tooling
 

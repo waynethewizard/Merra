@@ -22,8 +22,9 @@ cargo merra run \
 ```
 
 The new output directory contains a manifest, JSONL event stream, population
-records, machine summary, and Markdown chronicle. `runs/` is intentionally
-ignored.
+records, machine summary, and Markdown chronicle. The scenario's named seasons
+are data, and each exact boundary appears in the causal event stream. `runs/`
+is intentionally ignored.
 
 ## Repository guide
 

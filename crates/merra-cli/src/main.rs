@@ -77,7 +77,7 @@ fn run_simulation(
     let scenario_bytes = fs::read(scenario_path)?;
     let scenario: ScenarioV1 = ron::de::from_bytes(&scenario_bytes)?;
     scenario.validate()?;
-    let duration = SimDuration::from_years(years.get(), scenario.calendar);
+    let duration = SimDuration::from_years(years.get(), scenario.calendar.days_per_year);
 
     let mut simulation = Simulation::from_scenario(scenario.clone(), seed)?;
     simulation.advance(duration)?;

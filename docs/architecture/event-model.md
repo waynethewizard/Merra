@@ -1,7 +1,7 @@
 # Historical Event Model
 
 > Status: Accepted foundation
-> Last reviewed: 2026-07-27
+> Last reviewed: 2026-07-28
 
 Every meaningful authoritative change should be capable of emitting a
 structured world event.
@@ -39,14 +39,19 @@ The first implemented causal chain is deliberately small:
 ```text
 SimulationStarted
 → PopulationInitialized
-→ TimeAdvanced
-  ├→ PersonDied
+→ SeasonBegan(Thaw)
+→ TimeAdvanced(to next boundary)
+→ SeasonBegan
+  ├→ PersonDied (at an annual boundary)
   └→ next TimeAdvanced
 → SimulationCompleted
 ```
 
-Deaths within one time step all cite that step's `TimeAdvanced` event. Their
-emission order follows stable person identity, not Bevy query order.
+Each season transition cites the `TimeAdvanced` event that reached its exact
+boundary. Deaths at a year boundary cite the new season event, preserving the
+ordered claim that time advanced and the new year began before annual mortality
+was resolved. Death emission order follows stable person identity, not Bevy
+query order.
 
 Events support debugging, causal inspection, golden tests, historical records,
 future replay tooling, and the concrete stories used in development writing.

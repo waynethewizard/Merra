@@ -19,6 +19,8 @@ interfaces stabilize.
   contribution foundations.
 - Deterministic population initialization, stable person records, aging, and
   data-driven annual mortality over a canonical hundred-year scenario.
+- Data-driven named seasons with validated calendar coverage, exact boundary
+  events, and mortality outcomes invariant to caller-selected step sizes.
 - Interactive and ANSI-free terminal views for inspecting events and lives.
 - Golden century evidence, a multi-seed simulation laboratory, and GitHub
   Actions that publish reproducible run evidence and package Era releases.

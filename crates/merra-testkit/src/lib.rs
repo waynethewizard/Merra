@@ -1,6 +1,8 @@
 //! Shared fixtures and deterministic assertions for Merra tests.
 
-use merra_core::{CalendarConfig, PopulationConfigV1, SCENARIO_SCHEMA_V1, ScenarioV1, SimDuration};
+use merra_core::{
+    CalendarConfig, PopulationConfigV1, SCENARIO_SCHEMA_V1, ScenarioV1, SeasonConfigV1, SimDuration,
+};
 use merra_sim::{Simulation, SimulationError, SimulationReport};
 
 /// Returns the canonical foundation smoke scenario.
@@ -10,7 +12,31 @@ pub fn smoke_scenario() -> ScenarioV1 {
         schema_version: SCENARIO_SCHEMA_V1,
         id: String::from("era-01-smoke"),
         title: String::from("The First Clock"),
-        calendar: CalendarConfig { days_per_year: 360 },
+        calendar: CalendarConfig {
+            days_per_year: 360,
+            seasons: vec![
+                SeasonConfigV1 {
+                    id: String::from("thaw"),
+                    name: String::from("Thaw"),
+                    days: 90,
+                },
+                SeasonConfigV1 {
+                    id: String::from("bloom"),
+                    name: String::from("Bloom"),
+                    days: 90,
+                },
+                SeasonConfigV1 {
+                    id: String::from("highsun"),
+                    name: String::from("Highsun"),
+                    days: 90,
+                },
+                SeasonConfigV1 {
+                    id: String::from("emberfall"),
+                    name: String::from("Emberfall"),
+                    days: 90,
+                },
+            ],
+        },
         population: PopulationConfigV1 {
             initial_people: 0,
             minimum_starting_age: 0,
@@ -23,7 +49,7 @@ pub fn smoke_scenario() -> ScenarioV1 {
 /// Runs the smoke scenario to completion without filesystem metadata.
 pub fn run_smoke(seed: u64, years: u32) -> Result<SimulationReport, SimulationError> {
     let scenario = smoke_scenario();
-    let duration = SimDuration::from_years(years, scenario.calendar);
+    let duration = SimDuration::from_years(years, scenario.calendar.days_per_year);
     let mut simulation = Simulation::from_scenario(scenario, seed)?;
     simulation.advance(duration)?;
     simulation.finish()?;

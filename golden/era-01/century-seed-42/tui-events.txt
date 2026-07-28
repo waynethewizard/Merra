@@ -1,6 +1,6 @@
 ┌ Chronicle Lab ───────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │MERRA // FIRST HUNDRED YEARS   seed 42                                                                                │
-│Scenario era-01-century  |  Year 100  |  Events 203                                                                   │
+│Scenario era-01-century  |  Year 100  |  Events 904                                                                   │
 │Population 100 → 0 living  |  100 deaths                                                                              │
 └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -9,28 +9,28 @@
 ┌ Timeline ──────────────────────────────────────────┐┌ Event Evidence ────────────────────────────────────────────────┐
 │▶    1  Y  0  simulation started                    ││simulation started                                              │
 │     2  Y  0  100 people initialized                ││                                                                │
-│     3  Y  1  time advanced to day 360              ││Event ID: 1                                                     │
-│     4  Y  1  Runa Barrow died at 64                ││Absolute day: 0                                                 │
-│     5  Y  1  Alda Crow died at 69                  ││Causal events: none                                             │
-│     6  Y  1  Mara Bell died at 62                  ││Actors: 0                                                       │
-│     7  Y  2  time advanced to day 720              ││Tags: simulation                                                │
-│     8  Y  2  Leof Marsh died at 4                  ││                                                                │
-│     9  Y  3  time advanced to day 1080             ││This is an authoritative world event. Later memory and record   │
-│    10  Y  3  Cerdic Hearth died at 60              ││systems may preserve or distort it.                             │
-│    11  Y  4  time advanced to day 1440             ││                                                                │
-│    12  Y  5  time advanced to day 1800             ││                                                                │
-│    13  Y  5  Runa Mere died at 67                  ││                                                                │
-│    14  Y  6  time advanced to day 2160             ││                                                                │
-│    15  Y  7  time advanced to day 2520             ││                                                                │
-│    16  Y  7  Bera Fen died at 71                   ││                                                                │
-│    17  Y  7  Frida Crow died at 72                 ││                                                                │
-│    18  Y  7  Garin Wold died at 74                 ││                                                                │
-│    19  Y  7  Sella Marsh died at 71                ││                                                                │
-│    20  Y  8  time advanced to day 2880             ││                                                                │
-│    21  Y  8  Garin Vale died at 77                 ││                                                                │
-│    22  Y  8  Runa Vale died at 71                  ││                                                                │
-│    23  Y  9  time advanced to day 3240             ││                                                                │
-│    24  Y  9  Mara Crow died at 67                  ││                                                                │
-│    25  Y 10  time advanced to day 3600             ││                                                                │
+│     3  Y  0  Thaw began in Year 0                  ││Event ID: 1                                                     │
+│     4  Y  0  time advanced to day 90               ││Absolute day: 0                                                 │
+│     5  Y  0  Bloom began in Year 0                 ││Causal events: none                                             │
+│     6  Y  0  time advanced to day 180              ││Actors: 0                                                       │
+│     7  Y  0  Highsun began in Year 0               ││Tags: simulation                                                │
+│     8  Y  0  time advanced to day 270              ││                                                                │
+│     9  Y  0  Emberfall began in Year 0             ││This is an authoritative world event. Later memory and record   │
+│    10  Y  1  time advanced to day 360              ││systems may preserve or distort it.                             │
+│    11  Y  1  Thaw began in Year 1                  ││                                                                │
+│    12  Y  1  Runa Barrow died at 64                ││                                                                │
+│    13  Y  1  Alda Crow died at 69                  ││                                                                │
+│    14  Y  1  Mara Bell died at 62                  ││                                                                │
+│    15  Y  1  time advanced to day 450              ││                                                                │
+│    16  Y  1  Bloom began in Year 1                 ││                                                                │
+│    17  Y  1  time advanced to day 540              ││                                                                │
+│    18  Y  1  Highsun began in Year 1               ││                                                                │
+│    19  Y  1  time advanced to day 630              ││                                                                │
+│    20  Y  1  Emberfall began in Year 1             ││                                                                │
+│    21  Y  2  time advanced to day 720              ││                                                                │
+│    22  Y  2  Thaw began in Year 2                  ││                                                                │
+│    23  Y  2  Leof Marsh died at 4                  ││                                                                │
+│    24  Y  2  time advanced to day 810              ││                                                                │
+│    25  Y  2  Bloom began in Year 2                 ││                                                                │
 └────────────────────────────────────────────────────┘└────────────────────────────────────────────────────────────────┘
 q quit  Tab view  ↑/k ↓/j move  PgUp/PgDn page  Home/End jump

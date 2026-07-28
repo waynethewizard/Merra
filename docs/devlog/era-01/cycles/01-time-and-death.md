@@ -3,10 +3,10 @@ era = 1
 cycle = 1
 slug = "time-and-death"
 title = "Time and Death"
-status = "in_progress"
+status = "complete"
 started = "2026-07-27"
-completed = ""
-code_tag = ""
+completed = "2026-07-28"
+code_tag = "era-01-cycle-01"
 scenario = "scenarios/era-01/century.ron"
 seeds = [42]
 +++
@@ -39,13 +39,19 @@ explainable integer mortality table, and leave byte-stable evidence.
 - Scenario configuration uses RON; machine output uses JSON and JSONL.
 - Generated exploratory runs are ignored, while selected compact evidence may
   become a golden fixture.
+- Seasons are ordered scenario data with stable IDs, display names, and lengths
+  that must exactly fill the year. The engine does not hard-code four quarters.
+- Explicit requests are split at season boundaries. Annual mortality accumulates
+  elapsed time but consumes random draws only when the clock reaches a year
+  boundary.
 
 ## Implementation Notes
 
 The Bevy plugin owns a custom deterministic schedule with explicitly ordered
-time-advancement and mortality sets. A `Simulation` façade initializes
-resources, runs the schedule, and produces reports without exposing the Bevy
-`World` as a persistence interface.
+time-advancement, season-transition, and mortality sets. A `Simulation` façade
+initializes resources, divides long advances at named boundaries, runs the
+schedule, and produces reports without exposing the Bevy `World` as a
+persistence interface.
 
 Random stream seeds are derived with the versioned scheme documented in
 `docs/architecture/determinism-and-replay.md`. Population shape, names, and
@@ -63,7 +69,9 @@ Canonical century seed: `42`.
 
 - 100 people initialized with starting ages from 0 through 70.
 - 100 people died; the final death occurred in Year 77.
-- 203 ordered events were emitted over 36,000 simulated days.
+- Four 90-day seasons—Thaw, Bloom, Highsun, and Emberfall—repeated for the
+  canonical 360-day year.
+- 904 ordered events were emitted over 36,000 simulated days.
 - Runa Barrow was the first recorded death, Alda Vale reached the greatest age
   at 92, and Leof Stone was the final recorded death.
 
@@ -72,12 +80,24 @@ A fixed cohort of seeds 1 through 100 produced extinction years from 73 through
 ended with no living people because this intentionally narrow cycle has death
 but not birth.
 
+Adding the season schedule did not alter those death results. Seed 42 retained
+the same first, longest, and final lives, and the 100-seed cohort retained the
+same extinction and lifespan ranges. The additional events expose time at a
+finer causal resolution without perturbing the mortality random stream.
+
 ## Failures and Surprises
 
 The first seed-laboratory report measured only living population at Year 100.
 Every run returned zero, so the metric had no comparative signal. We preserved
 that result and added extinction year and age-at-death ranges instead of
 silently tuning the mortality table until the chart looked interesting.
+
+A naive seasonal schedule would have evaluated "annual" mortality four times
+per year and consumed four times as many random draws. The final design ages
+people on every advance but keeps an annual mortality clock. An uneven-step
+test—17, 73, 101, and 169 days versus one 360-day request—requires equal people
+and death payloads. Its `TimeAdvanced` events intentionally differ because
+caller requests are part of the evidence.
 
 The current mortality values are illustrative mechanics, not a historical or
 demographic claim. Their value in this cycle is that the inputs and outcomes
@@ -86,11 +106,17 @@ are inspectable.
 ## Tests and Invariants
 
 - Scenario schemas and calendars must validate before simulation.
+- Season IDs and names must be nonblank and unique IDs must have positive
+  lengths summing exactly to the year.
+- Every crossed season boundary emits one named event, including the next
+  year's first season.
 - Identical reports must serialize to identical bytes.
 - Random streams repeat for the same domain and differ across domains.
 - Mortality bands must be ordered, bounded by 10,000, and cover every possible
   age.
 - Mortality evaluation and death event order follow stable person identity.
+- Caller step sizes cannot change annual mortality outcomes or final person
+  records.
 - The seed-42 century summary, chronicle, event TUI, and people TUI are exact
   golden fixtures.
 - A finished simulation cannot advance or finish again.
@@ -119,9 +145,9 @@ directory.
 - There are no births, households, relationships, locations, or causes of death.
 - Everyone is guaranteed to die eventually under the final age band, making
   extinction an expected property rather than a discovered equilibrium.
-- Mortality is checked at deterministic simulation steps and is not yet a
-  calibrated survival model.
-- The calendar has a year length but no named seasons yet.
+- Mortality is checked annually and is not yet a calibrated survival model.
+- Seasons currently affect scheduling and evidence but not weather, food,
+  labor, fertility, travel, or health.
 - The TUI inspects completed evidence rather than a live or pausable world.
 
 ## Newsletter Candidates
@@ -132,6 +158,8 @@ directory.
   claim.
 - Why a statistically uninteresting result can reveal a better measurement.
 - How one Ratatui renderer serves interaction, golden tests, and CI summaries.
+- Why introducing seasons must not consume four times as many mortality rolls.
+- How boundary splitting turns calendar data into a deterministic Bevy schedule.
 
 ## Next Questions
 

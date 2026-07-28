@@ -1,7 +1,7 @@
 # Determinism and Replay
 
 > Status: Accepted foundation
-> Last reviewed: 2026-07-27
+> Last reviewed: 2026-07-28
 
 A Merra run is identified by its source version, dependency lockfile, scenario
 bytes, schema versions, root seed, duration, and future player commands.
@@ -36,6 +36,18 @@ Initial demographics, names, and mortality already use separate domains.
 Annual mortality checks collect living people and sort them by `PersonId`
 before drawing or emitting events. That ordering is part of the reproducibility
 contract even though Bevy is free to store entities in a different order.
+
+Scenario calendars provide ordered, named seasons whose positive lengths must
+exactly fill the configured year. A request to advance many days is divided at
+those boundaries. The simulation therefore emits every season transition even
+when a caller asks for a whole century in one operation.
+
+Mortality remains annual. Seasonal scheduling accumulates age continuously but
+draws from the mortality stream only at a year boundary, so adding seasons did
+not silently quadruple a person's chance of death or consume extra random
+numbers. Tests compare one large advance with uneven caller advances and require
+equal person records and death payloads. The `TimeAdvanced` evidence may differ
+because the caller's explicit requests are themselves recorded facts.
 
 ## Run products
 
