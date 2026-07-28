@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "npm run validate && next dev",
     "build": "npm run validate && next build",
-    "build:sites": "npm run validate && SITES_BUILD=1 opennextjs-cloudflare build",
+    "build:sites": "npm run validate && SITES_BUILD=1 opennextjs-cloudflare build && wrangler deploy --dry-run --outdir .worker-dist",
     "check": "npm run validate && next typegen && tsc --noEmit",
     "check:sites": "npm run validate && SITES_BUILD=1 next typegen && tsc --noEmit",
     "validate": "tsx scripts/validate-content.ts"
