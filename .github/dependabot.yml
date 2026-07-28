@@ -16,3 +16,13 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+
+  - package-ecosystem: npm
+    directory: /site
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      public-site:
+        patterns: ["*"]

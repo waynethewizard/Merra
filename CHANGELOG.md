@@ -17,3 +17,6 @@ interfaces stabilize.
 - Deterministic smoke scenario with structured events and reproducible reports.
 - Architecture, development chronicle, newsletter, licensing, security, and
   contribution foundations.
+- Static public project site with a development chronicle and interactive
+  explorer for curated, reproducible golden runs.
+- Railway container and deployment configuration for the public site.

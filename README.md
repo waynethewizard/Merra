@@ -26,6 +26,7 @@ summary, and Markdown chronicle. `runs/` is intentionally ignored.
 
 ## Repository guide
 
+- [`site/`](site/) is the static public project site and golden-run explorer.
 - [`docs/design-principles.md`](docs/design-principles.md) defines the
   simulation's non-negotiable design tests.
 - [`docs/roadmap.md`](docs/roadmap.md) describes the long-range Eras and cycles.
@@ -38,6 +39,19 @@ summary, and Markdown chronicle. `runs/` is intentionally ignored.
 - [`CHANGELOG.md`](CHANGELOG.md) is the concise release-facing change record.
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) before submitting changes.
+
+## Run the public site
+
+The site reads published prose from `docs/` and selected deterministic evidence
+from `golden/`; those remain the canonical sources.
+
+```sh
+npm install --prefix site
+npm run site:dev
+```
+
+Use `npm run site:validate`, `npm run site:check`, and `npm run site:build`
+before publishing.
 
 ## License
 

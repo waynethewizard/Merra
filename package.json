@@ -1,0 +1,13 @@
+{
+  "name": "merra",
+  "private": true,
+  "scripts": {
+    "site:dev": "npm --prefix site run dev",
+    "site:build": "npm --prefix site run build",
+    "site:check": "npm --prefix site run check",
+    "site:validate": "npm --prefix site run validate"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

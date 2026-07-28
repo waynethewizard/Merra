@@ -1,0 +1,3 @@
+{"id":1,"time":{"day":0},"kind":"simulation_started","actors":[],"location":null,"causes":[],"tags":["simulation"],"payload":{"type":"simulation_started","scenario_id":"era-01-smoke","seed":42}}
+{"id":2,"time":{"day":360},"kind":"time_advanced","actors":[],"location":null,"causes":[1],"tags":["time"],"payload":{"type":"time_advanced","from_day":0,"to_day":360,"elapsed_days":360}}
+{"id":3,"time":{"day":360},"kind":"simulation_completed","actors":[],"location":null,"causes":[2],"tags":["simulation"],"payload":{"type":"simulation_completed","final_day":360,"elapsed_years":1}}

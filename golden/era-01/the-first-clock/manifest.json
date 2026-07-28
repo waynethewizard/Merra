@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "event_schema_version": 1,
+  "scenario_schema_version": 1,
+  "merra_version": "0.1.0",
+  "bevy_version": "0.19.0",
+  "rust_version": "1.97.1",
+  "source": {
+    "git_commit": "ff63830a74b62501427450bbd73a92841f9e6443",
+    "dirty": false
+  },
+  "scenario_id": "era-01-smoke",
+  "scenario_hash": "f83eab98246e010fdcd5f610a941f4b3581267b68fae5c9fc46310b69fee1366",
+  "seed": 42,
+  "years": 1,
+  "days": 360
+}

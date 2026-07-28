@@ -57,3 +57,29 @@ jobs:
         env:
           RUSTDOCFLAGS: -D warnings
         run: cargo doc --workspace --no-deps --locked
+
+  site:
+    name: Public site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Install Node.js
+        uses: actions/setup-node@cdca7365b2dadb8b4e8873a1f80f8f93d82a5360 # v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install site dependencies
+        run: npm ci --prefix site
+
+      - name: Validate public content
+        run: npm run site:validate
+
+      - name: Type-check site
+        run: npm run site:check
+
+      - name: Build static site
+        run: npm run site:build
