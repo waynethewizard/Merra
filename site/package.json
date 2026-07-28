@@ -4,11 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "npm run validate && next dev",
     "build": "npm run validate && next build",
     "build:sites": "npm run validate && vinext build",
-    "check": "next typegen && tsc --noEmit",
-    "check:sites": "vinext check",
+    "check": "npm run validate && next typegen && tsc --noEmit",
+    "check:sites": "npm run validate && vinext check",
     "validate": "tsx scripts/validate-content.ts"
   },
   "dependencies": {

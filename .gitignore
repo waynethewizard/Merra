@@ -8,6 +8,7 @@
 /site/.next/
 /site/dist/
 /site/out/
+/site/src/generated/content.json
 /site/*.tsbuildinfo
 
 # Generated simulation runs and profiling output
