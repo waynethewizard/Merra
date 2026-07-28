@@ -12,6 +12,7 @@ coverage
 dist
 site/node_modules
 site/.next
+site/dist
 site/out
 site/.tsbuildinfo
 assets

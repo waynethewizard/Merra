@@ -6,6 +6,7 @@
 /dist/
 /site/node_modules/
 /site/.next/
+/site/dist/
 /site/out/
 /site/*.tsbuildinfo
 
@@ -28,8 +29,11 @@ credentials.json
 .cargo/credentials
 .cargo/credentials.toml
 
+# Connected site metadata (the project ID is public; runtime values are not)
+.openai/*
+!.openai/hosting.json
+
 # Editors and operating systems
-.openai/
 .idea/
 .vscode/
 *.swp

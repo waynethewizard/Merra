@@ -6,13 +6,20 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace @merra/site",
-    "build": "npm run build --workspace @merra/site && node site/scripts/copy-dist.mjs",
+    "build": "npm run build:sites --workspace @merra/site && node site/scripts/package-sites.mjs",
     "site:dev": "npm --prefix site run dev",
     "site:build": "npm --prefix site run build",
+    "site:build:sites": "npm --prefix site run build:sites && node site/scripts/package-sites.mjs",
     "site:check": "npm --prefix site run check",
     "site:validate": "npm --prefix site run validate"
   },
   "engines": {
     "node": ">=22"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "8.5.23",
+      "sharp": "0.35.3"
+    }
   }
 }
