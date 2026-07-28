@@ -29,7 +29,8 @@ deliberately explicit family mechanism rather than a demographic claim.
 - Typed events for household formation and dissolution, partnerships, and
   childbirth.
 - A headless `households.json` report alongside population and event evidence.
-- A terminal genealogy view and fixed-size golden screen.
+- A story-first terminal overview plus searchable history, people, lineage,
+  household, and fixed-size golden screens.
 - A reproducible seed with at least four generations and reviewable invariants.
 
 ## Decisions and Rationale
@@ -72,9 +73,12 @@ The departure-caused dissolution cites the new partnership event rather than
 waiting for an unrelated future season boundary.
 
 The CLI writes `households.json` for every run; it is empty when families are
-disabled. Ratatui adds a third `Genealogy` view that lists generations and
-resolves the selected person's parents, current partner, children, household,
-and surname.
+disabled. Ratatui presents five views over the completed report. Overview
+derives outcomes rather than replaying raw records. History defaults to
+meaningful population and family events, while its all/debug filter preserves
+the complete clock and season stream. People, Lineage, and Households resolve
+stable identities and reconstruct historical unions and membership without
+mutating or duplicating authoritative simulation state.
 
 ## Experiments and Results
 
@@ -100,9 +104,16 @@ A fixed cohort of seeds 1 through 100 also ran for 60 years:
 - Distinct surnames represented at the end of each complete record ranged from
   8 through 13.
 
-The golden genealogy opens on Garin Thorn. It can resolve his founder status,
-current Thorn household, later partner Garin Fen, and children Mara Thorn and
-Garin Thorn from stable evidence.
+The golden showcase opens on Garin Thorn. It resolves his founder status,
+children Mara Thorn and Garin Thorn under his first union with Garin Gorse,
+later partnership with Runa Oak, and current partnership with Garin Fen. The
+overview also makes the exact generation cohorts visible, shows Fen surviving
+across G0–G3, and identifies Gorse as extinct at the Year 60 boundary.
+
+The terminal showcase was completed as a presentation follow-up to the tagged
+Cycle 2 simulation. It changes no scenario, schema, event, population,
+household, summary, or chronicle contract: every displayed result is derived
+from the same report used by the headless evidence writers.
 
 ## Failures and Surprises
 
@@ -165,17 +176,17 @@ cargo merra run \
   --output runs/dynasty-seed-42
 
 cargo tui \
-  --scenario scenarios/era-01/dynasty.ron \
-  --seed 42 \
-  --years 60 \
-  --view genealogy
+  --view overview
 
 cargo tui \
-  --scenario scenarios/era-01/dynasty.ron \
-  --seed 42 \
-  --years 60 \
   --snapshot \
-  --view genealogy
+  --view lineage \
+  --focus-person 1
+
+cargo tui \
+  --snapshot \
+  --view households \
+  --focus-household 1
 
 cargo xtask seed-lab \
   --scenario scenarios/era-01/dynasty.ron \
@@ -206,8 +217,9 @@ previously nonexistent directory.
 - Partner choice is deterministic and same-generation; there are no courtship,
   preference, conflict, divorce, adoption, guardianship, or plural households.
 - Surnames belong to people and households but have no cultural naming rules.
-- Household history is visible in events, while the final household report
-  intentionally contains current rather than time-sliced membership.
+- The final household report intentionally contains current rather than
+  time-sliced membership; the inspector reconstructs its historical timeline
+  from authoritative events.
 - The family implementation should move out of the growing simulation root
   module when a later cycle needs to extend its internal system boundary.
 

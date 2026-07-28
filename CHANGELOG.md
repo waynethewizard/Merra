@@ -24,11 +24,13 @@ interfaces stabilize.
 - Opt-in families with stable parentage, partnerships, surname-bearing
   households, scheduled childbirth, dissolution after death, and a
   four-generation genealogy inspector.
-- Interactive and ANSI-free terminal views for inspecting events and lives.
+- Story-first and ANSI-free terminal field report with a derived Overview,
+  resolved History, searchable/sortable people and households, union-aware
+  lineage, stable-ID focus controls, and responsive snapshots.
 - Golden century evidence, a multi-seed simulation laboratory, and GitHub
   Actions that publish reproducible run evidence and package Era releases.
 - Static public project site with a development chronicle and interactive
-  explorer for curated, reproducible golden runs.
+  explorers for curated event evidence and the five-view terminal showcase.
 - Railway container and deployment configuration for the public site.
 
 ### Fixed

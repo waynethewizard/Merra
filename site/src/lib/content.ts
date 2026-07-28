@@ -68,9 +68,31 @@ export type CycleRecord = {
   body: string;
 };
 
+export type TerminalShowcase = {
+  title: string;
+  description: string;
+  command: string;
+  scenarioId: string;
+  seed: number;
+  years: number;
+  eventCount: number;
+  initialPopulation: number;
+  births: number;
+  livingPopulation: number;
+  deaths: number;
+  householdCount: number;
+  views: {
+    slug: string;
+    title: string;
+    description: string;
+    screen: string;
+  }[];
+};
+
 const snapshot = content as unknown as {
   foundationRun: GoldenRun;
   currentCycle: CycleRecord;
+  terminalShowcase: TerminalShowcase;
 };
 
 export function getFoundationRun(): GoldenRun {
@@ -79,4 +101,8 @@ export function getFoundationRun(): GoldenRun {
 
 export function getCurrentCycle(): CycleRecord {
   return snapshot.currentCycle;
+}
+
+export function getTerminalShowcase(): TerminalShowcase {
+  return snapshot.terminalShowcase;
 }

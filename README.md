@@ -42,34 +42,43 @@ stream. `runs/` is intentionally ignored.
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) before submitting changes.
 
-## Review a generated century
+## Explore a generated history
 
-Open the interactive Events, People, and Genealogy inspector:
+Open the interactive Cycle 2 field report:
 
 ```sh
 cargo tui
 ```
 
-Use arrow keys or `j`/`k` to navigate, `Tab` to switch collections, and `q` to
-quit. For a portable review snapshot:
+The default seed-42 dynasty runs for 60 years and opens on a derived Overview:
+population shape, generation survival, surname outcomes, household totals, and
+Garin Thorn's three partnerships. `Tab` or `1`–`5` switches among Overview,
+History, People, Lineage, and Households. Use arrow keys or `j`/`k` to move,
+`/` to search, `s` to sort, `f` to reveal History filters including the full
+clock/debug stream, and `Enter`, `h`, or `e` to follow related evidence.
+
+Portable snapshots use the same renderer and contain no ANSI escapes:
 
 ```sh
-cargo tui --snapshot --view events
+cargo tui --snapshot --view overview
+cargo tui --snapshot --view history
 cargo tui --snapshot --view people
+cargo tui --snapshot --view lineage --focus-person 1
+cargo tui --snapshot --view households --focus-household 1
 ```
 
-Inspect the current four-generation Cycle 2 history with:
+The Cycle 1 century remains directly reproducible:
 
 ```sh
 cargo tui \
-  --scenario scenarios/era-01/dynasty.ron \
+  --scenario scenarios/era-01/century.ron \
   --seed 42 \
-  --years 60 \
-  --view genealogy
+  --years 100 \
+  --view history
 ```
 
 The headless report for a family-enabled scenario also includes
-`households.json`; the genealogy view resolves stable parent, partner,
+`households.json`; the terminal views resolve stable event, person, partner,
 descendant, and household identities without exposing Bevy entity IDs.
 
 Run a fixed multi-seed cohort with:
@@ -78,8 +87,9 @@ Run a fixed multi-seed cohort with:
 cargo xtask seed-lab --output runs/seed-lab
 ```
 
-GitHub Actions repeats the canonical century on changes, exposes its chronicle
-in the job summary, and runs the 100-seed laboratory each week.
+GitHub Actions repeats the canonical century and dynasty on changes, exposes
+their story-first terminal overviews in the job summary, and runs the 100-seed
+laboratories each week.
 
 ## Run the public site
 

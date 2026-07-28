@@ -117,8 +117,8 @@ are inspectable.
 - Mortality evaluation and death event order follow stable person identity.
 - Caller step sizes cannot change annual mortality outcomes or final person
   records.
-- The seed-42 century summary, chronicle, event TUI, and people TUI are exact
-  golden fixtures.
+- The seed-42 century summary, chronicle, Overview, History, and People TUI
+  screens are exact golden fixtures.
 - A finished simulation cannot advance or finish again.
 - The headless simulation dependency tree must exclude rendering and windowing.
 
@@ -131,8 +131,11 @@ cargo merra run \
   --years 100 \
   --output runs/century-seed-42
 
-cargo tui --snapshot --view events
-cargo tui --snapshot --view people
+cargo tui \
+  --scenario scenarios/era-01/century.ron \
+  --years 100 \
+  --snapshot \
+  --view history
 cargo xtask seed-lab --output runs/seed-lab
 ```
 

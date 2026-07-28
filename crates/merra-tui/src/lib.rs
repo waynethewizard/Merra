@@ -1,521 +1,31 @@
-//! Terminal rendering and navigation for Merra simulation evidence.
+//! Story-first terminal rendering and navigation for Merra simulation evidence.
 
-use std::convert::Infallible;
+mod model;
+mod render;
 
-use merra_core::{EventPayloadV1, PersonRecordV1, WorldEventV1};
-use merra_sim::SimulationReport;
-use ratatui::{
-    Frame, Terminal,
-    backend::TestBackend,
-    layout::{Constraint, Layout, Rect},
-    style::{Color, Modifier, Style},
-    text::{Line, Span, Text},
-    widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Tabs, Wrap},
-};
-
-/// Inspectable evidence collections.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum View {
-    /// Ordered structured events.
-    Events,
-    /// Final person records.
-    People,
-    /// Parentage, partnerships, households, and descendants.
-    Genealogy,
-}
-
-/// Navigable state for the terminal inspector.
-pub struct Inspector {
-    report: SimulationReport,
-    view: View,
-    selected_event: usize,
-    selected_person: usize,
-}
-
-impl Inspector {
-    /// Creates an inspector focused on the first event.
-    #[must_use]
-    pub const fn new(report: SimulationReport) -> Self {
-        Self {
-            report,
-            view: View::Events,
-            selected_event: 0,
-            selected_person: 0,
-        }
-    }
-
-    /// Returns the current view.
-    #[must_use]
-    pub const fn view(&self) -> View {
-        self.view
-    }
-
-    /// Switches between events and people.
-    pub const fn toggle_view(&mut self) {
-        self.view = match self.view {
-            View::Events => View::People,
-            View::People => View::Genealogy,
-            View::Genealogy => View::Events,
-        };
-    }
-
-    /// Selects a specific evidence view.
-    pub const fn set_view(&mut self, view: View) {
-        self.view = view;
-    }
-
-    /// Selects the preceding row.
-    pub fn previous(&mut self) {
-        let selected = self.selected_mut();
-        *selected = selected.saturating_sub(1);
-    }
-
-    /// Selects the following row.
-    pub fn next(&mut self) {
-        let maximum = self.active_len().saturating_sub(1);
-        let selected = self.selected_mut();
-        *selected = selected.saturating_add(1).min(maximum);
-    }
-
-    /// Moves upward by a page.
-    pub fn page_up(&mut self) {
-        let selected = self.selected_mut();
-        *selected = selected.saturating_sub(10);
-    }
-
-    /// Moves downward by a page.
-    pub fn page_down(&mut self) {
-        let maximum = self.active_len().saturating_sub(1);
-        let selected = self.selected_mut();
-        *selected = selected.saturating_add(10).min(maximum);
-    }
-
-    /// Selects the first row.
-    pub fn first(&mut self) {
-        *self.selected_mut() = 0;
-    }
-
-    /// Selects the last row.
-    pub fn last(&mut self) {
-        *self.selected_mut() = self.active_len().saturating_sub(1);
-    }
-
-    fn selected_mut(&mut self) -> &mut usize {
-        match self.view {
-            View::Events => &mut self.selected_event,
-            View::People | View::Genealogy => &mut self.selected_person,
-        }
-    }
-
-    fn active_len(&self) -> usize {
-        match self.view {
-            View::Events => self.report.events.len(),
-            View::People | View::Genealogy => self.report.people.len(),
-        }
-    }
-}
-
-/// Draws the complete inspector.
-pub fn render(frame: &mut Frame<'_>, inspector: &Inspector) {
-    let [header, tabs, body, footer] = Layout::vertical([
-        Constraint::Length(5),
-        Constraint::Length(3),
-        Constraint::Min(8),
-        Constraint::Length(1),
-    ])
-    .areas(frame.area());
-    render_header(frame, header, inspector);
-    render_tabs(frame, tabs, inspector);
-    let [list, detail] =
-        Layout::horizontal([Constraint::Percentage(45), Constraint::Percentage(55)]).areas(body);
-    match inspector.view {
-        View::Events => render_events(frame, list, detail, inspector),
-        View::People => render_people(frame, list, detail, inspector),
-        View::Genealogy => render_genealogy(frame, list, detail, inspector),
-    }
-    frame.render_widget(
-        Paragraph::new("q quit  Tab view  ↑/k ↓/j move  PgUp/PgDn page  Home/End jump")
-            .style(Style::default().fg(Color::DarkGray)),
-        footer,
-    );
-}
-
-fn render_header(frame: &mut Frame<'_>, area: Rect, inspector: &Inspector) {
-    let summary = &inspector.report.summary;
-    let births = inspector
-        .report
-        .people
-        .iter()
-        .filter(|person| person.birth_day.is_some())
-        .count();
-    let population = if births == 0 {
-        format!(
-            "Population {} → {} living  |  {} deaths",
-            summary.initial_population, summary.living_population, summary.deaths
-        )
-    } else {
-        format!(
-            "Population {} + {births} born → {} living  |  {} deaths",
-            summary.initial_population, summary.living_population, summary.deaths
-        )
-    };
-    let text = Text::from(vec![
-        Line::from(vec![
-            Span::styled(
-                "MERRA // FIRST HUNDRED YEARS",
-                Style::default()
-                    .fg(Color::Cyan)
-                    .add_modifier(Modifier::BOLD),
-            ),
-            Span::raw(format!("   seed {}", summary.seed)),
-        ]),
-        Line::from(format!(
-            "Scenario {}  |  Year {}  |  Events {}",
-            summary.scenario_id, summary.elapsed_years, summary.event_count
-        )),
-        Line::from(population),
-    ]);
-    frame.render_widget(
-        Paragraph::new(text).block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title(" Chronicle Lab "),
-        ),
-        area,
-    );
-}
-
-fn render_tabs(frame: &mut Frame<'_>, area: Rect, inspector: &Inspector) {
-    let selected = match inspector.view {
-        View::Events => 0,
-        View::People => 1,
-        View::Genealogy => 2,
-    };
-    frame.render_widget(
-        Tabs::new(["Events", "People", "Genealogy"])
-            .select(selected)
-            .block(Block::default().borders(Borders::ALL))
-            .highlight_style(
-                Style::default()
-                    .fg(Color::Yellow)
-                    .add_modifier(Modifier::BOLD),
-            ),
-        area,
-    );
-}
-
-fn render_events(frame: &mut Frame<'_>, list_area: Rect, detail_area: Rect, inspector: &Inspector) {
-    let items: Vec<ListItem<'_>> = inspector
-        .report
-        .events
-        .iter()
-        .map(|event| {
-            ListItem::new(format!(
-                "{:>4}  Y{:>3}  {}",
-                event.id.0,
-                event.time.day() / u64::from(inspector.report.summary.days_per_year),
-                event_short_label(event)
-            ))
-        })
-        .collect();
-    let mut state = ListState::default().with_selected(Some(inspector.selected_event));
-    frame.render_stateful_widget(
-        List::new(items)
-            .block(Block::default().borders(Borders::ALL).title(" Timeline "))
-            .highlight_symbol("▶ ")
-            .highlight_style(Style::default().fg(Color::Yellow)),
-        list_area,
-        &mut state,
-    );
-
-    let detail = inspector
-        .report
-        .events
-        .get(inspector.selected_event)
-        .map_or_else(|| String::from("No event selected."), event_detail);
-    frame.render_widget(
-        Paragraph::new(detail)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title(" Event Evidence "),
-            )
-            .wrap(Wrap { trim: false }),
-        detail_area,
-    );
-}
-
-fn render_people(frame: &mut Frame<'_>, list_area: Rect, detail_area: Rect, inspector: &Inspector) {
-    let items: Vec<ListItem<'_>> = inspector
-        .report
-        .people
-        .iter()
-        .map(|person| {
-            let status = if person.alive { "living" } else { "dead" };
-            ListItem::new(format!(
-                "{:>3}  {:<22} age {:>3}  {status}",
-                person.id.0, person.name, person.final_age_years
-            ))
-        })
-        .collect();
-    let mut state = ListState::default().with_selected(Some(inspector.selected_person));
-    frame.render_stateful_widget(
-        List::new(items)
-            .block(Block::default().borders(Borders::ALL).title(" People "))
-            .highlight_symbol("▶ ")
-            .highlight_style(Style::default().fg(Color::Yellow)),
-        list_area,
-        &mut state,
-    );
-
-    let detail = inspector
-        .report
-        .people
-        .get(inspector.selected_person)
-        .map_or_else(|| String::from("No person selected."), person_detail);
-    frame.render_widget(
-        Paragraph::new(detail)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title(" Life Record "),
-            )
-            .wrap(Wrap { trim: false }),
-        detail_area,
-    );
-}
-
-fn render_genealogy(
-    frame: &mut Frame<'_>,
-    list_area: Rect,
-    detail_area: Rect,
-    inspector: &Inspector,
-) {
-    let items: Vec<ListItem<'_>> = inspector
-        .report
-        .people
-        .iter()
-        .map(|person| {
-            let parents = if person.parent_ids.is_empty() {
-                String::from("founder")
-            } else {
-                format!(
-                    "parents {}",
-                    person
-                        .parent_ids
-                        .iter()
-                        .map(|parent| parent.0.to_string())
-                        .collect::<Vec<_>>()
-                        .join("+")
-                )
-            };
-            ListItem::new(format!(
-                "G{}  {:>3}  {:<20} {parents}",
-                person.generation, person.id.0, person.name
-            ))
-        })
-        .collect();
-    let mut state = ListState::default().with_selected(Some(inspector.selected_person));
-    frame.render_stateful_widget(
-        List::new(items)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title(" Family Tree "),
-            )
-            .highlight_symbol("▶ ")
-            .highlight_style(Style::default().fg(Color::Yellow)),
-        list_area,
-        &mut state,
-    );
-
-    let detail = inspector
-        .report
-        .people
-        .get(inspector.selected_person)
-        .map_or_else(
-            || String::from("No person selected."),
-            |person| genealogy_detail(person, &inspector.report),
-        );
-    frame.render_widget(
-        Paragraph::new(detail)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title(" Kinship Evidence "),
-            )
-            .wrap(Wrap { trim: false }),
-        detail_area,
-    );
-}
-
-fn event_short_label(event: &WorldEventV1) -> String {
-    match &event.payload {
-        EventPayloadV1::SimulationStarted { .. } => String::from("simulation started"),
-        EventPayloadV1::PopulationInitialized { people } => {
-            format!("{people} people initialized")
-        }
-        EventPayloadV1::TimeAdvanced { to_day, .. } => {
-            format!("time advanced to day {to_day}")
-        }
-        EventPayloadV1::SeasonBegan {
-            season_name, year, ..
-        } => format!("{season_name} began in Year {year}"),
-        EventPayloadV1::HouseholdFormed { name, .. } => format!("{name} formed"),
-        EventPayloadV1::PartnershipFormed { partners, .. } => {
-            format!("{} and {} partnered", partners[0].0, partners[1].0)
-        }
-        EventPayloadV1::PartnershipEnded { partners, .. } => {
-            format!("partnership {}–{} ended", partners[0].0, partners[1].0)
-        }
-        EventPayloadV1::PersonBorn {
-            name, generation, ..
-        } => format!("{name} born in generation {generation}"),
-        EventPayloadV1::HouseholdDissolved { name, .. } => format!("{name} dissolved"),
-        EventPayloadV1::PersonDied {
-            name, age_years, ..
-        } => format!("{name} died at {age_years}"),
-        EventPayloadV1::SimulationCompleted { .. } => String::from("simulation completed"),
-    }
-}
-
-fn event_detail(event: &WorldEventV1) -> String {
-    let causes = if event.causes.is_empty() {
-        String::from("none")
-    } else {
-        event
-            .causes
-            .iter()
-            .map(|id| id.0.to_string())
-            .collect::<Vec<_>>()
-            .join(", ")
-    };
-    format!(
-        "{}\n\nEvent ID: {}\nAbsolute day: {}\nCausal events: {}\nActors: {}\nTags: {}\n\nThis is an authoritative world event. Later memory and record systems may preserve or distort it.",
-        event_short_label(event),
-        event.id.0,
-        event.time.day(),
-        causes,
-        event.actors.len(),
-        event.tags.join(", "),
-    )
-}
-
-fn person_detail(person: &PersonRecordV1) -> String {
-    let ending = person.death_day.map_or_else(
-        || String::from("Alive at end of run"),
-        |day| format!("Died on absolute day {day}"),
-    );
-    format!(
-        "{}\n\nPerson ID: {}\nStarting age: {}\nFinal age: {}\n{}\n\nThis record is stable simulation state, not a Bevy entity identifier.",
-        person.name, person.id.0, person.starting_age_years, person.final_age_years, ending,
-    )
-}
-
-fn genealogy_detail(person: &PersonRecordV1, report: &SimulationReport) -> String {
-    let resolve_person = |id| {
-        report
-            .people
-            .iter()
-            .find(|candidate| candidate.id == id)
-            .map_or_else(
-                || format!("Person {}", id.0),
-                |candidate| candidate.name.clone(),
-            )
-    };
-    let parents = if person.parent_ids.is_empty() {
-        String::from("scenario founder")
-    } else {
-        person
-            .parent_ids
-            .iter()
-            .map(|parent| resolve_person(*parent))
-            .collect::<Vec<_>>()
-            .join(" + ")
-    };
-    let partner = person
-        .partner_id
-        .map_or_else(|| String::from("none"), resolve_person);
-    let children = report
-        .people
-        .iter()
-        .filter(|candidate| candidate.parent_ids.contains(&person.id))
-        .map(|child| child.name.as_str())
-        .collect::<Vec<_>>();
-    let children = if children.is_empty() {
-        String::from("none")
-    } else {
-        children.join(", ")
-    };
-    let household = person.household_id.map_or_else(
-        || String::from("none"),
-        |id| {
-            report
-                .households
-                .iter()
-                .find(|household| household.id == id)
-                .map_or_else(
-                    || format!("Household {}", id.0),
-                    |household| household.name.clone(),
-                )
-        },
-    );
-    format!(
-        "{}\n\nPerson ID: {}\nGeneration: {}\nParents: {parents}\nPartner: {partner}\nChildren: {children}\nHousehold: {household}\nSurname: {}\n\nRelationships use stable domain IDs and can be reconstructed from birth and partnership events.",
-        person.name, person.id.0, person.generation, person.surname,
-    )
-}
-
-/// Renders a portable, ANSI-free screen for tests, CI, and review.
-pub fn snapshot(report: SimulationReport, width: u16, height: u16) -> String {
-    snapshot_view(report, width, height, View::Events)
-}
-
-/// Renders a selected view as portable, ANSI-free text.
-pub fn snapshot_view(report: SimulationReport, width: u16, height: u16, view: View) -> String {
-    let backend = TestBackend::new(width, height);
-    let mut terminal = infallible(Terminal::new(backend));
-    let mut inspector = Inspector::new(report);
-    inspector.set_view(view);
-    infallible(terminal.draw(|frame| render(frame, &inspector)));
-    let buffer = terminal.backend().buffer();
-    let mut output = String::new();
-    for y in 0..height {
-        let mut line = String::new();
-        for x in 0..width {
-            line.push_str(buffer[(x, y)].symbol());
-        }
-        output.push_str(line.trim_end());
-        output.push('\n');
-    }
-    output
-}
-
-fn infallible<T>(result: Result<T, Infallible>) -> T {
-    match result {
-        Ok(value) => value,
-        Err(never) => match never {},
-    }
-}
+pub use model::{EventFilter, Focus, HouseholdSort, Inspector, PersonSort, View};
+pub use render::{render, render_snapshot, snapshot, snapshot_view, snapshot_view_with_focus};
 
 #[cfg(test)]
 mod tests {
     use std::path::PathBuf;
 
     use merra_core::{
-        CalendarConfig, FamilyConfigV1, PopulationConfigV1, SCENARIO_SCHEMA_V1, ScenarioV1,
-        SeasonConfigV1,
+        CalendarConfig, FamilyConfigV1, HouseholdId, PersonId, PopulationConfigV1,
+        SCENARIO_SCHEMA_V1, ScenarioV1, SeasonConfigV1,
     };
     use merra_sim::{SimulationReport, run_years};
 
-    use super::{View, snapshot, snapshot_view};
+    use super::{
+        Focus, Inspector, View, render_snapshot, snapshot, snapshot_view, snapshot_view_with_focus,
+    };
 
     #[test]
-    fn snapshot_is_plain_reviewable_text() -> Result<(), Box<dyn std::error::Error>> {
+    fn snapshots_are_dynamic_plain_and_responsive() -> Result<(), Box<dyn std::error::Error>> {
         let scenario = ScenarioV1 {
             schema_version: SCENARIO_SCHEMA_V1,
             id: String::from("tui-test"),
-            title: String::from("TUI Test"),
+            title: String::from("A Small Test"),
             calendar: CalendarConfig {
                 days_per_year: 360,
                 seasons: vec![SeasonConfigV1 {
@@ -532,25 +42,66 @@ mod tests {
             },
             family: FamilyConfigV1::default(),
         };
-        let screen = snapshot(run_years(scenario.clone(), 42, 1)?, 100, 30);
+        let report = run_years(scenario, 42, 1)?;
+        let screen = snapshot(report.clone(), 100, 30);
 
-        assert!(screen.contains("MERRA // FIRST HUNDRED YEARS"));
-        assert!(screen.contains("Population 0 → 0 living"));
-        assert!(screen.contains("simulation started"));
+        assert!(screen.contains("MERRA // A SMALL TEST"));
+        assert!(screen.contains("0 founders + 0 births = 0 people"));
         assert!(!screen.contains('\u{1b}'));
-        let people_screen = snapshot_view(run_years(scenario, 42, 1)?, 100, 30, View::People);
-        assert!(people_screen.contains("People"));
-        assert!(people_screen.contains("No person selected."));
+
+        let compact = snapshot_view(report.clone(), 72, 20, View::Overview);
+        assert!(compact.contains("MERRA // A SMALL TEST"));
+        assert!(compact.contains("World at Year 1"));
+
+        let tiny = snapshot_view(report, 40, 8, View::Overview);
+        assert!(tiny.contains("use at least 60×16"));
         Ok(())
     }
 
     #[test]
-    fn canonical_century_views_match_golden_screens() -> Result<(), Box<dyn std::error::Error>> {
-        let report = century_report()?;
+    fn canonical_dynasty_showcase_tells_the_seed_42_story() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let report = dynasty_report()?;
+        let overview = snapshot_view(report.clone(), 120, 36, View::Overview);
+        let lineage = snapshot_view_with_focus(
+            report,
+            120,
+            36,
+            View::Lineage,
+            Some(Focus::Person(PersonId(1))),
+        );
+
+        assert!(overview.contains("Population 16 + 49 born → 45 living · 20 deaths"));
+        assert!(overview.contains("65 people recorded · 16 founders · 49 births"));
+        assert!(overview.contains("G0"));
+        assert!(overview.contains("G3"));
+        assert!(overview.contains("Fen"));
+        assert!(overview.contains("Gorse"));
+        assert!(overview.contains("EXTINCT"));
+        assert!(overview.contains("Featured Life"));
+        assert!(overview.contains("Garin Thorn"));
+
+        assert!(lineage.contains("Garin Gorse #2"));
+        assert!(lineage.contains("Mara Thorn #17"));
+        assert!(lineage.contains("Garin Thorn #25"));
+        assert!(lineage.contains("Runa Oak #11"));
+        assert!(lineage.contains("Garin Fen #14"));
+        assert!(lineage.contains("CURRENT PARTNER"));
+        Ok(())
+    }
+
+    #[test]
+    fn canonical_cycle_one_views_match_current_golden_screens()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let report = scenario_report("scenarios/era-01/century.ron", 100)?;
 
         assert_eq!(
-            snapshot_view(report.clone(), 120, 36, View::Events),
-            include_str!("../../../golden/era-01/century-seed-42/tui-events.txt")
+            snapshot_view(report.clone(), 120, 36, View::Overview),
+            include_str!("../../../golden/era-01/century-seed-42/tui-overview.txt")
+        );
+        assert_eq!(
+            snapshot_view(report.clone(), 120, 36, View::History),
+            include_str!("../../../golden/era-01/century-seed-42/tui-history.txt")
         );
         assert_eq!(
             snapshot_view(report, 120, 36, View::People),
@@ -560,18 +111,105 @@ mod tests {
     }
 
     #[test]
-    fn canonical_dynasty_matches_golden_genealogy() -> Result<(), Box<dyn std::error::Error>> {
-        let report = scenario_report("scenarios/era-01/dynasty.ron", 60)?;
+    fn canonical_dynasty_views_match_golden_screens() -> Result<(), Box<dyn std::error::Error>> {
+        let report = dynasty_report()?;
 
         assert_eq!(
-            snapshot_view(report, 120, 36, View::Genealogy),
-            include_str!("../../../golden/era-01/dynasty-seed-42/tui-genealogy.txt")
+            snapshot_view(report.clone(), 120, 36, View::Overview),
+            include_str!("../../../golden/era-01/dynasty-seed-42/tui-overview.txt")
+        );
+        assert_eq!(
+            snapshot_view(report.clone(), 120, 36, View::History),
+            include_str!("../../../golden/era-01/dynasty-seed-42/tui-history.txt")
+        );
+        assert_eq!(
+            snapshot_view(report.clone(), 120, 36, View::People),
+            include_str!("../../../golden/era-01/dynasty-seed-42/tui-people.txt")
+        );
+        assert_eq!(
+            snapshot_view_with_focus(
+                report.clone(),
+                120,
+                36,
+                View::Lineage,
+                Some(Focus::Person(PersonId(1))),
+            ),
+            include_str!("../../../golden/era-01/dynasty-seed-42/tui-lineage.txt")
+        );
+        assert_eq!(
+            snapshot_view_with_focus(
+                report,
+                120,
+                36,
+                View::Households,
+                Some(Focus::Household(HouseholdId(1))),
+            ),
+            include_str!("../../../golden/era-01/dynasty-seed-42/tui-households.txt")
         );
         Ok(())
     }
 
-    fn century_report() -> Result<SimulationReport, Box<dyn std::error::Error>> {
-        scenario_report("scenarios/era-01/century.ron", 100)
+    #[test]
+    fn history_defaults_to_story_and_can_reveal_debug_events()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut inspector = Inspector::new(dynasty_report()?);
+        inspector.set_view(View::History);
+        let story = render_snapshot_from_inspector(&inspector);
+
+        assert_eq!(inspector.visible_event_indices().len(), 161);
+        assert!(story.contains("History · historical"));
+        assert!(!story.contains("clock advanced"));
+        inspector.cycle_event_filter();
+        inspector.cycle_event_filter();
+        inspector.cycle_event_filter();
+        inspector.first();
+        let debug = render_snapshot_from_inspector(&inspector);
+        assert_eq!(inspector.visible_event_indices().len(), 644);
+        assert!(debug.contains("History · all / debug"));
+        assert!(debug.contains("simulation started"));
+        Ok(())
+    }
+
+    #[test]
+    fn search_sort_and_cross_navigation_remain_coherent() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let mut inspector = Inspector::new(dynasty_report()?);
+        inspector.set_view(View::People);
+        inspector.begin_search();
+        for character in "Gorse".chars() {
+            inspector.push_search_char(character);
+        }
+        inspector.accept_search();
+        let filtered = render_snapshot_from_inspector(&inspector);
+        assert!(filtered.contains("2 shown"));
+        assert!(filtered.contains("search “Gorse”"));
+        assert!(filtered.contains("Garin Gorse"));
+
+        inspector.clear_search();
+        inspector.cycle_sort();
+        inspector.focus(Focus::Person(PersonId(1)));
+        inspector.activate();
+        assert_eq!(inspector.view(), View::Lineage);
+        inspector.jump_to_household();
+        assert_eq!(inspector.view(), View::Households);
+        inspector.jump_to_related_event();
+        assert_eq!(inspector.view(), View::History);
+
+        inspector.set_view(View::Lineage);
+        assert!(inspector.focus(Focus::Person(PersonId(2))));
+        inspector.jump_to_household();
+        assert_eq!(inspector.view(), View::Households);
+        assert!(render_snapshot_from_inspector(&inspector).contains("Thorn household  #1"));
+        assert!(!inspector.focus(Focus::Person(PersonId(9_999))));
+        Ok(())
+    }
+
+    fn render_snapshot_from_inspector(inspector: &Inspector) -> String {
+        render_snapshot(inspector, 120, 36)
+    }
+
+    fn dynasty_report() -> Result<SimulationReport, Box<dyn std::error::Error>> {
+        scenario_report("scenarios/era-01/dynasty.ron", 60)
     }
 
     fn scenario_report(

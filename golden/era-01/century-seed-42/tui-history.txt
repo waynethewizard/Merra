@@ -1,0 +1,36 @@
+┌ Chronicle Lab ───────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│MERRA // ONE HUNDRED LIVES   seed 42                                                                                  │
+│Scenario era-01-century · Year 100 · 904 authoritative events                                                         │
+│Population 100 → 0 living · 100 deaths                                                                                │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Overview  │  [History]  │  People  │  Lineage  │  Households                                                         │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ History · historical · 101 shown ────────────────┐┌ Resolved Event Evidence ─────────────────────────────────────────┐
+│   135  Y 14  Elian Marsh died · age 66           ││Alda Vale died at age 92                                          │
+│   136  Y 14  Frida Vale died · age 81            ││                                                                  │
+│   153  Y 16  Garin Fen died · age 59             ││Event #263 · person died · Year 27 · Day 9720                     │
+│   154  Y 16  Ansel Bell died · age 77            ││People: Alda Vale #97                                             │
+│   155  Y 16  Hilda Ash died · age 45             ││Person: Alda Vale #97                                             │
+│   156  Y 16  Garin Gorse died · age 74           ││Complete age: 92                                                  │
+│   165  Y 17  Bera Reed died · age 48             ││Annual mortality threshold: 5000 / 10,000                         │
+│   166  Y 17  Frida Stone died · age 76           ││                                                                  │
+│   167  Y 17  Cerdic Wold died · age 61           ││Caused by:                                                        │
+│   168  Y 17  Ansel Ash died · age 61             ││  #261 Thaw began in Year 27                                      │
+│   177  Y 18  Ansel Fen died · age 82             ││Tags: person, death                                               │
+│   178  Y 18  Garin Hearth died · age 65          ││                                                                  │
+│   187  Y 19  Alda Mere died · age 44             ││Authoritative world evidence; later records and memories may      │
+│   188  Y 19  Frida Gorse died · age 89           ││reinterpret it.                                                   │
+│   189  Y 19  Willa Fen died · age 43             ││                                                                  │
+│   214  Y 22  Odel Wold died · age 79             ││                                                                  │
+│   223  Y 23  Frida Hearth died · age 62          ││                                                                  │
+│   224  Y 23  Garin Gorse died · age 59           ││                                                                  │
+│   225  Y 23  Runa Crow died · age 82             ││                                                                  │
+│   234  Y 24  Odel Reed died · age 59             ││                                                                  │
+│   235  Y 24  Dunstan Marsh died · age 79         ││                                                                  │
+│   244  Y 25  Ansel Fen died · age 76             ││                                                                  │
+│   253  Y 26  Sella Barrow died · age 64          ││                                                                  │
+│   262  Y 27  Odel Oak died · age 41              ││                                                                  │
+│▶  263  Y 27  Alda Vale died · age 92             ││                                                                  │
+└──────────────────────────────────────────────────┘└──────────────────────────────────────────────────────────────────┘
+q quit · Tab/1–5 views · ↑↓ move · Enter inspect · f filter (historical) · / search

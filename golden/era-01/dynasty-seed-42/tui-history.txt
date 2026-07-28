@@ -1,0 +1,36 @@
+┌ Chronicle Lab ───────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│MERRA // FOUR GENERATIONS OF THORN AND FEN   seed 42                                                                  │
+│Scenario era-01-dynasty · Year 60 · 644 authoritative events                                                          │
+│Population 16 + 49 born → 45 living · 20 deaths · Households 31 formed / 18 active                                    │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Overview  │  [History]  │  People  │  Lineage  │  Households                                                         │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ History · historical · 161 shown ────────────────┐┌ Resolved Event Evidence ─────────────────────────────────────────┐
+│     2  Y  0  16 people entered the history       ││Mara Thorn born G1 to Garin Thorn + Garin Gorse                   │
+│     4  Y  0  Thorn household #1 formed           ││                                                                  │
+│     5  Y  0  Garin Thorn + Garin Gorse partnered ││Event #36 · person born · Year 2 · Day 720                        │
+│     6  Y  0  Fen household #2 formed             ││People: Garin Thorn #1, Garin Gorse #2, Mara Thorn #17            │
+│     7  Y  0  Bera Reed + Ansel Fen partnered     ││Household: Thorn household #1                                     │
+│     8  Y  0  Reed household #3 formed            ││Child: Mara Thorn #17                                             │
+│     9  Y  0  Willa Thorn + Mara Reed partnered   ││Actual parents: Garin Thorn #1 + Garin Gorse #2                   │
+│    10  Y  0  Mere household #4 formed            ││Generation: 1                                                     │
+│    11  Y  0  Leof Mere + Mara Crow partnered     ││                                                                  │
+│    12  Y  0  Vale household #5 formed            ││Caused by:                                                        │
+│    13  Y  0  Ivo Gorse + Toma Vale partnered     ││  #5 Garin Thorn + Garin Gorse partnered in Thorn household #1    │
+│    14  Y  0  Oak household #6 formed             ││  #35 Thaw began in Year 2                                        │
+│    15  Y  0  Runa Oak + Runa Crow partnered      ││Tags: person, birth, family                                       │
+│    16  Y  0  Fen household #7 formed             ││                                                                  │
+│    17  Y  0  Ivo Thorn + Garin Fen partnered     ││Authoritative world evidence; later records and memories may      │
+│    18  Y  0  Marsh household #8 formed           ││reinterpret it.                                                   │
+│    19  Y  0  Leof Marsh + Bera Fen partnered     ││                                                                  │
+│▶   36  Y  2  Mara Thorn born · G1                ││                                                                  │
+│    37  Y  2  Garin Fen born · G1                 ││                                                                  │
+│    38  Y  2  Odel Reed born · G1                 ││                                                                  │
+│    39  Y  2  Odel Mere born · G1                 ││                                                                  │
+│    40  Y  2  Garin Vale born · G1                ││                                                                  │
+│    41  Y  2  Cerdic Oak born · G1                ││                                                                  │
+│    42  Y  2  Alda Fen born · G1                  ││                                                                  │
+│    43  Y  2  Ivo Marsh born · G1                 ││                                                                  │
+└──────────────────────────────────────────────────┘└──────────────────────────────────────────────────────────────────┘
+q quit · Tab/1–5 views · ↑↓ move · Enter inspect · f filter (historical) · / search

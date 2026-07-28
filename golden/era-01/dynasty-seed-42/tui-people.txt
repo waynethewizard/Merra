@@ -1,0 +1,36 @@
+┌ Chronicle Lab ───────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│MERRA // FOUR GENERATIONS OF THORN AND FEN   seed 42                                                                  │
+│Scenario era-01-dynasty · Year 60 · 644 authoritative events                                                          │
+│Population 16 + 49 born → 45 living · 20 deaths · Households 31 formed / 18 active                                    │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Overview  │  History  │  [People]  │  Lineage  │  Households                                                         │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ People · sort story · 65 shown ──────────────────┐┌ Life Record ─────────────────────────────────────────────────────┐
+│   29  G1  Elian Vale           age  54  living   ││Garin Thorn                                                       │
+│▶   1  G0  Garin Thorn          age  78  living   ││                                                                  │
+│   23  G1  Alda Fen             age  43  dead     ││Person #1 · Generation 0 · surname Thorn                          │
+│   46  G2  Runa Mere            age  30  living   ││Scenario founder · Living at Year 60 · final age 78               │
+│    6  G0  Mara Reed            age  78  living   ││Parents: scenario founder                                         │
+│    8  G0  Mara Crow            age  78  living   ││Current partner: Garin Fen #14 (current)                          │
+│   10  G0  Toma Vale            age  78  living   ││Current household: Thorn household (#28 current)                  │
+│   14  G0  Garin Fen            age  78  living   ││Recorded family: 3 partnerships · 2 children                      │
+│   15  G0  Leof Marsh           age  78  dead     ││                                                                  │
+│   11  G0  Runa Oak             age  73  dead     ││Life events                                                       │
+│   17  G1  Mara Thorn           age  58  living   ││Y 0  Thorn household #1 formed: Garin Thorn + Garin Gorse         │
+│    3  G0  Bera Reed            age  76  dead     ││Y 0  Garin Thorn + Garin Gorse partnered in Thorn household #1    │
+│    4  G0  Ansel Fen            age  76  dead     ││Y 2  Mara Thorn born G1 to Garin Thorn + Garin Gorse              │
+│    5  G0  Willa Thorn          age  75  dead     ││Y 6  Garin Thorn born G1 to Garin Thorn + Garin Gorse             │
+│   13  G0  Ivo Thorn            age  73  dead     ││Y45  Garin Thorn + Garin Gorse ended; Garin Gorse died            │
+│   16  G0  Bera Fen             age  70  dead     ││Y46  Oak household #24 formed: Garin Thorn + Runa Oak             │
+│    9  G0  Ivo Gorse            age  69  dead     ││Y46  Garin Thorn + Runa Oak partnered in Oak household #24        │
+│    7  G0  Leof Mere            age  65  dead     ││Y55  Garin Thorn + Runa Oak ended; Runa Oak died                  │
+│   12  G0  Runa Crow            age  64  dead     ││Y55  Thorn household #28 formed: Garin Thorn + Garin Fen          │
+│    2  G0  Garin Gorse          age  63  dead     ││Y55  Garin Thorn + Garin Fen partnered in Thorn household #28     │
+│   19  G1  Odel Reed            age  58  living   ││                                                                  │
+│   20  G1  Odel Mere            age  58  living   ││                                                                  │
+│   21  G1  Garin Vale           age  58  living   ││                                                                  │
+│   22  G1  Cerdic Oak           age  58  dead     ││                                                                  │
+│   25  G1  Garin Thorn          age  54  living   ││                                                                  │
+└──────────────────────────────────────────────────┘└──────────────────────────────────────────────────────────────────┘
+q quit · ↑↓ move · Enter lineage · h household · e events · s sort (story) · / search

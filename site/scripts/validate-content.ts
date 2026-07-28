@@ -135,6 +135,87 @@ const currentCycle = {
   seeds: Array.isArray(cycleData.seeds) ? cycleData.seeds : [],
   body: cycleBody
 };
+const dynastyDirectory = path.join(
+  repoRoot,
+  "golden",
+  "era-01",
+  "dynasty-seed-42"
+);
+const dynastySummary = readJson<{
+  scenario_id: string;
+  seed: number;
+  elapsed_years: number;
+  event_count: number;
+  initial_population: number;
+  living_population: number;
+  deaths: number;
+}>(path.join(dynastyDirectory, "summary.json"));
+const terminalViews = [
+  {
+    slug: "overview",
+    title: "Overview",
+    description:
+      "Population, generations, surname survival, and one featured life at a glance.",
+    file: "tui-overview.txt"
+  },
+  {
+    slug: "history",
+    title: "History",
+    description:
+      "Story events first, with resolved names, households, payloads, and causes.",
+    file: "tui-history.txt"
+  },
+  {
+    slug: "people",
+    title: "People",
+    description:
+      "Searchable biographies that distinguish current state from recorded history.",
+    file: "tui-people.txt"
+  },
+  {
+    slug: "lineage",
+    title: "Lineage",
+    description:
+      "Children remain grouped under the partnership that actually produced them.",
+    file: "tui-lineage.txt"
+  },
+  {
+    slug: "households",
+    title: "Households",
+    description:
+      "Current membership and reconstructed moves, births, deaths, and dissolution.",
+    file: "tui-households.txt"
+  }
+].map(({ file, ...view }) => ({
+  ...view,
+  screen: fs.readFileSync(path.join(dynastyDirectory, file), "utf8")
+}));
+const dynastyChronicle = fs.readFileSync(
+  path.join(dynastyDirectory, "chronicle.md"),
+  "utf8"
+);
+const householdCount = Number(
+  dynastyChronicle.match(/Families: (\d+) households formed/)?.[1]
+);
+const terminalShowcase = {
+  title: "Four Generations of Thorn and Fen",
+  description:
+    "A story-first terminal field report over the complete authoritative record for Cycle 2.",
+  command: "cargo tui",
+  scenarioId: dynastySummary.scenario_id,
+  seed: dynastySummary.seed,
+  years: dynastySummary.elapsed_years,
+  eventCount: dynastySummary.event_count,
+  initialPopulation: dynastySummary.initial_population,
+  births:
+    dynastySummary.living_population +
+    dynastySummary.deaths -
+    dynastySummary.initial_population,
+  livingPopulation: dynastySummary.living_population,
+  deaths: dynastySummary.deaths,
+  householdCount,
+  views: terminalViews
+};
 
 const run = foundationRun;
 const cycle = currentCycle;
@@ -179,6 +260,32 @@ assert(
   fs.existsSync(path.join(repoRoot, cycle.scenario)),
   `missing cycle scenario: ${cycle.scenario}`
 );
+assert(
+  terminalShowcase.scenarioId === "era-01-dynasty" &&
+    terminalShowcase.seed === 42 &&
+    terminalShowcase.years === 60,
+  "terminal showcase must use the canonical Cycle 2 run"
+);
+assert(
+  terminalShowcase.eventCount === 644 &&
+    terminalShowcase.births === 49 &&
+    terminalShowcase.livingPopulation === 45 &&
+    terminalShowcase.deaths === 20,
+  "terminal showcase outcomes must match canonical evidence"
+);
+assert(terminalViews.length === 5, "terminal showcase requires all five views");
+for (const view of terminalViews) {
+  assert(!view.screen.includes("\u001b"), `${view.slug} snapshot contains ANSI`);
+  assert(
+    view.screen.trimEnd().split("\n").length === 36,
+    `${view.slug} snapshot must be the canonical 120x36 screen`
+  );
+}
+assert(
+  terminalViews[0]?.screen.includes("Gorse       2 people · EXTINCT") &&
+    terminalViews[3]?.screen.includes("Garin Fen #14  [CURRENT PARTNER]"),
+  "terminal showcase must retain surname and union-aware story evidence"
+);
 
 let previousId = 0;
 const knownIds = new Set<number>();
@@ -214,9 +321,9 @@ const generatedDirectory = path.join(siteRoot, "src", "generated");
 fs.mkdirSync(generatedDirectory, { recursive: true });
 fs.writeFileSync(
   path.join(generatedDirectory, "content.json"),
-  `${JSON.stringify({ foundationRun, currentCycle })}\n`
+  `${JSON.stringify({ foundationRun, currentCycle, terminalShowcase })}\n`
 );
 
 console.log(
-  `Validated and embedded ${run.events.length} events, seed ${run.manifest.seed}, and ${cycle.title}.`
+  `Validated ${run.events.length} foundation events and ${terminalViews.length} Cycle 2 terminal views.`
 );

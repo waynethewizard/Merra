@@ -34,7 +34,7 @@ jobs:
         run: rustup toolchain install 1.97.1 --profile minimal
 
       - name: Verify golden simulations
-        run: cargo test --locked -p merra-testkit
+        run: cargo test --locked -p merra-testkit -p merra-tui
 
       - name: Generate the canonical century
         run: >-
@@ -51,7 +51,13 @@ jobs:
             --seed 42 \
             --years 100 \
             --snapshot \
-            --view events > runs/actions-century/tui-events.txt
+            --view overview > runs/actions-century/tui-overview.txt
+          cargo run --locked -p merra-tui -- \
+            --scenario scenarios/era-01/century.ron \
+            --seed 42 \
+            --years 100 \
+            --snapshot \
+            --view history > runs/actions-century/tui-history.txt
           cargo run --locked -p merra-tui -- \
             --scenario scenarios/era-01/century.ron \
             --seed 42 \
@@ -64,7 +70,7 @@ jobs:
           {
             cat runs/actions-century/chronicle.md
             printf '\n## Terminal Snapshot\n\n```\n'
-            sed -n '1,28p' runs/actions-century/tui-events.txt
+            sed -n '1,36p' runs/actions-century/tui-overview.txt
             printf '```\n'
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -77,7 +83,7 @@ jobs:
           retention-days: 14
 
   canonical-dynasty:
-    name: Four-generation genealogy evidence
+    name: Four-generation historical showcase
     if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -98,22 +104,41 @@ jobs:
           --years 60
           --output runs/actions-dynasty
 
-      - name: Render genealogy evidence
-        run: >-
-          cargo run --locked -p merra-tui --
-          --scenario scenarios/era-01/dynasty.ron
-          --seed 42
-          --years 60
-          --snapshot
-          --view genealogy
-          > runs/actions-dynasty/tui-genealogy.txt
+      - name: Render historical showcase
+        run: |
+          cargo run --locked -p merra-tui -- \
+            --scenario scenarios/era-01/dynasty.ron \
+            --seed 42 \
+            --years 60 \
+            --snapshot \
+            --view overview > runs/actions-dynasty/tui-overview.txt
+          cargo run --locked -p merra-tui -- \
+            --scenario scenarios/era-01/dynasty.ron \
+            --seed 42 \
+            --years 60 \
+            --snapshot \
+            --view history > runs/actions-dynasty/tui-history.txt
+          cargo run --locked -p merra-tui -- \
+            --scenario scenarios/era-01/dynasty.ron \
+            --seed 42 \
+            --years 60 \
+            --snapshot \
+            --view lineage \
+            --focus-person 1 > runs/actions-dynasty/tui-lineage.txt
+          cargo run --locked -p merra-tui -- \
+            --scenario scenarios/era-01/dynasty.ron \
+            --seed 42 \
+            --years 60 \
+            --snapshot \
+            --view households \
+            --focus-household 1 > runs/actions-dynasty/tui-households.txt
 
-      - name: Publish genealogy to the job summary
+      - name: Publish showcase to the job summary
         run: |
           {
             cat runs/actions-dynasty/chronicle.md
-            printf '\n## Genealogy Snapshot\n\n```\n'
-            sed -n '1,35p' runs/actions-dynasty/tui-genealogy.txt
+            printf '\n## Terminal Overview\n\n```\n'
+            sed -n '1,36p' runs/actions-dynasty/tui-overview.txt
             printf '```\n'
           } >> "$GITHUB_STEP_SUMMARY"
 

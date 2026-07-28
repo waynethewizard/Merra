@@ -45,6 +45,12 @@ participate in authoritative world updates. Era II will add a graphical
 application and presentation boundary. Simulation crates must not depend on
 rendering, UI, audio, or platform windows.
 
+The terminal inspector may derive population series, generation and surname
+outcomes, partnership histories, and household timelines from an immutable
+`SimulationReport`. Those are presentation indexes, not competing world state.
+Interactive and ANSI-free snapshot modes share the same renderer and stable
+domain-ID focus controls.
+
 The current schedule orders time advancement, season transition, annual
 mortality, and family maintenance explicitly. Large advances are split at
 data-defined season boundaries before that schedule runs. On year boundaries,

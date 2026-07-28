@@ -40,8 +40,8 @@ export default function HomePage() {
               record, rumor, and legend.
             </p>
             <div className="button-row">
-              <Link className="button button-primary" href="/explore/">
-                Explore the first run
+              <Link className="button button-primary" href="/terminal/">
+                Explore the dynasty
                 <span aria-hidden="true">→</span>
               </Link>
               <a
@@ -233,13 +233,18 @@ export default function HomePage() {
             <Link href="/chronicle/">Read the development chronicle →</Link>
           </div>
           <ol className="cycle-list">
-            {cycles.map((cycle, index) => (
-              <li className={index === 0 ? "current" : ""} key={cycle}>
+            {cycles.map((cycleTitle, index) => (
+              <li
+                className={index === cycle.cycle - 1 ? "current" : ""}
+                key={cycleTitle}
+              >
                 <span>{String(index + 1).padStart(2, "0")}</span>
-                <strong>{cycle}</strong>
+                <strong>{cycleTitle}</strong>
                 <small>
-                  {index === 0
-                    ? "Foundation in progress"
+                  {index < cycle.cycle - 1
+                    ? "Complete"
+                    : index === cycle.cycle - 1
+                      ? "Latest milestone"
                     : index === cycles.length - 1
                       ? "Era finale"
                       : "Planned"}

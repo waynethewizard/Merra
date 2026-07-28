@@ -14,13 +14,15 @@ policy, and secret scanning are independent visible gates.
 ## Canonical century
 
 The Simulation Laboratory reruns `scenarios/era-01/century.ron` with seed 42,
-verifies golden behavior, renders both TUI views, and places the resulting
-chronicle and terminal preview in the job summary. The complete run is a
-short-lived workflow artifact rather than repository noise.
+verifies golden behavior, renders the Overview, History, and People views, and
+places the resulting chronicle and story-first overview in the job summary.
+The complete run is a short-lived workflow artifact rather than repository
+noise.
 
 Cycle 2 adds a parallel canonical-dynasty job. It regenerates the seed-42
-four-generation history, publishes the genealogy screen in the job summary,
-and attaches the complete people, household, event, and chronicle evidence.
+four-generation history, publishes the terminal overview in the job summary,
+and attaches the complete people, household, event, chronicle, history,
+lineage, and household-screen evidence.
 
 The summary is evidence, not an approval oracle. Reviewers should ask whether
 the causal result remains legible, not only whether its bytes remain stable.

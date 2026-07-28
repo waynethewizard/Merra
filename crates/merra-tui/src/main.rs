@@ -15,9 +15,9 @@ use crossterm::{
     execute,
     terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
-use merra_core::ScenarioV1;
+use merra_core::{EventId, HouseholdId, PersonId, ScenarioV1};
 use merra_sim::run_years;
-use merra_tui::{Inspector, View, render, snapshot_view};
+use merra_tui::{Focus, Inspector, View, render, render_snapshot};
 use ratatui::{Terminal, backend::CrosstermBackend};
 use thiserror::Error;
 
@@ -29,13 +29,13 @@ use thiserror::Error;
 )]
 struct Args {
     /// RON scenario to simulate before opening the inspector.
-    #[arg(long, default_value = "scenarios/era-01/century.ron")]
+    #[arg(long, default_value = "scenarios/era-01/dynasty.ron")]
     scenario: PathBuf,
     /// Root deterministic seed.
     #[arg(long, default_value_t = 42)]
     seed: u64,
     /// Number of complete scenario years.
-    #[arg(long, default_value = "100")]
+    #[arg(long, default_value = "60")]
     years: NonZeroU32,
     /// Print an ANSI-free screen instead of entering interactive mode.
     #[arg(long)]
@@ -47,23 +47,50 @@ struct Args {
     #[arg(long, default_value_t = 36)]
     height: u16,
     /// Initial collection displayed by interactive and snapshot modes.
-    #[arg(long, value_enum, default_value_t = InitialView::Events)]
+    #[arg(long, value_enum, default_value_t = InitialView::Overview)]
     view: InitialView,
+    /// Focus a stable person identity in snapshots or interactive mode.
+    #[arg(
+        long,
+        value_name = "ID",
+        conflicts_with_all = ["focus_household", "focus_event"]
+    )]
+    focus_person: Option<u64>,
+    /// Focus a stable household identity in snapshots or interactive mode.
+    #[arg(
+        long,
+        value_name = "ID",
+        conflicts_with_all = ["focus_person", "focus_event"]
+    )]
+    focus_household: Option<u64>,
+    /// Focus a stable event identity in snapshots or interactive mode.
+    #[arg(
+        long,
+        value_name = "ID",
+        conflicts_with_all = ["focus_person", "focus_household"]
+    )]
+    focus_event: Option<u64>,
 }
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
 enum InitialView {
-    Events,
+    Overview,
+    #[value(alias = "events")]
+    History,
     People,
-    Genealogy,
+    #[value(alias = "genealogy")]
+    Lineage,
+    Households,
 }
 
 impl From<InitialView> for View {
     fn from(value: InitialView) -> Self {
         match value {
-            InitialView::Events => Self::Events,
+            InitialView::Overview => Self::Overview,
+            InitialView::History => Self::History,
             InitialView::People => Self::People,
-            InitialView::Genealogy => Self::Genealogy,
+            InitialView::Lineage => Self::Lineage,
+            InitialView::Households => Self::Households,
         }
     }
 }
@@ -84,19 +111,29 @@ fn run(args: Args) -> Result<(), TuiError> {
     scenario.validate()?;
     let report = run_years(scenario, args.seed, args.years.get())?;
     let initial_view = View::from(args.view);
+    let focus = args
+        .focus_person
+        .map(|id| Focus::Person(PersonId(id)))
+        .or_else(|| {
+            args.focus_household
+                .map(|id| Focus::Household(HouseholdId(id)))
+        })
+        .or_else(|| args.focus_event.map(|id| Focus::Event(EventId(id))));
 
+    let mut inspector = Inspector::new(report);
+    inspector.set_view(initial_view);
+    if let Some(focus) = focus
+        && !inspector.focus(focus)
+    {
+        return Err(TuiError::FocusNotFound(focus));
+    }
     if args.snapshot {
-        print!(
-            "{}",
-            snapshot_view(report, args.width, args.height, initial_view)
-        );
+        print!("{}", render_snapshot(&inspector, args.width, args.height));
         return Ok(());
     }
     if !io::stdin().is_terminal() || !io::stdout().is_terminal() {
         return Err(TuiError::InteractiveTerminalRequired);
     }
-    let mut inspector = Inspector::new(report);
-    inspector.set_view(initial_view);
     run_interactive(inspector)
 }
 
@@ -127,15 +164,37 @@ fn interaction_loop(
         if key.kind != KeyEventKind::Press {
             continue;
         }
+        if inspector.is_searching() {
+            match key.code {
+                KeyCode::Enter => inspector.accept_search(),
+                KeyCode::Esc => inspector.cancel_search(),
+                KeyCode::Backspace => inspector.pop_search_char(),
+                KeyCode::Char(character) => inspector.push_search_char(character),
+                _ => {}
+            }
+            continue;
+        }
         match key.code {
             KeyCode::Char('q') | KeyCode::Esc => return Ok(()),
             KeyCode::Tab => inspector.toggle_view(),
+            KeyCode::Char('1') => inspector.set_view(View::Overview),
+            KeyCode::Char('2') => inspector.set_view(View::History),
+            KeyCode::Char('3') => inspector.set_view(View::People),
+            KeyCode::Char('4') => inspector.set_view(View::Lineage),
+            KeyCode::Char('5') => inspector.set_view(View::Households),
             KeyCode::Up | KeyCode::Char('k') => inspector.previous(),
             KeyCode::Down | KeyCode::Char('j') => inspector.next(),
             KeyCode::PageUp => inspector.page_up(),
             KeyCode::PageDown => inspector.page_down(),
             KeyCode::Home => inspector.first(),
             KeyCode::End => inspector.last(),
+            KeyCode::Enter => inspector.activate(),
+            KeyCode::Char('/') => inspector.begin_search(),
+            KeyCode::Char('x') => inspector.clear_search(),
+            KeyCode::Char('f') => inspector.cycle_event_filter(),
+            KeyCode::Char('s') => inspector.cycle_sort(),
+            KeyCode::Char('e') => inspector.jump_to_related_event(),
+            KeyCode::Char('h') => inspector.jump_to_household(),
             _ => {}
         }
     }
@@ -162,4 +221,6 @@ enum TuiError {
     Simulation(#[from] merra_sim::SimulationError),
     #[error("interactive mode requires a terminal; use --snapshot for redirected output")]
     InteractiveTerminalRequired,
+    #[error("requested stable focus does not exist: {0:?}")]
+    FocusNotFound(Focus),
 }

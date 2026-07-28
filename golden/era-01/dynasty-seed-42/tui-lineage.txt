@@ -1,0 +1,36 @@
+┌ Chronicle Lab ───────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│MERRA // FOUR GENERATIONS OF THORN AND FEN   seed 42                                                                  │
+│Scenario era-01-dynasty · Year 60 · 644 authoritative events                                                          │
+│Population 16 + 49 born → 45 living · 20 deaths · Households 31 formed / 18 active                                    │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Overview  │  History  │  People  │  [Lineage]  │  Households                                                         │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ Lineages · sort story · 65 shown ────────────────┐┌ Union-Aware Lineage ─────────────────────────────────────────────┐
+│  G1   29  Elian Vale         3 unions ·  4 kids  ││Garin Thorn  #1  [living at age 78]                               │
+│▶ G0    1  Garin Thorn        3 unions ·  2 kids  ││Generation 0 · Parents: scenario founder                          │
+│  G1   23  Alda Fen           2 unions ·  4 kids  ││                                                                  │
+│  G2   46  Runa Mere          2 unions ·  3 kids  ││PARTNERSHIPS AND THEIR CHILDREN                                   │
+│  G0    6  Mara Reed          2 unions ·  2 kids  ││Y0–Y45  Garin Gorse #2  [ended when Garin Gorse died]             │
+│  G0    8  Mara Crow          2 unions ·  2 kids  ││  Household: Thorn household (#1).                                │
+│  G0   10  Toma Vale          2 unions ·  2 kids  ││  Children: Mara Thorn #17, Garin Thorn #25                       │
+│  G0   14  Garin Fen          2 unions ·  2 kids  ││Y46–Y55  Runa Oak #11  [ended when Runa Oak died]                 │
+│  G0   15  Leof Marsh         2 unions ·  2 kids  ││  Household: Oak household (#24).                                 │
+│  G0   11  Runa Oak           2 unions ·  2 kids  ││  Children: none                                                  │
+│  G1   17  Mara Thorn         2 unions ·  2 kids  ││Y55–present  Garin Fen #14  [CURRENT PARTNER]                     │
+│  G0    3  Bera Reed          1 unions ·  2 kids  ││  Household: Thorn household (#28).                               │
+│  G0    4  Ansel Fen          1 unions ·  2 kids  ││  Children: none                                                  │
+│  G0    5  Willa Thorn        1 unions ·  2 kids  ││                                                                  │
+│  G0   13  Ivo Thorn          1 unions ·  2 kids  ││DESCENDANT BRANCHES                                               │
+│  G0   16  Bera Fen           1 unions ·  2 kids  ││├─ Mara Thorn #17 · G1 · living · 2 children                      │
+│  G0    9  Ivo Gorse          1 unions ·  2 kids  ││├─ Garin Thorn #25 · G1 · living · 2 children                     │
+│  G0    7  Leof Mere          1 unions ·  2 kids  ││                                                                  │
+│  G0   12  Runa Crow          1 unions ·  2 kids  ││                                                                  │
+│  G0    2  Garin Gorse        1 unions ·  2 kids  ││                                                                  │
+│  G1   19  Odel Reed          1 unions ·  2 kids  ││                                                                  │
+│  G1   20  Odel Mere          1 unions ·  2 kids  ││                                                                  │
+│  G1   21  Garin Vale         1 unions ·  2 kids  ││                                                                  │
+│  G1   22  Cerdic Oak         1 unions ·  2 kids  ││                                                                  │
+│  G1   25  Garin Thorn        1 unions ·  2 kids  ││                                                                  │
+└──────────────────────────────────────────────────┘└──────────────────────────────────────────────────────────────────┘
+q quit · ↑↓ person · h household · e events · s sort (story) · / search

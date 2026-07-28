@@ -734,6 +734,8 @@ fn close_relatives(first: &PersonSnapshot, second: &PersonSnapshot) -> bool {
 /// Deterministic output independent of filesystem and source-control metadata.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SimulationReport {
+    /// Human-readable scenario title used by inspectors and other presentation.
+    pub scenario_title: String,
     /// Structured world events in stable order.
     pub events: Vec<WorldEventV1>,
     /// Compact machine-readable summary.
@@ -964,6 +966,7 @@ impl Simulation {
         );
 
         SimulationReport {
+            scenario_title: self.scenario.title.clone(),
             events,
             summary,
             people,
