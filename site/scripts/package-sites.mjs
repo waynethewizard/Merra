@@ -6,6 +6,7 @@ const source = path.join(repositoryRoot, "site", ".open-next");
 const workerSource = path.join(source, "worker.js");
 const destination = path.join(repositoryRoot, "dist");
 const serverDestination = path.join(destination, "server");
+const assetsDestination = path.join(destination, "assets");
 const hostingSource = path.join(
   repositoryRoot,
   ".openai",
@@ -25,14 +26,17 @@ if (!fs.existsSync(hostingSource)) {
 }
 
 fs.rmSync(destination, { recursive: true, force: true });
-fs.cpSync(source, destination, { recursive: true });
-fs.mkdirSync(serverDestination, { recursive: true });
-fs.writeFileSync(
-  path.join(serverDestination, "index.js"),
-  'export { default } from "../worker.js";\n'
-);
+fs.cpSync(source, serverDestination, { recursive: true });
+fs.cpSync(path.join(source, "assets"), assetsDestination, {
+  recursive: true
+});
+fs.copyFileSync(workerSource, path.join(serverDestination, "index.js"));
 fs.writeFileSync(
   path.join(destination, "package.json"),
+  `${JSON.stringify({ type: "module" }, null, 2)}\n`
+);
+fs.writeFileSync(
+  path.join(serverDestination, "package.json"),
   `${JSON.stringify({ type: "module" }, null, 2)}\n`
 );
 fs.mkdirSync(path.dirname(hostingDestination), { recursive: true });
