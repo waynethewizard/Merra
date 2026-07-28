@@ -1,6 +1,7 @@
 //! Cross-platform repository automation.
 
 use std::{
+    collections::BTreeSet,
     ffi::OsString,
     fs::{self, OpenOptions},
     io::Write,
@@ -255,6 +256,10 @@ struct SeedLabRun {
     last_death_year: Option<u64>,
     mean_age_at_death_times_100: u64,
     maximum_age_at_death: u64,
+    births: usize,
+    households_formed: usize,
+    generations: u16,
+    distinct_surnames: usize,
 }
 
 #[derive(Debug, Serialize)]
@@ -272,6 +277,15 @@ struct SeedLabReport {
     latest_extinction_year: Option<u64>,
     minimum_mean_age_at_death_times_100: u64,
     maximum_mean_age_at_death_times_100: u64,
+    minimum_births: usize,
+    maximum_births: usize,
+    minimum_households_formed: usize,
+    maximum_households_formed: usize,
+    minimum_generations: u16,
+    maximum_generations: u16,
+    four_generation_runs: usize,
+    minimum_distinct_surnames: usize,
+    maximum_distinct_surnames: usize,
     runs: Vec<SeedLabRun>,
 }
 
@@ -304,6 +318,23 @@ fn seed_lab(
         } else {
             total_age.saturating_mul(100) / dead.len() as u64
         };
+        let births = simulation
+            .people
+            .iter()
+            .filter(|person| person.birth_day.is_some())
+            .count();
+        let generations = simulation
+            .people
+            .iter()
+            .map(|person| person.generation)
+            .max()
+            .map_or(0, |generation| generation.saturating_add(1));
+        let distinct_surnames = simulation
+            .people
+            .iter()
+            .map(|person| person.surname.as_str())
+            .collect::<BTreeSet<_>>()
+            .len();
         runs.push(SeedLabRun {
             seed,
             living_population: simulation.summary.living_population,
@@ -320,6 +351,10 @@ fn seed_lab(
                 .map(|person| person.final_age_years)
                 .max()
                 .unwrap_or(0),
+            births,
+            households_formed: simulation.households.len(),
+            generations,
+            distinct_surnames,
         });
     }
 
@@ -361,6 +396,47 @@ fn seed_lab(
         .map(|run| run.mean_age_at_death_times_100)
         .max()
         .ok_or(XtaskError::EmptySeedLab)?;
+    let minimum_births = runs
+        .iter()
+        .map(|run| run.births)
+        .min()
+        .ok_or(XtaskError::EmptySeedLab)?;
+    let maximum_births = runs
+        .iter()
+        .map(|run| run.births)
+        .max()
+        .ok_or(XtaskError::EmptySeedLab)?;
+    let minimum_households_formed = runs
+        .iter()
+        .map(|run| run.households_formed)
+        .min()
+        .ok_or(XtaskError::EmptySeedLab)?;
+    let maximum_households_formed = runs
+        .iter()
+        .map(|run| run.households_formed)
+        .max()
+        .ok_or(XtaskError::EmptySeedLab)?;
+    let minimum_generations = runs
+        .iter()
+        .map(|run| run.generations)
+        .min()
+        .ok_or(XtaskError::EmptySeedLab)?;
+    let maximum_generations = runs
+        .iter()
+        .map(|run| run.generations)
+        .max()
+        .ok_or(XtaskError::EmptySeedLab)?;
+    let four_generation_runs = runs.iter().filter(|run| run.generations >= 4).count();
+    let minimum_distinct_surnames = runs
+        .iter()
+        .map(|run| run.distinct_surnames)
+        .min()
+        .ok_or(XtaskError::EmptySeedLab)?;
+    let maximum_distinct_surnames = runs
+        .iter()
+        .map(|run| run.distinct_surnames)
+        .max()
+        .ok_or(XtaskError::EmptySeedLab)?;
     let report = SeedLabReport {
         schema_version: 1,
         scenario_id: scenario.id,
@@ -375,6 +451,15 @@ fn seed_lab(
         latest_extinction_year,
         minimum_mean_age_at_death_times_100,
         maximum_mean_age_at_death_times_100,
+        minimum_births,
+        maximum_births,
+        minimum_households_formed,
+        maximum_households_formed,
+        minimum_generations,
+        maximum_generations,
+        four_generation_runs,
+        minimum_distinct_surnames,
+        maximum_distinct_surnames,
         runs,
     };
 
@@ -384,6 +469,28 @@ fn seed_lab(
         serde_json::to_string_pretty(&report)? + "\n",
     )?;
     fs::write(output.join("results.csv"), seed_lab_csv(&report))?;
+    let family_section = if report.maximum_births == 0 {
+        String::new()
+    } else {
+        format!(
+            "## Family Variation\n\n\
+             - Birth range: {} to {}\n\
+             - Households formed range: {} to {}\n\
+             - Generation range: {} to {}\n\
+             - Runs reaching four generations: {} of {}\n\
+             - Distinct surname range: {} to {}\n\n",
+            report.minimum_births,
+            report.maximum_births,
+            report.minimum_households_formed,
+            report.maximum_households_formed,
+            report.minimum_generations,
+            report.maximum_generations,
+            report.four_generation_runs,
+            report.count,
+            report.minimum_distinct_surnames,
+            report.maximum_distinct_surnames,
+        )
+    };
     fs::write(
         output.join("summary.md"),
         format!(
@@ -398,6 +505,7 @@ fn seed_lab(
              ## Lifespan Variation\n\n\
              - Extinction year range: {} to {}\n\
              - Mean age-at-death range: {:.2} to {:.2}\n\n\
+             {family_section}\
              These results are deterministic for the tagged source, lockfile, scenario, and seed cohort.\n",
             report.scenario_id,
             report.first_seed,
@@ -428,11 +536,11 @@ fn seed_lab(
 
 fn seed_lab_csv(report: &SeedLabReport) -> String {
     let mut csv = String::from(
-        "seed,living_population,deaths,event_count,last_death_year,mean_age_at_death_times_100,maximum_age_at_death\n",
+        "seed,living_population,deaths,event_count,last_death_year,mean_age_at_death_times_100,maximum_age_at_death,births,households_formed,generations,distinct_surnames\n",
     );
     for run in &report.runs {
         csv.push_str(&format!(
-            "{},{},{},{},{},{},{}\n",
+            "{},{},{},{},{},{},{},{},{},{},{}\n",
             run.seed,
             run.living_population,
             run.deaths,
@@ -441,6 +549,10 @@ fn seed_lab_csv(report: &SeedLabReport) -> String {
                 .map_or_else(String::new, |year| year.to_string()),
             run.mean_age_at_death_times_100,
             run.maximum_age_at_death,
+            run.births,
+            run.households_formed,
+            run.generations,
+            run.distinct_surnames,
         ));
     }
     csv

@@ -45,9 +45,11 @@ participate in authoritative world updates. Era II will add a graphical
 application and presentation boundary. Simulation crates must not depend on
 rendering, UI, audio, or platform windows.
 
-The current schedule orders time advancement, season transition, and annual
-mortality explicitly. Large advances are split at data-defined season
-boundaries before that schedule runs.
+The current schedule orders time advancement, season transition, annual
+mortality, and family maintenance explicitly. Large advances are split at
+data-defined season boundaries before that schedule runs. On year boundaries,
+death is resolved before partnerships end, households change, and new births
+are created.
 
 ### Test and development tooling
 

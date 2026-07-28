@@ -11,8 +11,8 @@ use std::{
 
 use clap::{Parser, Subcommand};
 use merra_core::{
-    BEVY_VERSION, EVENT_SCHEMA_V1, MANIFEST_SCHEMA_V1, RUST_TOOLCHAIN_VERSION, RunManifestV1,
-    ScenarioV1, SimDuration, SourceVersionV1,
+    BEVY_VERSION, MANIFEST_SCHEMA_V1, RUST_TOOLCHAIN_VERSION, RunManifestV1, ScenarioV1,
+    SimDuration, SourceVersionV1,
 };
 use merra_sim::{Simulation, SimulationError, SimulationReport};
 use thiserror::Error;
@@ -85,7 +85,7 @@ fn run_simulation(
     let report = simulation.report();
     let manifest = RunManifestV1 {
         schema_version: MANIFEST_SCHEMA_V1,
-        event_schema_version: EVENT_SCHEMA_V1,
+        event_schema_version: scenario.event_schema_version(),
         scenario_schema_version: scenario.schema_version,
         merra_version: env!("CARGO_PKG_VERSION").to_owned(),
         bevy_version: BEVY_VERSION.to_owned(),
@@ -103,6 +103,7 @@ fn run_simulation(
     write_events(output.join("events.jsonl"), &report)?;
     write_json(output.join("summary.json"), &report.summary)?;
     write_json(output.join("population.json"), &report.people)?;
+    write_json(output.join("households.json"), &report.households)?;
     fs::write(output.join("chronicle.md"), &report.chronicle)?;
 
     println!(

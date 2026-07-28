@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "scenario_id": "era-01-dynasty",
+  "seed": 42,
+  "elapsed_days": 21600,
+  "elapsed_years": 60,
+  "days_per_year": 360,
+  "event_count": 644,
+  "initial_population": 16,
+  "living_population": 45,
+  "deaths": 20
+}

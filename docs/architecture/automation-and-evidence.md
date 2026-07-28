@@ -1,7 +1,7 @@
 # Automation and Public Evidence
 
 > Status: Accepted foundation
-> Last reviewed: 2026-07-27
+> Last reviewed: 2026-07-28
 
 GitHub Actions is part of Merra's simulation laboratory, not only a build gate.
 
@@ -18,6 +18,10 @@ verifies golden behavior, renders both TUI views, and places the resulting
 chronicle and terminal preview in the job summary. The complete run is a
 short-lived workflow artifact rather than repository noise.
 
+Cycle 2 adds a parallel canonical-dynasty job. It regenerates the seed-42
+four-generation history, publishes the genealogy screen in the job summary,
+and attaches the complete people, household, event, and chronicle evidence.
+
 The summary is evidence, not an approval oracle. Reviewers should ask whether
 the causal result remains legible, not only whether its bytes remain stable.
 
@@ -27,6 +31,12 @@ The Wednesday seed laboratory evaluates seeds 1 through 100 for one hundred
 years. It publishes aggregate lifespan and extinction ranges and attaches CSV
 and JSON evidence. Fixed cohorts make changes comparable; exploratory larger
 cohorts remain local or manually dispatched.
+
+A second scheduled cohort evaluates 100 dynasty seeds for 60 years. In addition
+to population and lifespan ranges, the generic seed laboratory now measures
+births, households formed, generations reached, and distinct surnames. This
+turns "the golden family tree still looks right" into a broader stability check
+without treating one seed as a demographic model.
 
 Statistical gates should be added only after a behavior has an intentional
 acceptable range. Early cohort output informs tuning without pretending the

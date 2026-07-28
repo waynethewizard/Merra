@@ -12,6 +12,8 @@ pub enum RngDomain {
     Population,
     /// Birth and fertility decisions.
     Birth,
+    /// Household formation and surname decisions.
+    Households,
     /// Mortality decisions.
     Mortality,
     /// Weather generation.
@@ -29,6 +31,7 @@ impl RngDomain {
         match self {
             Self::Population => "population",
             Self::Birth => "birth",
+            Self::Households => "households",
             Self::Mortality => "mortality",
             Self::Weather => "weather",
             Self::Politics => "politics",

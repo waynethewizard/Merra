@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::PersonId;
+use crate::{HouseholdId, PersonId};
 
 /// Source revision associated with a run.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -74,6 +74,12 @@ pub struct PersonRecordV1 {
     pub id: PersonId,
     /// Generated display name.
     pub name: String,
+    /// Given name independent of later household naming.
+    #[serde(default)]
+    pub given_name: String,
+    /// Surname received at initialization or birth.
+    #[serde(default)]
+    pub surname: String,
     /// Complete age at the scenario epoch.
     pub starting_age_years: u16,
     /// Complete age at the end of life or run.
@@ -82,4 +88,38 @@ pub struct PersonRecordV1 {
     pub alive: bool,
     /// Absolute death day when dead.
     pub death_day: Option<u64>,
+    /// Absolute birth day for people born during the run.
+    #[serde(default)]
+    pub birth_day: Option<u64>,
+    /// Stable parent identities, empty for scenario founders.
+    #[serde(default)]
+    pub parent_ids: Vec<PersonId>,
+    /// Current household at the end of the run.
+    #[serde(default)]
+    pub household_id: Option<HouseholdId>,
+    /// Current partner at the end of the run.
+    #[serde(default)]
+    pub partner_id: Option<PersonId>,
+    /// Founder generation is zero; their children are generation one.
+    #[serde(default)]
+    pub generation: u16,
+}
+
+/// Inspectable household state at the end of a run.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct HouseholdRecordV1 {
+    /// Stable household identifier.
+    pub id: HouseholdId,
+    /// Human-readable household name.
+    pub name: String,
+    /// Surname inherited by children born into this household.
+    pub surname: String,
+    /// Current members in stable person order.
+    pub member_ids: Vec<PersonId>,
+    /// Absolute day on which the household formed.
+    pub founded_day: u64,
+    /// Absolute day on which the household became empty or extinct.
+    pub dissolved_day: Option<u64>,
+    /// Number of children born into this household.
+    pub children_born: u16,
 }

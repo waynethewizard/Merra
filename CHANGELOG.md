@@ -21,6 +21,9 @@ interfaces stabilize.
   data-driven annual mortality over a canonical hundred-year scenario.
 - Data-driven named seasons with validated calendar coverage, exact boundary
   events, and mortality outcomes invariant to caller-selected step sizes.
+- Opt-in families with stable parentage, partnerships, surname-bearing
+  households, scheduled childbirth, dissolution after death, and a
+  four-generation genealogy inspector.
 - Interactive and ANSI-free terminal views for inspecting events and lives.
 - Golden century evidence, a multi-seed simulation laboratory, and GitHub
   Actions that publish reproducible run evidence and package Era releases.

@@ -1,16 +1,19 @@
 //! Headless Bevy ECS orchestration for Merra.
 
+use std::collections::{BTreeMap, BTreeSet};
+
 use bevy_app::{App, Plugin};
 use bevy_ecs::{
     entity::Entity,
-    prelude::{Component, Query, Res, ResMut, Resource},
+    prelude::{Commands, Component, Query, Res, ResMut, Resource},
     schedule::{IntoScheduleConfigs, Schedule, ScheduleLabel, SystemSet},
     system::SystemParam,
 };
 use merra_core::{
-    CalendarConfig, EVENT_SCHEMA_V1, EventId, EventKindV1, EventPayloadV1, PersonId,
-    PersonRecordV1, PopulationConfigV1, RngDomain, ScenarioError, ScenarioV1, SimDuration, SimTime,
-    SimulationSummaryV1, WorldEventV1, rng_for_domain,
+    CalendarConfig, EventId, EventKindV1, EventPayloadV1, FamilyConfigV1, HouseholdId,
+    HouseholdRecordV1, PersonId, PersonRecordV1, PopulationConfigV1, RngDomain, SUMMARY_SCHEMA_V1,
+    ScenarioError, ScenarioV1, SimDuration, SimTime, SimulationSummaryV1, WorldEventV1,
+    rng_for_domain,
 };
 use rand::RngExt;
 use rand_chacha::ChaCha12Rng;
@@ -25,6 +28,8 @@ pub enum SimulationSet {
     SeasonTransition,
     /// Age living people and evaluate mortality in stable identity order.
     Mortality,
+    /// Maintain partnerships and households, then create eligible births.
+    Family,
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq, ScheduleLabel)]
@@ -47,11 +52,22 @@ struct SimulationCalendar(CalendarConfig);
 struct PopulationRules(PopulationConfigV1);
 
 #[derive(Resource)]
+struct FamilyRules(FamilyConfigV1);
+
+#[derive(Resource)]
 struct MortalityRng(ChaCha12Rng);
 
 #[derive(Resource, Default)]
 struct AnnualMortalityClock {
     elapsed_days: u64,
+}
+
+#[derive(Resource)]
+struct FamilyRuntime {
+    household_rng: ChaCha12Rng,
+    name_rng: ChaCha12Rng,
+    next_person_id: u64,
+    next_household_id: u64,
 }
 
 #[derive(SystemParam)]
@@ -62,14 +78,53 @@ struct MortalityInputs<'w> {
     rules: Res<'w, PopulationRules>,
 }
 
+#[derive(SystemParam)]
+struct FamilyInputs<'w> {
+    clock: Res<'w, Clock>,
+    calendar: Res<'w, SimulationCalendar>,
+    rules: Res<'w, FamilyRules>,
+}
+
 #[derive(Component)]
 struct SimPerson {
     id: PersonId,
     name: String,
+    given_name: String,
+    surname: String,
     starting_age_years: u16,
     age_days: u64,
     alive: bool,
     death_day: Option<u64>,
+    birth_day: Option<u64>,
+    parent_ids: Vec<PersonId>,
+    household_id: Option<HouseholdId>,
+    partner_id: Option<PersonId>,
+    generation: u16,
+}
+
+#[derive(Component)]
+struct SimHousehold {
+    id: HouseholdId,
+    name: String,
+    surname: String,
+    member_ids: Vec<PersonId>,
+    founded_day: u64,
+    dissolved_day: Option<u64>,
+    children_born: u16,
+    last_birth_day: Option<u64>,
+}
+
+#[derive(Clone)]
+struct PersonSnapshot {
+    entity: Entity,
+    id: PersonId,
+    surname: String,
+    age_years: u64,
+    alive: bool,
+    parent_ids: Vec<PersonId>,
+    household_id: Option<HouseholdId>,
+    partner_id: Option<PersonId>,
+    generation: u16,
 }
 
 #[derive(Resource)]
@@ -120,6 +175,7 @@ impl Plugin for MerraSimulationPlugin {
                     SimulationSet::AdvanceTime,
                     SimulationSet::SeasonTransition,
                     SimulationSet::Mortality,
+                    SimulationSet::Family,
                 )
                     .chain(),
             )
@@ -134,6 +190,10 @@ impl Plugin for MerraSimulationPlugin {
             .add_systems(
                 SimulationStep,
                 age_and_apply_mortality.in_set(SimulationSet::Mortality),
+            )
+            .add_systems(
+                SimulationStep,
+                maintain_families.in_set(SimulationSet::Family),
             );
     }
 }
@@ -249,6 +309,392 @@ fn age_and_apply_mortality(
     }
 }
 
+fn maintain_families(
+    mut commands: Commands,
+    mut people: Query<(Entity, &mut SimPerson)>,
+    mut households: Query<&mut SimHousehold>,
+    inputs: FamilyInputs<'_>,
+    mut runtime: ResMut<FamilyRuntime>,
+    mut log: ResMut<EventLog>,
+) {
+    if !inputs.rules.0.enabled
+        || inputs
+            .clock
+            .now
+            .day_of_year(inputs.calendar.0.days_per_year)
+            != 0
+        || inputs.clock.now == SimTime::EPOCH
+    {
+        return;
+    }
+
+    let now = inputs.clock.now;
+    let days_per_year = u64::from(inputs.calendar.0.days_per_year);
+    let mut snapshot = snapshot_people(&people, days_per_year);
+    let entity_by_id: BTreeMap<_, _> = snapshot
+        .iter()
+        .map(|person| (person.id, person.entity))
+        .collect();
+
+    let mut ended_partnerships = Vec::new();
+    for person in &snapshot {
+        let Some(partner_id) = person.partner_id else {
+            continue;
+        };
+        if person.id >= partner_id {
+            continue;
+        }
+        let Some(partner) = snapshot.iter().find(|candidate| candidate.id == partner_id) else {
+            continue;
+        };
+        let deceased_id = match (person.alive, partner.alive) {
+            (false, _) => person.id,
+            (_, false) => partner.id,
+            (true, true) => continue,
+        };
+        ended_partnerships.push(([person.id, partner.id], deceased_id));
+    }
+    ended_partnerships.sort_unstable_by_key(|(partners, _)| *partners);
+
+    for (partners, deceased_id) in ended_partnerships {
+        for partner_id in partners {
+            if let Some(entity) = entity_by_id.get(&partner_id)
+                && let Ok((_, mut person)) = people.get_mut(*entity)
+            {
+                person.partner_id = None;
+            }
+        }
+        let causes = log
+            .events
+            .iter()
+            .rev()
+            .find(|event| {
+                event.kind == EventKindV1::PersonDied && event.actors.contains(&deceased_id)
+            })
+            .map(|event| event.id)
+            .into_iter()
+            .collect();
+        log.push(
+            now,
+            EventKindV1::PartnershipEnded,
+            partners.to_vec(),
+            causes,
+            vec![String::from("family"), String::from("partnership")],
+            EventPayloadV1::PartnershipEnded {
+                partners,
+                deceased_id,
+            },
+        );
+    }
+
+    snapshot = snapshot_people(&people, days_per_year);
+    let living_ids: BTreeSet<_> = snapshot
+        .iter()
+        .filter(|person| person.alive)
+        .map(|person| person.id)
+        .collect();
+    let mut household_ids: Vec<_> = households
+        .iter()
+        .filter(|household| household.dissolved_day.is_none())
+        .map(|household| household.id)
+        .collect();
+    household_ids.sort_unstable();
+    for household_id in &household_ids {
+        let Some(mut household) = households
+            .iter_mut()
+            .find(|household| household.id == *household_id)
+        else {
+            continue;
+        };
+        let previous_members = household.member_ids.clone();
+        household
+            .member_ids
+            .retain(|person_id| living_ids.contains(person_id));
+        if household.member_ids.is_empty() {
+            household.dissolved_day = Some(now.day());
+            let name = household.name.clone();
+            let causes =
+                log.events
+                    .iter()
+                    .rev()
+                    .find(|event| {
+                        event.kind == EventKindV1::PersonDied
+                            && event
+                                .actors
+                                .iter()
+                                .any(|actor| previous_members.contains(actor))
+                    })
+                    .or_else(|| {
+                        log.events.iter().rev().find(|event| {
+                            event.kind == EventKindV1::SeasonBegan && event.time == now
+                        })
+                    })
+                    .map(|event| event.id)
+                    .into_iter()
+                    .collect();
+            log.push(
+                now,
+                EventKindV1::HouseholdDissolved,
+                Vec::new(),
+                causes,
+                vec![String::from("family"), String::from("household")],
+                EventPayloadV1::HouseholdDissolved {
+                    household_id: *household_id,
+                    name,
+                },
+            );
+        }
+    }
+
+    snapshot = snapshot_people(&people, days_per_year);
+    let mut eligible: Vec<_> = snapshot
+        .iter()
+        .filter(|person| {
+            person.alive
+                && person.partner_id.is_none()
+                && person.age_years >= u64::from(inputs.rules.0.minimum_partnership_age)
+        })
+        .cloned()
+        .collect();
+    eligible.sort_unstable_by_key(|person| (person.generation, person.id));
+    let mut partnerships = Vec::new();
+    while let Some(first) = eligible.first().cloned() {
+        eligible.remove(0);
+        let Some(index) = eligible.iter().position(|candidate| {
+            candidate.generation == first.generation && !close_relatives(&first, candidate)
+        }) else {
+            continue;
+        };
+        let second = eligible.remove(index);
+        partnerships.push((first, second));
+    }
+
+    for (first, second) in partnerships {
+        let household_id = HouseholdId(runtime.next_household_id);
+        runtime.next_household_id = runtime.next_household_id.saturating_add(1);
+        let surname = if runtime.household_rng.random_bool(0.5) {
+            first.surname.clone()
+        } else {
+            second.surname.clone()
+        };
+        let name = format!("{surname} household");
+        let partners = [first.id, second.id];
+
+        for founder in [&first, &second] {
+            if let Some(previous_id) = founder.household_id
+                && let Some(mut previous) = households
+                    .iter_mut()
+                    .find(|household| household.id == previous_id)
+            {
+                previous
+                    .member_ids
+                    .retain(|person_id| *person_id != founder.id);
+            }
+            if let Ok((_, mut person)) = people.get_mut(founder.entity) {
+                person.household_id = Some(household_id);
+                person.partner_id = Some(if founder.id == first.id {
+                    second.id
+                } else {
+                    first.id
+                });
+            }
+        }
+
+        commands.spawn(SimHousehold {
+            id: household_id,
+            name: name.clone(),
+            surname: surname.clone(),
+            member_ids: partners.to_vec(),
+            founded_day: now.day(),
+            dissolved_day: None,
+            children_born: 0,
+            last_birth_day: None,
+        });
+        let causes = log
+            .events
+            .iter()
+            .rev()
+            .find(|event| event.kind == EventKindV1::SeasonBegan && event.time == now)
+            .map(|event| event.id)
+            .into_iter()
+            .collect();
+        let household_event = log.push(
+            now,
+            EventKindV1::HouseholdFormed,
+            partners.to_vec(),
+            causes,
+            vec![String::from("family"), String::from("household")],
+            EventPayloadV1::HouseholdFormed {
+                household_id,
+                name,
+                surname,
+                member_ids: partners.to_vec(),
+            },
+        );
+        log.push(
+            now,
+            EventKindV1::PartnershipFormed,
+            partners.to_vec(),
+            vec![household_event],
+            vec![String::from("family"), String::from("partnership")],
+            EventPayloadV1::PartnershipFormed {
+                household_id,
+                partners,
+            },
+        );
+    }
+
+    snapshot = snapshot_people(&people, days_per_year);
+    let people_by_id: BTreeMap<_, _> = snapshot
+        .iter()
+        .map(|person| (person.id, person.clone()))
+        .collect();
+    let interval_days =
+        u64::from(inputs.rules.0.birth_interval_years).saturating_mul(days_per_year);
+    let mut birth_households: Vec<_> = households
+        .iter()
+        .filter(|household| household.dissolved_day.is_none())
+        .map(|household| household.id)
+        .collect();
+    birth_households.sort_unstable();
+
+    for household_id in birth_households {
+        let Some(mut household) = households
+            .iter_mut()
+            .find(|household| household.id == household_id)
+        else {
+            continue;
+        };
+        if household.children_born >= inputs.rules.0.maximum_children_per_household
+            || household
+                .last_birth_day
+                .is_some_and(|day| now.day().saturating_sub(day) < interval_days)
+        {
+            continue;
+        }
+        let mut partners: Vec<_> = household
+            .member_ids
+            .iter()
+            .filter_map(|person_id| people_by_id.get(person_id))
+            .filter(|person| {
+                person.alive
+                    && person.partner_id.is_some()
+                    && person.age_years >= u64::from(inputs.rules.0.minimum_parent_age)
+                    && person.age_years <= u64::from(inputs.rules.0.maximum_parent_age)
+            })
+            .collect();
+        partners.sort_unstable_by_key(|person| person.id);
+        let Some(first) = partners.first() else {
+            continue;
+        };
+        let Some(second) = partners
+            .iter()
+            .find(|candidate| first.partner_id == Some(candidate.id))
+        else {
+            continue;
+        };
+        let generation = first.generation.max(second.generation).saturating_add(1);
+        if generation > inputs.rules.0.maximum_generation {
+            continue;
+        }
+
+        let person_id = PersonId(runtime.next_person_id);
+        runtime.next_person_id = runtime.next_person_id.saturating_add(1);
+        let given_name =
+            String::from(GIVEN_NAMES[runtime.name_rng.random_range(0..GIVEN_NAMES.len())]);
+        let surname = household.surname.clone();
+        let name = format!("{given_name} {surname}");
+        let parent_ids = [first.id.min(second.id), first.id.max(second.id)];
+        household.member_ids.push(person_id);
+        household.member_ids.sort_unstable();
+        household.children_born = household.children_born.saturating_add(1);
+        household.last_birth_day = Some(now.day());
+        commands.spawn(SimPerson {
+            id: person_id,
+            name: name.clone(),
+            given_name,
+            surname,
+            starting_age_years: 0,
+            age_days: 0,
+            alive: true,
+            death_day: None,
+            birth_day: Some(now.day()),
+            parent_ids: parent_ids.to_vec(),
+            household_id: Some(household_id),
+            partner_id: None,
+            generation,
+        });
+        let mut causes: Vec<_> = log
+            .events
+            .iter()
+            .filter(|event| {
+                (event.kind == EventKindV1::SeasonBegan && event.time == now)
+                    || matches!(
+                        &event.payload,
+                        EventPayloadV1::PartnershipFormed {
+                            household_id: formed_household,
+                            ..
+                        } if *formed_household == household_id
+                    )
+            })
+            .map(|event| event.id)
+            .collect();
+        causes.sort_unstable();
+        causes.dedup();
+        let mut actors = parent_ids.to_vec();
+        actors.push(person_id);
+        log.push(
+            now,
+            EventKindV1::PersonBorn,
+            actors,
+            causes,
+            vec![
+                String::from("person"),
+                String::from("birth"),
+                String::from("family"),
+            ],
+            EventPayloadV1::PersonBorn {
+                person_id,
+                name,
+                parent_ids,
+                household_id,
+                generation,
+            },
+        );
+    }
+}
+
+fn snapshot_people(
+    people: &Query<(Entity, &mut SimPerson)>,
+    days_per_year: u64,
+) -> Vec<PersonSnapshot> {
+    let mut snapshot: Vec<_> = people
+        .iter()
+        .map(|(entity, person)| PersonSnapshot {
+            entity,
+            id: person.id,
+            surname: person.surname.clone(),
+            age_years: person.age_days / days_per_year,
+            alive: person.alive,
+            parent_ids: person.parent_ids.clone(),
+            household_id: person.household_id,
+            partner_id: person.partner_id,
+            generation: person.generation,
+        })
+        .collect();
+    snapshot.sort_unstable_by_key(|person| person.id);
+    snapshot
+}
+
+fn close_relatives(first: &PersonSnapshot, second: &PersonSnapshot) -> bool {
+    first.parent_ids.contains(&second.id)
+        || second.parent_ids.contains(&first.id)
+        || first
+            .parent_ids
+            .iter()
+            .any(|parent| second.parent_ids.contains(parent))
+}
+
 /// Deterministic output independent of filesystem and source-control metadata.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SimulationReport {
@@ -256,8 +702,10 @@ pub struct SimulationReport {
     pub events: Vec<WorldEventV1>,
     /// Compact machine-readable summary.
     pub summary: SimulationSummaryV1,
-    /// Final inspectable state for every initialized person.
+    /// Final inspectable state for founders and people born during the run.
     pub people: Vec<PersonRecordV1>,
+    /// Final inspectable state for every household formed during the run.
+    pub households: Vec<HouseholdRecordV1>,
     /// Human-readable chronicle.
     pub chronicle: String,
 }
@@ -330,11 +778,21 @@ impl Simulation {
         })
         .insert_resource(SimulationCalendar(scenario.calendar.clone()))
         .insert_resource(PopulationRules(scenario.population.clone()))
+        .insert_resource(FamilyRules(scenario.family.clone()))
         .insert_resource(MortalityRng(rng_for_domain(seed, RngDomain::Mortality)))
         .insert_resource(AnnualMortalityClock::default())
         .insert_resource(event_log)
         .add_plugins(MerraSimulationPlugin);
-        spawn_initial_population(&mut app, &scenario, seed);
+        let mut name_rng = rng_for_domain(seed, RngDomain::Names);
+        spawn_initial_population(&mut app, &scenario, seed, &mut name_rng);
+        let mut household_rng = rng_for_domain(seed, RngDomain::Households);
+        let next_household_id = initialize_families(&mut app, &scenario, &mut household_rng);
+        app.insert_resource(FamilyRuntime {
+            household_rng,
+            name_rng,
+            next_person_id: u64::from(scenario.population.initial_people).saturating_add(1),
+            next_household_id,
+        });
 
         Ok(Self {
             app,
@@ -408,20 +866,47 @@ impl Simulation {
                 Some(PersonRecordV1 {
                     id: person.id,
                     name: person.name.clone(),
+                    given_name: person.given_name.clone(),
+                    surname: person.surname.clone(),
                     starting_age_years: person.starting_age_years,
                     final_age_years: person.age_days
                         / u64::from(self.scenario.calendar.days_per_year),
                     alive: person.alive,
                     death_day: person.death_day,
+                    birth_day: person.birth_day,
+                    parent_ids: person.parent_ids.clone(),
+                    household_id: person.household_id,
+                    partner_id: person.partner_id,
+                    generation: person.generation,
                 })
             })
             .collect();
         people.sort_unstable_by_key(|person| person.id);
+        let mut households: Vec<HouseholdRecordV1> = self
+            .app
+            .world()
+            .iter_entities()
+            .filter_map(|entity| {
+                let household = entity.get::<SimHousehold>()?;
+                let mut member_ids = household.member_ids.clone();
+                member_ids.sort_unstable();
+                Some(HouseholdRecordV1 {
+                    id: household.id,
+                    name: household.name.clone(),
+                    surname: household.surname.clone(),
+                    member_ids,
+                    founded_day: household.founded_day,
+                    dissolved_day: household.dissolved_day,
+                    children_born: household.children_born,
+                })
+            })
+            .collect();
+        households.sort_unstable_by_key(|household| household.id);
         let living_population = people.iter().filter(|person| person.alive).count() as u32;
-        let initial_population = people.len() as u32;
-        let deaths = initial_population.saturating_sub(living_population);
+        let initial_population = self.scenario.population.initial_people;
+        let deaths = people.iter().filter(|person| !person.alive).count() as u32;
         let summary = SimulationSummaryV1 {
-            schema_version: EVENT_SCHEMA_V1,
+            schema_version: SUMMARY_SCHEMA_V1,
             scenario_id: self.scenario.id.clone(),
             seed: self.seed,
             elapsed_days: now.day(),
@@ -437,6 +922,7 @@ impl Simulation {
             self.seed,
             &events,
             &people,
+            &households,
             now,
             elapsed_years,
         );
@@ -445,6 +931,7 @@ impl Simulation {
             events,
             summary,
             people,
+            households,
             chronicle,
         }
     }
@@ -468,14 +955,24 @@ fn render_chronicle(
     seed: u64,
     events: &[WorldEventV1],
     people: &[PersonRecordV1],
+    households: &[HouseholdRecordV1],
     now: SimTime,
     elapsed_years: u64,
 ) -> String {
     let year_unit = if elapsed_years == 1 { "year" } else { "years" };
     let living = people.iter().filter(|person| person.alive).count();
     let deaths = people.len().saturating_sub(living);
+    let births = people
+        .iter()
+        .filter(|person| person.birth_day.is_some())
+        .count();
     let population_line = if people.is_empty() {
         String::from("- Population: no people initialized\n")
+    } else if scenario.family.enabled {
+        format!(
+            "- Population: {} initialized, {births} born, {living} living, {deaths} deaths\n",
+            scenario.population.initial_people
+        )
     } else {
         format!(
             "- Population: {} initialized, {living} living, {deaths} deaths\n",
@@ -483,6 +980,20 @@ fn render_chronicle(
         )
     };
     let notable_lives = render_notable_lives(people, scenario.calendar.days_per_year);
+    let family_line = if scenario.family.enabled {
+        let generations = people
+            .iter()
+            .map(|person| person.generation)
+            .max()
+            .unwrap_or(0)
+            .saturating_add(1);
+        format!(
+            "- Families: {} households formed across {generations} generations\n",
+            households.len()
+        )
+    } else {
+        String::new()
+    };
     let seasons = scenario
         .calendar
         .seasons
@@ -498,6 +1009,7 @@ fn render_chronicle(
          - Seasons: {seasons}\n\
          - Elapsed: {} days ({elapsed_years} complete {year_unit})\n\
          {population_line}\
+         {family_line}\
          - Structured events: {}\n\n\
          The clock advanced deterministically from Day 0 to Day {}.\n\
          {notable_lives}",
@@ -545,25 +1057,153 @@ fn render_notable_lives(people: &[PersonRecordV1], days_per_year: u16) -> String
     )
 }
 
-fn spawn_initial_population(app: &mut App, scenario: &ScenarioV1, seed: u64) {
+fn spawn_initial_population(
+    app: &mut App,
+    scenario: &ScenarioV1,
+    seed: u64,
+    name_rng: &mut ChaCha12Rng,
+) {
     let config = &scenario.population;
     let mut population_rng = rng_for_domain(seed, RngDomain::Population);
-    let mut name_rng = rng_for_domain(seed, RngDomain::Names);
     for raw_id in 1..=u64::from(config.initial_people) {
         let starting_age_years =
             population_rng.random_range(config.minimum_starting_age..=config.maximum_starting_age);
-        let given = GIVEN_NAMES[name_rng.random_range(0..GIVEN_NAMES.len())];
-        let family = FAMILY_NAMES[name_rng.random_range(0..FAMILY_NAMES.len())];
+        let given = String::from(GIVEN_NAMES[name_rng.random_range(0..GIVEN_NAMES.len())]);
+        let family = String::from(FAMILY_NAMES[name_rng.random_range(0..FAMILY_NAMES.len())]);
         app.world_mut().spawn(SimPerson {
             id: PersonId(raw_id),
             name: format!("{given} {family}"),
+            given_name: given,
+            surname: family,
             starting_age_years,
             age_days: u64::from(starting_age_years)
                 .saturating_mul(u64::from(scenario.calendar.days_per_year)),
             alive: true,
             death_day: None,
+            birth_day: None,
+            parent_ids: Vec::new(),
+            household_id: None,
+            partner_id: None,
+            generation: 0,
         });
     }
+}
+
+fn initialize_families(
+    app: &mut App,
+    scenario: &ScenarioV1,
+    household_rng: &mut ChaCha12Rng,
+) -> u64 {
+    if !scenario.family.enabled {
+        return 1;
+    }
+    let mut founders: Vec<_> = app
+        .world()
+        .iter_entities()
+        .filter_map(|entity| {
+            let person = entity.get::<SimPerson>()?;
+            Some((
+                entity.id(),
+                person.id,
+                person.surname.clone(),
+                person.age_days / u64::from(scenario.calendar.days_per_year),
+            ))
+        })
+        .collect();
+    founders.sort_unstable_by_key(|(_, person_id, _, _)| *person_id);
+
+    let mut groups = Vec::new();
+    let mut paired = BTreeSet::new();
+    let eligible: Vec<_> = founders
+        .iter()
+        .filter(|(_, _, _, age)| *age >= u64::from(scenario.family.minimum_partnership_age))
+        .cloned()
+        .collect();
+    for pair in eligible.chunks_exact(2) {
+        paired.insert(pair[0].1);
+        paired.insert(pair[1].1);
+        groups.push(vec![pair[0].clone(), pair[1].clone()]);
+    }
+    groups.extend(
+        founders
+            .into_iter()
+            .filter(|(_, person_id, _, _)| !paired.contains(person_id))
+            .map(|founder| vec![founder]),
+    );
+    groups.sort_unstable_by_key(|group| group[0].1);
+
+    let mut next_household_id = 1_u64;
+    for group in groups {
+        let household_id = HouseholdId(next_household_id);
+        next_household_id = next_household_id.saturating_add(1);
+        let surname = if group.len() == 2 && household_rng.random_bool(0.5) {
+            group[1].2.clone()
+        } else {
+            group[0].2.clone()
+        };
+        let name = format!("{surname} household");
+        let member_ids: Vec<_> = group.iter().map(|(_, id, _, _)| *id).collect();
+        for (entity, person_id, _, _) in &group {
+            if let Some(mut person) = app.world_mut().get_mut::<SimPerson>(*entity) {
+                person.household_id = Some(household_id);
+                if member_ids.len() == 2 {
+                    person.partner_id = member_ids
+                        .iter()
+                        .copied()
+                        .find(|candidate| *candidate != *person_id);
+                }
+            }
+        }
+        app.world_mut().spawn(SimHousehold {
+            id: household_id,
+            name: name.clone(),
+            surname: surname.clone(),
+            member_ids: member_ids.clone(),
+            founded_day: 0,
+            dissolved_day: None,
+            children_born: 0,
+            last_birth_day: None,
+        });
+        let household_event = {
+            let mut log = app.world_mut().resource_mut::<EventLog>();
+            let causes = log
+                .events
+                .iter()
+                .rev()
+                .find(|event| event.kind == EventKindV1::SeasonBegan)
+                .map(|event| event.id)
+                .into_iter()
+                .collect();
+            log.push(
+                SimTime::EPOCH,
+                EventKindV1::HouseholdFormed,
+                member_ids.clone(),
+                causes,
+                vec![String::from("family"), String::from("household")],
+                EventPayloadV1::HouseholdFormed {
+                    household_id,
+                    name,
+                    surname,
+                    member_ids: member_ids.clone(),
+                },
+            )
+        };
+        if member_ids.len() == 2 {
+            let partners = [member_ids[0], member_ids[1]];
+            app.world_mut().resource_mut::<EventLog>().push(
+                SimTime::EPOCH,
+                EventKindV1::PartnershipFormed,
+                member_ids,
+                vec![household_event],
+                vec![String::from("family"), String::from("partnership")],
+                EventPayloadV1::PartnershipFormed {
+                    household_id,
+                    partners,
+                },
+            );
+        }
+    }
+    next_household_id
 }
 
 const GIVEN_NAMES: &[&str] = &[
@@ -596,8 +1236,8 @@ pub enum SimulationError {
 #[cfg(test)]
 mod tests {
     use merra_core::{
-        CalendarConfig, EventPayloadV1, MortalityBandV1, PersonId, PopulationConfigV1,
-        SCENARIO_SCHEMA_V1, ScenarioV1, SeasonConfigV1, SimDuration,
+        CalendarConfig, EventPayloadV1, FamilyConfigV1, MortalityBandV1, PersonId,
+        PopulationConfigV1, SCENARIO_SCHEMA_V1, ScenarioV1, SeasonConfigV1, SimDuration,
     };
 
     use super::Simulation;
@@ -642,6 +1282,7 @@ mod tests {
                 maximum_starting_age: 0,
                 mortality_bands: Vec::new(),
             },
+            family: FamilyConfigV1::default(),
         }
     }
 
@@ -677,6 +1318,7 @@ mod tests {
                     annual_deaths_per_10_000: 10_000,
                 }],
             },
+            family: FamilyConfigV1::default(),
         };
         let report = super::run_years(populated, 42, 1)?;
         let deaths: Vec<_> = report
@@ -743,6 +1385,7 @@ mod tests {
                     annual_deaths_per_10_000: 5_000,
                 }],
             },
+            family: FamilyConfigV1::default(),
         };
         let mut whole_year = Simulation::from_scenario(populated.clone(), 42)?;
         let mut uneven_steps = Simulation::from_scenario(populated, 42)?;
@@ -774,6 +1417,72 @@ mod tests {
             whole_year.summary.living_population,
             uneven_steps.summary.living_population
         );
+        Ok(())
+    }
+
+    #[test]
+    fn deterministic_households_reach_four_generations() -> Result<(), Box<dyn std::error::Error>> {
+        let families = ScenarioV1 {
+            schema_version: SCENARIO_SCHEMA_V1,
+            id: String::from("four-generations"),
+            title: String::from("Four Generations"),
+            calendar: calendar(),
+            population: PopulationConfigV1 {
+                initial_people: 8,
+                minimum_starting_age: 18,
+                maximum_starting_age: 18,
+                mortality_bands: vec![MortalityBandV1 {
+                    through_age: u16::MAX,
+                    annual_deaths_per_10_000: 0,
+                }],
+            },
+            family: FamilyConfigV1 {
+                enabled: true,
+                minimum_partnership_age: 18,
+                minimum_parent_age: 20,
+                maximum_parent_age: 40,
+                birth_interval_years: 4,
+                maximum_children_per_household: 2,
+                maximum_generation: 3,
+            },
+        };
+        let report = super::run_years(families, 42, 45)?;
+
+        assert_eq!(
+            report.people.iter().map(|person| person.generation).max(),
+            Some(3)
+        );
+        assert!(report.households.len() >= 8);
+        assert!(
+            report
+                .people
+                .iter()
+                .filter(|person| person.birth_day.is_some())
+                .all(|person| {
+                    person.parent_ids.len() == 2
+                        && person
+                            .parent_ids
+                            .iter()
+                            .all(|parent_id| *parent_id < person.id)
+                })
+        );
+
+        for person in report.people.iter().filter(|person| person.alive) {
+            let Some(partner_id) = person.partner_id else {
+                continue;
+            };
+            let partner = report
+                .people
+                .iter()
+                .find(|candidate| candidate.id == partner_id);
+            assert!(partner.is_some_and(|partner| {
+                partner.partner_id == Some(person.id)
+                    && !person
+                        .parent_ids
+                        .iter()
+                        .any(|parent| partner.parent_ids.contains(parent))
+            }));
+        }
         Ok(())
     }
 }

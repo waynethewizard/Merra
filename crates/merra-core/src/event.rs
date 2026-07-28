@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{EventId, LocationId, PersonId, SimTime};
+use crate::{EventId, HouseholdId, LocationId, PersonId, SimTime};
 
 /// Stable event categories in schema version 1.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -16,6 +16,16 @@ pub enum EventKindV1 {
     TimeAdvanced,
     /// A named season began.
     SeasonBegan,
+    /// A household was established.
+    HouseholdFormed,
+    /// Two people formed a partnership.
+    PartnershipFormed,
+    /// A partnership ended after a death.
+    PartnershipEnded,
+    /// A person was born.
+    PersonBorn,
+    /// A household ceased to have living members.
+    HouseholdDissolved,
     /// A person died.
     PersonDied,
     /// A requested run completed.
@@ -55,6 +65,51 @@ pub enum EventPayloadV1 {
         season_name: String,
         /// Zero-based year containing the season start.
         year: u64,
+    },
+    /// A new household acquired a stable identity.
+    HouseholdFormed {
+        /// Stable household identifier.
+        household_id: HouseholdId,
+        /// Human-readable household name.
+        name: String,
+        /// Surname inherited by children born into this household.
+        surname: String,
+        /// Founding members in stable person order.
+        member_ids: Vec<PersonId>,
+    },
+    /// Two living adults formed a household partnership.
+    PartnershipFormed {
+        /// Stable household established by the partnership.
+        household_id: HouseholdId,
+        /// Partners in stable identity order.
+        partners: [PersonId; 2],
+    },
+    /// A household partnership ended because one partner died.
+    PartnershipEnded {
+        /// Partners in stable identity order.
+        partners: [PersonId; 2],
+        /// Partner whose death ended the partnership.
+        deceased_id: PersonId,
+    },
+    /// A child was born into a household.
+    PersonBorn {
+        /// Stable identity assigned to the child.
+        person_id: PersonId,
+        /// Human-readable name assigned at birth.
+        name: String,
+        /// Parents in stable identity order.
+        parent_ids: [PersonId; 2],
+        /// Household into which the child was born.
+        household_id: HouseholdId,
+        /// Founder generation is zero.
+        generation: u16,
+    },
+    /// A household ceased to have living members.
+    HouseholdDissolved {
+        /// Stable household identity.
+        household_id: HouseholdId,
+        /// Human-readable household name at dissolution.
+        name: String,
     },
     /// An explainable natural death.
     PersonDied {

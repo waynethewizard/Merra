@@ -10,14 +10,23 @@ mod scenario;
 pub use calendar::{CalendarConfig, CalendarError, SeasonConfigV1, SimDuration, SimTime};
 pub use event::{EventKindV1, EventPayloadV1, WorldEventV1};
 pub use ids::{EventId, HouseholdId, LocationId, PersonId};
-pub use output::{PersonRecordV1, RunManifestV1, SimulationSummaryV1, SourceVersionV1};
+pub use output::{
+    HouseholdRecordV1, PersonRecordV1, RunManifestV1, SimulationSummaryV1, SourceVersionV1,
+};
 pub use rng::{RngDomain, rng_for_domain, seed_for_domain};
 pub use scenario::{
-    MortalityBandV1, PopulationConfigV1, SCENARIO_SCHEMA_V1, ScenarioError, ScenarioV1,
+    FamilyConfigV1, MortalityBandV1, PopulationConfigV1, SCENARIO_SCHEMA_V1, ScenarioError,
+    ScenarioV1,
 };
 
-/// Current structured-event schema.
+/// Foundation event schema used by time, season, and mortality-only runs.
 pub const EVENT_SCHEMA_V1: u32 = 1;
+
+/// Family event schema with households, partnerships, and births.
+pub const EVENT_SCHEMA_V2: u32 = 2;
+
+/// Current simulation-summary schema.
+pub const SUMMARY_SCHEMA_V1: u32 = 1;
 
 /// Current run-manifest schema.
 pub const MANIFEST_SCHEMA_V1: u32 = 1;

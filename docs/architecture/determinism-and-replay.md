@@ -49,6 +49,18 @@ numbers. Tests compare one large advance with uneven caller advances and require
 equal person records and death payloads. The `TimeAdvanced` evidence may differ
 because the caller's explicit requests are themselves recorded facts.
 
+Family-enabled scenarios add a household stream independent of names,
+mortality, and the reserved birth stream. Eligible unpartnered adults are
+sorted by generation and `PersonId`; the first same-generation person who is
+not a parent, child, or sibling becomes the deterministic partner. Household
+surname choice uses the household stream. Given names continue from the name
+stream after founder initialization.
+
+Births currently follow explicit age, interval, child-count, and generation
+limits rather than a probabilistic fertility claim. Every child receives the
+next stable `PersonId`, two earlier parent IDs, its household surname, and one
+generation greater than its parents.
+
 ## Run products
 
 The headless runner writes:

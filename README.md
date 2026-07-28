@@ -22,9 +22,9 @@ cargo merra run \
 ```
 
 The new output directory contains a manifest, JSONL event stream, population
-records, machine summary, and Markdown chronicle. The scenario's named seasons
-are data, and each exact boundary appears in the causal event stream. `runs/`
-is intentionally ignored.
+and household records, machine summary, and Markdown chronicle. The scenario's
+named seasons are data, and each exact boundary appears in the causal event
+stream. `runs/` is intentionally ignored.
 
 ## Repository guide
 
@@ -44,7 +44,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) before submitting changes.
 
 ## Review a generated century
 
-Open the interactive Events and People inspector:
+Open the interactive Events, People, and Genealogy inspector:
 
 ```sh
 cargo tui
@@ -57,6 +57,20 @@ quit. For a portable review snapshot:
 cargo tui --snapshot --view events
 cargo tui --snapshot --view people
 ```
+
+Inspect the current four-generation Cycle 2 history with:
+
+```sh
+cargo tui \
+  --scenario scenarios/era-01/dynasty.ron \
+  --seed 42 \
+  --years 60 \
+  --view genealogy
+```
+
+The headless report for a family-enabled scenario also includes
+`households.json`; the genealogy view resolves stable parent, partner,
+descendant, and household identities without exposing Bevy entity IDs.
 
 Run a fixed multi-seed cohort with:
 

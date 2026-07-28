@@ -32,7 +32,10 @@ transmission, incentives, preservation, distortion, and forgetting.
 - Event ordering follows simulation time and then stable emission order.
 
 An event schema change that breaks old readers increments the schema version.
-The run manifest records the event and scenario schema versions used.
+The run manifest records the event and scenario schema versions used. Cycle 1
+time, season, and mortality runs remain event schema v1; family-enabled runs
+declare event schema v2 because household, partnership, and birth variants are
+new exhaustive event categories.
 
 The first implemented causal chain is deliberately small:
 
@@ -43,6 +46,10 @@ SimulationStarted
 → TimeAdvanced(to next boundary)
 → SeasonBegan
   ├→ PersonDied (at an annual boundary)
+  ├→ PartnershipEnded
+  ├→ HouseholdDissolved
+  ├→ HouseholdFormed → PartnershipFormed
+  ├→ PersonBorn
   └→ next TimeAdvanced
 → SimulationCompleted
 ```
@@ -52,6 +59,12 @@ boundary. Deaths at a year boundary cite the new season event, preserving the
 ordered claim that time advanced and the new year began before annual mortality
 was resolved. Death emission order follows stable person identity, not Bevy
 query order.
+
+Family events preserve the difference between kinship, partnership, and
+co-residence. A birth cites the season boundary and the partnership event for
+its household. Its actors include both parents and the new child. A
+partnership ending cites the death that ended it; it does not erase the birth
+events that preserve earlier parentage.
 
 Events support debugging, causal inspection, golden tests, historical records,
 future replay tooling, and the concrete stories used in development writing.

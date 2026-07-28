@@ -55,6 +55,7 @@ struct Args {
 enum InitialView {
     Events,
     People,
+    Genealogy,
 }
 
 impl From<InitialView> for View {
@@ -62,6 +63,7 @@ impl From<InitialView> for View {
         match value {
             InitialView::Events => Self::Events,
             InitialView::People => Self::People,
+            InitialView::Genealogy => Self::Genealogy,
         }
     }
 }

@@ -13,13 +13,15 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Tabs, Wrap},
 };
 
-/// The two inspectable evidence collections.
+/// Inspectable evidence collections.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum View {
     /// Ordered structured events.
     Events,
     /// Final person records.
     People,
+    /// Parentage, partnerships, households, and descendants.
+    Genealogy,
 }
 
 /// Navigable state for the terminal inspector.
@@ -52,7 +54,8 @@ impl Inspector {
     pub const fn toggle_view(&mut self) {
         self.view = match self.view {
             View::Events => View::People,
-            View::People => View::Events,
+            View::People => View::Genealogy,
+            View::Genealogy => View::Events,
         };
     }
 
@@ -100,14 +103,14 @@ impl Inspector {
     fn selected_mut(&mut self) -> &mut usize {
         match self.view {
             View::Events => &mut self.selected_event,
-            View::People => &mut self.selected_person,
+            View::People | View::Genealogy => &mut self.selected_person,
         }
     }
 
     fn active_len(&self) -> usize {
         match self.view {
             View::Events => self.report.events.len(),
-            View::People => self.report.people.len(),
+            View::People | View::Genealogy => self.report.people.len(),
         }
     }
 }
@@ -128,6 +131,7 @@ pub fn render(frame: &mut Frame<'_>, inspector: &Inspector) {
     match inspector.view {
         View::Events => render_events(frame, list, detail, inspector),
         View::People => render_people(frame, list, detail, inspector),
+        View::Genealogy => render_genealogy(frame, list, detail, inspector),
     }
     frame.render_widget(
         Paragraph::new("q quit  Tab view  ↑/k ↓/j move  PgUp/PgDn page  Home/End jump")
@@ -138,6 +142,23 @@ pub fn render(frame: &mut Frame<'_>, inspector: &Inspector) {
 
 fn render_header(frame: &mut Frame<'_>, area: Rect, inspector: &Inspector) {
     let summary = &inspector.report.summary;
+    let births = inspector
+        .report
+        .people
+        .iter()
+        .filter(|person| person.birth_day.is_some())
+        .count();
+    let population = if births == 0 {
+        format!(
+            "Population {} → {} living  |  {} deaths",
+            summary.initial_population, summary.living_population, summary.deaths
+        )
+    } else {
+        format!(
+            "Population {} + {births} born → {} living  |  {} deaths",
+            summary.initial_population, summary.living_population, summary.deaths
+        )
+    };
     let text = Text::from(vec![
         Line::from(vec![
             Span::styled(
@@ -152,10 +173,7 @@ fn render_header(frame: &mut Frame<'_>, area: Rect, inspector: &Inspector) {
             "Scenario {}  |  Year {}  |  Events {}",
             summary.scenario_id, summary.elapsed_years, summary.event_count
         )),
-        Line::from(format!(
-            "Population {} → {} living  |  {} deaths",
-            summary.initial_population, summary.living_population, summary.deaths
-        )),
+        Line::from(population),
     ]);
     frame.render_widget(
         Paragraph::new(text).block(
@@ -171,9 +189,10 @@ fn render_tabs(frame: &mut Frame<'_>, area: Rect, inspector: &Inspector) {
     let selected = match inspector.view {
         View::Events => 0,
         View::People => 1,
+        View::Genealogy => 2,
     };
     frame.render_widget(
-        Tabs::new(["Events", "People"])
+        Tabs::new(["Events", "People", "Genealogy"])
             .select(selected)
             .block(Block::default().borders(Borders::ALL))
             .highlight_style(
@@ -266,6 +285,70 @@ fn render_people(frame: &mut Frame<'_>, list_area: Rect, detail_area: Rect, insp
     );
 }
 
+fn render_genealogy(
+    frame: &mut Frame<'_>,
+    list_area: Rect,
+    detail_area: Rect,
+    inspector: &Inspector,
+) {
+    let items: Vec<ListItem<'_>> = inspector
+        .report
+        .people
+        .iter()
+        .map(|person| {
+            let parents = if person.parent_ids.is_empty() {
+                String::from("founder")
+            } else {
+                format!(
+                    "parents {}",
+                    person
+                        .parent_ids
+                        .iter()
+                        .map(|parent| parent.0.to_string())
+                        .collect::<Vec<_>>()
+                        .join("+")
+                )
+            };
+            ListItem::new(format!(
+                "G{}  {:>3}  {:<20} {parents}",
+                person.generation, person.id.0, person.name
+            ))
+        })
+        .collect();
+    let mut state = ListState::default().with_selected(Some(inspector.selected_person));
+    frame.render_stateful_widget(
+        List::new(items)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(" Family Tree "),
+            )
+            .highlight_symbol("▶ ")
+            .highlight_style(Style::default().fg(Color::Yellow)),
+        list_area,
+        &mut state,
+    );
+
+    let detail = inspector
+        .report
+        .people
+        .get(inspector.selected_person)
+        .map_or_else(
+            || String::from("No person selected."),
+            |person| genealogy_detail(person, &inspector.report),
+        );
+    frame.render_widget(
+        Paragraph::new(detail)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(" Kinship Evidence "),
+            )
+            .wrap(Wrap { trim: false }),
+        detail_area,
+    );
+}
+
 fn event_short_label(event: &WorldEventV1) -> String {
     match &event.payload {
         EventPayloadV1::SimulationStarted { .. } => String::from("simulation started"),
@@ -278,6 +361,17 @@ fn event_short_label(event: &WorldEventV1) -> String {
         EventPayloadV1::SeasonBegan {
             season_name, year, ..
         } => format!("{season_name} began in Year {year}"),
+        EventPayloadV1::HouseholdFormed { name, .. } => format!("{name} formed"),
+        EventPayloadV1::PartnershipFormed { partners, .. } => {
+            format!("{} and {} partnered", partners[0].0, partners[1].0)
+        }
+        EventPayloadV1::PartnershipEnded { partners, .. } => {
+            format!("partnership {}–{} ended", partners[0].0, partners[1].0)
+        }
+        EventPayloadV1::PersonBorn {
+            name, generation, ..
+        } => format!("{name} born in generation {generation}"),
+        EventPayloadV1::HouseholdDissolved { name, .. } => format!("{name} dissolved"),
         EventPayloadV1::PersonDied {
             name, age_years, ..
         } => format!("{name} died at {age_years}"),
@@ -318,6 +412,60 @@ fn person_detail(person: &PersonRecordV1) -> String {
     )
 }
 
+fn genealogy_detail(person: &PersonRecordV1, report: &SimulationReport) -> String {
+    let resolve_person = |id| {
+        report
+            .people
+            .iter()
+            .find(|candidate| candidate.id == id)
+            .map_or_else(
+                || format!("Person {}", id.0),
+                |candidate| candidate.name.clone(),
+            )
+    };
+    let parents = if person.parent_ids.is_empty() {
+        String::from("scenario founder")
+    } else {
+        person
+            .parent_ids
+            .iter()
+            .map(|parent| resolve_person(*parent))
+            .collect::<Vec<_>>()
+            .join(" + ")
+    };
+    let partner = person
+        .partner_id
+        .map_or_else(|| String::from("none"), resolve_person);
+    let children = report
+        .people
+        .iter()
+        .filter(|candidate| candidate.parent_ids.contains(&person.id))
+        .map(|child| child.name.as_str())
+        .collect::<Vec<_>>();
+    let children = if children.is_empty() {
+        String::from("none")
+    } else {
+        children.join(", ")
+    };
+    let household = person.household_id.map_or_else(
+        || String::from("none"),
+        |id| {
+            report
+                .households
+                .iter()
+                .find(|household| household.id == id)
+                .map_or_else(
+                    || format!("Household {}", id.0),
+                    |household| household.name.clone(),
+                )
+        },
+    );
+    format!(
+        "{}\n\nPerson ID: {}\nGeneration: {}\nParents: {parents}\nPartner: {partner}\nChildren: {children}\nHousehold: {household}\nSurname: {}\n\nRelationships use stable domain IDs and can be reconstructed from birth and partnership events.",
+        person.name, person.id.0, person.generation, person.surname,
+    )
+}
+
 /// Renders a portable, ANSI-free screen for tests, CI, and review.
 pub fn snapshot(report: SimulationReport, width: u16, height: u16) -> String {
     snapshot_view(report, width, height, View::Events)
@@ -355,7 +503,8 @@ mod tests {
     use std::path::PathBuf;
 
     use merra_core::{
-        CalendarConfig, PopulationConfigV1, SCENARIO_SCHEMA_V1, ScenarioV1, SeasonConfigV1,
+        CalendarConfig, FamilyConfigV1, PopulationConfigV1, SCENARIO_SCHEMA_V1, ScenarioV1,
+        SeasonConfigV1,
     };
     use merra_sim::{SimulationReport, run_years};
 
@@ -381,6 +530,7 @@ mod tests {
                 maximum_starting_age: 0,
                 mortality_bands: Vec::new(),
             },
+            family: FamilyConfigV1::default(),
         };
         let screen = snapshot(run_years(scenario.clone(), 42, 1)?, 100, 30);
 
@@ -409,10 +559,28 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn canonical_dynasty_matches_golden_genealogy() -> Result<(), Box<dyn std::error::Error>> {
+        let report = scenario_report("scenarios/era-01/dynasty.ron", 60)?;
+
+        assert_eq!(
+            snapshot_view(report, 120, 36, View::Genealogy),
+            include_str!("../../../golden/era-01/dynasty-seed-42/tui-genealogy.txt")
+        );
+        Ok(())
+    }
+
     fn century_report() -> Result<SimulationReport, Box<dyn std::error::Error>> {
+        scenario_report("scenarios/era-01/century.ron", 100)
+    }
+
+    fn scenario_report(
+        scenario_path: &str,
+        years: u32,
+    ) -> Result<SimulationReport, Box<dyn std::error::Error>> {
         let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
-        let bytes = std::fs::read(root.join("scenarios/era-01/century.ron"))?;
+        let bytes = std::fs::read(root.join(scenario_path))?;
         let scenario: ScenarioV1 = ron::de::from_bytes(&bytes)?;
-        Ok(run_years(scenario, 42, 100)?)
+        Ok(run_years(scenario, 42, years)?)
     }
 }

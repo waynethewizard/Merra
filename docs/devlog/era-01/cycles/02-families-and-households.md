@@ -1,0 +1,203 @@
++++
+era = 1
+cycle = 2
+slug = "families-and-households"
+title = "Families and Households"
+status = "in_progress"
+started = "2026-07-28"
+completed = ""
+code_tag = ""
+scenario = "scenarios/era-01/dynasty.ron"
+seeds = [42]
++++
+
+# Era I / Cycle 2: Families and Households
+
+## Question
+
+Can Merra preserve understandable kinship while people form and lose
+partnerships, move between households, inherit surnames, and create four
+generations of descendants?
+
+The first implementation reaches that observable target. It remains a
+deliberately explicit family mechanism rather than a demographic claim.
+
+## Intended Evidence
+
+- A family-enabled scenario that leaves the tagged Cycle 1 scenarios unchanged.
+- Stable parent, partner, household, birth, death, and generation identities.
+- Typed events for household formation and dissolution, partnerships, and
+  childbirth.
+- A headless `households.json` report alongside population and event evidence.
+- A terminal genealogy view and fixed-size golden screen.
+- A reproducible seed with at least four generations and reviewable invariants.
+
+## Decisions and Rationale
+
+- Kinship, current partnership, and household membership are separate state;
+  see [ADR 0005](../../../adr/0005-kinship-partnership-and-household.md).
+- We use "partnership" rather than "marriage" until culture, law, religion, and
+  property make marriage a meaningful simulated institution.
+- Family behavior is an additive, opt-in scenario-v1 field. Missing family data
+  defaults to disabled, preserving Cycle 1 reports and golden evidence.
+- Family-enabled manifests declare event schema v2. The scenario shape is
+  backward-compatible, but exhaustive household, partnership, and birth event
+  variants are not honestly a v1 event stream.
+- Founders are generation 0. Every simulated child has two earlier stable
+  parent IDs and a generation exactly one higher than its parents.
+- A new household chooses one partner's surname through an isolated household
+  random stream. Partners retain their personal names; children inherit the
+  household surname.
+- Pairing is deterministic: eligible adults are ordered by generation and
+  stable identity, remain within a generation, and cannot pair with a parent,
+  child, or sibling.
+
+## Implementation Notes
+
+The Bevy schedule now runs family maintenance after annual mortality. A death
+therefore becomes authoritative before it ends a partnership or empties a
+household. Family maintenance then forms eligible partnerships and finally
+creates scheduled births.
+
+People carry stable personal and family evidence: given name, surname, birth
+day, parent IDs, current household, current partner, and generation.
+Households are ECS entities with separate stable `HouseholdId` values, current
+members, surname, founding and dissolution days, birth spacing, and child
+counts. Neither output contract serializes Bevy `Entity`.
+
+The CLI writes `households.json` for every run; it is empty when families are
+disabled. Ratatui adds a third `Genealogy` view that lists generations and
+resolves the selected person's parents, current partner, children, household,
+and surname.
+
+## Experiments and Results
+
+Canonical dynasty seed: `42`, duration: 60 years.
+
+- 16 eighteen-year-old founders formed 8 initial households.
+- 49 children were born, producing 65 people total.
+- 45 people remained alive and 20 had died at Year 60.
+- 31 households formed.
+- Generations 0, 1, 2, and 3 contained 16, 16, 18, and 15 people respectively.
+- The run emitted 644 ordered events.
+- Mara Mere recorded the first death at age 2 in Year 28.
+- Leof Marsh reached age 78, the longest completed life at the boundary.
+- Cerdic Oak recorded the final death in Year 60.
+
+A fixed cohort of seeds 1 through 100 also ran for 60 years:
+
+- All 100 runs reached four generations.
+- Births ranged from 34 through 50.
+- Households formed ranged from 22 through 34.
+- Living population at Year 60 ranged from 31 through 51, with a mean of
+  42.49.
+- Distinct surnames represented at the end of each complete record ranged from
+  8 through 13.
+
+The golden genealogy opens on Garin Thorn. It can resolve his founder status,
+current Thorn household, later partner Garin Fen, and children Mara Thorn and
+Garin Thorn from stable evidence.
+
+## Failures and Surprises
+
+The first design temptation was to make a `Family` component contain parents,
+partner, surname, and household. That would make leaving home or losing a
+partner look like rewriting ancestry. Separating the concepts made both the
+events and inspector much easier to explain.
+
+A strict two-child limit per household does not imply two children per person.
+After death ends a partnership, a survivor may form another household whose
+own child counter begins at zero. The canonical generations therefore contain
+slightly different cohort sizes rather than a perfect binary tree.
+
+The current title was changed from a generic invented house name to "Thorn and
+Fen" after the actual seed evidence showed which surnames the inspector made
+prominent. Scenario prose should follow the simulation rather than predeclare
+its story.
+
+## Tests and Invariants
+
+- Family age thresholds must be ordered and enabled limits must be positive.
+- Family-enabled manifests declare event schema v2 while family-disabled
+  Cycle 1 scenarios still declare event schema v1.
+- Disabled family rules preserve the Cycle 1 smoke and century golden evidence.
+- Birth parents have stable IDs lower than their child.
+- The canonical run reaches generation 3 and exactly matches summary,
+  chronicle, and genealogy-screen fixtures.
+- Current partnerships are symmetric.
+- Partnerships stay within one generation and do not pair siblings.
+- Active households cannot have an empty member list.
+- Every causal event reference points backward.
+- Existing annual mortality and caller-step invariants remain green.
+
+## Reproduction
+
+```sh
+cargo merra run \
+  --scenario scenarios/era-01/dynasty.ron \
+  --seed 42 \
+  --years 60 \
+  --output runs/dynasty-seed-42
+
+cargo tui \
+  --scenario scenarios/era-01/dynasty.ron \
+  --seed 42 \
+  --years 60 \
+  --view genealogy
+
+cargo tui \
+  --scenario scenarios/era-01/dynasty.ron \
+  --seed 42 \
+  --years 60 \
+  --snapshot \
+  --view genealogy
+
+cargo xtask seed-lab \
+  --scenario scenarios/era-01/dynasty.ron \
+  --first-seed 1 \
+  --count 100 \
+  --years 60 \
+  --output runs/dynasty-seed-lab
+```
+
+The headless command creates `manifest.json`, `events.jsonl`,
+`population.json`, `households.json`, `summary.json`, and `chronicle.md` in a
+previously nonexistent directory.
+
+## Known Limitations and Debt
+
+- Births are scheduled from explicit age, spacing, household-child, and
+  generation limits; fertility, pregnancy, sex, health, preference, and chance
+  are not modeled.
+- The current system models partnerships, not culturally or legally defined
+  marriage.
+- Pairing avoids direct parent-child and sibling relationships but does not yet
+  calculate cousin distance or a complete ancestor closure.
+- Household child limits reset when a new household forms.
+- Partner choice is deterministic and same-generation; there are no courtship,
+  preference, conflict, divorce, adoption, guardianship, or plural households.
+- Surnames belong to people and households but have no cultural naming rules.
+- Household history is visible in events, while the final household report
+  intentionally contains current rather than time-sliced membership.
+- The family implementation should move out of the growing simulation root
+  module once its system boundary settles.
+
+## Newsletter Candidates
+
+- Why `PersonId`, `HouseholdId`, and Bevy `Entity` are three different things.
+- Why marriage is not a synonym for two IDs in a component.
+- How a death event ends a partnership without changing a child's parents.
+- The surprising difference between "two children per household" and "two
+  children per person."
+- How stable parent IDs become an ANSI-free family-tree artifact in CI.
+- Why the story title changed after inspecting the seed.
+
+## Next Questions
+
+- Which birth and partnership rules should become probabilistic without making
+  the canonical family tree unreadable?
+- How should kinship distance constrain partnerships across cousins and clans?
+- When does a household name become a lineage name, and when can it vanish?
+- How should adoption, guardianship, remarriage, and step-relationships appear
+  without corrupting ancestry?
+- What place do these households inhabit when Cycle 3 adds five villages?

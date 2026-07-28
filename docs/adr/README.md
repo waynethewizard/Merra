@@ -16,3 +16,4 @@ difficult-to-reverse project policy.
 - [0002: Deterministic Random Streams](0002-deterministic-random-streams.md)
 - [0003: Public Site](0003-public-site.md)
 - [0004: Data-Driven Season Boundaries](0004-data-driven-season-boundaries.md)
+- [0005: Keep Kinship, Partnership, and Household Separate](0005-kinship-partnership-and-household.md)

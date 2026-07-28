@@ -76,6 +76,55 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  canonical-dynasty:
+    name: Four-generation genealogy evidence
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.1 --profile minimal
+
+      - name: Generate the canonical dynasty
+        run: >-
+          cargo run --locked -p merra-cli -- run
+          --scenario scenarios/era-01/dynasty.ron
+          --seed 42
+          --years 60
+          --output runs/actions-dynasty
+
+      - name: Render genealogy evidence
+        run: >-
+          cargo run --locked -p merra-tui --
+          --scenario scenarios/era-01/dynasty.ron
+          --seed 42
+          --years 60
+          --snapshot
+          --view genealogy
+          > runs/actions-dynasty/tui-genealogy.txt
+
+      - name: Publish genealogy to the job summary
+        run: |
+          {
+            cat runs/actions-dynasty/chronicle.md
+            printf '\n## Genealogy Snapshot\n\n```\n'
+            sed -n '1,35p' runs/actions-dynasty/tui-genealogy.txt
+            printf '```\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attach complete dynasty evidence
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: canonical-dynasty-${{ github.sha }}
+          path: runs/actions-dynasty/
+          if-no-files-found: error
+          retention-days: 14
+
   seed-cohort:
     name: One hundred-seed cohort
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
@@ -107,5 +156,39 @@ jobs:
         with:
           name: seed-lab-${{ github.sha }}
           path: runs/actions-seed-lab/
+          if-no-files-found: error
+          retention-days: 30
+
+  dynasty-cohort:
+    name: One hundred-seed dynasty cohort
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.1 --profile minimal
+
+      - name: Run deterministic dynasty laboratory
+        run: >-
+          cargo xtask seed-lab
+          --scenario scenarios/era-01/dynasty.ron
+          --first-seed 1
+          --count 100
+          --years 60
+          --output runs/actions-dynasty-lab
+
+      - name: Publish dynasty cohort summary
+        run: cat runs/actions-dynasty-lab/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attach dynasty cohort evidence
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: dynasty-lab-${{ github.sha }}
+          path: runs/actions-dynasty-lab/
           if-no-files-found: error
           retention-days: 30
