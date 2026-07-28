@@ -19,12 +19,12 @@
     "remark-gfm": "4.0.1"
   },
   "devDependencies": {
-    "@opennextjs/cloudflare": "1.19.11",
-    "@types/node": "24.10.1",
-    "@types/react": "19.2.14",
+    "@opennextjs/cloudflare": "1.20.2",
+    "@types/node": "26.1.2",
+    "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
-    "tsx": "4.20.6",
-    "typescript": "5.9.3",
+    "tsx": "4.23.1",
+    "typescript": "7.0.2",
     "wrangler": "4.114.0"
   },
   "overrides": {
