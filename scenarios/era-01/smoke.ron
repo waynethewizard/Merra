@@ -1,0 +1,8 @@
+(
+  schema_version: 1,
+  id: "era-01-smoke",
+  title: "The First Clock",
+  calendar: (
+    days_per_year: 360,
+  ),
+)

@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "scenario_id": "era-01-smoke",
+  "seed": 42,
+  "elapsed_days": 360,
+  "elapsed_years": 1,
+  "event_count": 3
+}

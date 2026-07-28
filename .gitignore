@@ -1,0 +1,34 @@
+# Rust build output
+/target/
+
+# Generated simulation runs and profiling output
+/runs/
+/profiling/
+*.profraw
+flamegraph.svg
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+.secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+.cargo/credentials
+.cargo/credentials.toml
+
+# Editors and operating systems
+.openai/
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Local coverage output
+/coverage/
+lcov.info

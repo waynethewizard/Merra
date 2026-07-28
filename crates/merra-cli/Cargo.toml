@@ -1,0 +1,26 @@
+[package]
+name = "merra-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+description = "Headless command-line runner for Merra simulations"
+
+[[bin]]
+name = "merra"
+path = "src/main.rs"
+
+[dependencies]
+blake3.workspace = true
+clap.workspace = true
+merra-core.workspace = true
+merra-sim.workspace = true
+ron.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true

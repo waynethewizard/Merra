@@ -1,0 +1,19 @@
+[package]
+name = "merra-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+description = "Bevy-independent domain model and deterministic data contracts for Merra"
+
+[dependencies]
+blake3.workspace = true
+rand.workspace = true
+rand_chacha.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true
