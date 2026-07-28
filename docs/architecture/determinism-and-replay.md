@@ -32,12 +32,18 @@ The result seeds `ChaCha12Rng`. Adding a cosmetic name draw therefore cannot
 change mortality or weather. Changing the derivation scheme requires a new
 version label and an ADR because it changes existing histories.
 
+Initial demographics, names, and mortality already use separate domains.
+Annual mortality checks collect living people and sort them by `PersonId`
+before drawing or emitting events. That ordering is part of the reproducibility
+contract even though Bevy is free to store entities in a different order.
+
 ## Run products
 
 The headless runner writes:
 
 - `manifest.json`: version and input identity;
 - `events.jsonl`: stable structured facts;
+- `population.json`: final inspectable person records;
 - `summary.json`: compact deterministic measurements;
 - `chronicle.md`: human-readable evidence.
 

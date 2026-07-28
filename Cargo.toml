@@ -4,6 +4,7 @@ members = [
     "crates/merra-core",
     "crates/merra-sim",
     "crates/merra-testkit",
+    "crates/merra-tui",
     "xtask",
 ]
 default-members = ["crates/merra-cli"]
@@ -22,10 +23,12 @@ bevy_app = "0.19.0"
 bevy_ecs = "0.19.0"
 blake3 = "1.8.5"
 clap = { version = "4.6.4", features = ["derive"] }
+crossterm = "0.29.0"
 merra-core = { version = "0.1.0", path = "crates/merra-core" }
 merra-sim = { version = "0.1.0", path = "crates/merra-sim" }
 rand = "0.10.2"
 rand_chacha = "0.10.0"
+ratatui = { version = "0.30.2", default-features = false, features = ["crossterm_0_29", "layout-cache", "macros", "underline-color"] }
 ron = "0.12.2"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"

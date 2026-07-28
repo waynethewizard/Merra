@@ -2,6 +2,8 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::PersonId;
+
 /// Source revision associated with a run.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct SourceVersionV1 {
@@ -53,6 +55,31 @@ pub struct SimulationSummaryV1 {
     pub elapsed_days: u64,
     /// Complete elapsed scenario years.
     pub elapsed_years: u64,
+    /// Calendar days in one scenario year.
+    pub days_per_year: u16,
     /// Number of structured events emitted.
     pub event_count: usize,
+    /// People present at the scenario epoch.
+    pub initial_population: u32,
+    /// People alive at the end of the run.
+    pub living_population: u32,
+    /// Deaths recorded during the run.
+    pub deaths: u32,
+}
+
+/// Inspectable person state at the end of a run.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct PersonRecordV1 {
+    /// Stable person identifier.
+    pub id: PersonId,
+    /// Generated display name.
+    pub name: String,
+    /// Complete age at the scenario epoch.
+    pub starting_age_years: u16,
+    /// Complete age at the end of life or run.
+    pub final_age_years: u64,
+    /// Whether the person remains alive.
+    pub alive: bool,
+    /// Absolute death day when dead.
+    pub death_day: Option<u64>,
 }

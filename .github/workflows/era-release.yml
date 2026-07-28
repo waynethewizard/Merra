@@ -1,0 +1,100 @@
+name: Era Release
+
+on:
+  push:
+    tags:
+      - "era-*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: era-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  package:
+    name: Package ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        shell: bash
+        run: rustup toolchain install 1.97.1 --profile minimal
+
+      - name: Build headless applications
+        run: cargo build --release --locked -p merra-cli -p merra-tui
+
+      - name: Assemble reproducibility bundle
+        shell: bash
+        run: |
+          bundle="merra-${RUNNER_OS}-${RUNNER_ARCH}"
+          mkdir -p "dist/${bundle}/bin"
+          if [[ "${RUNNER_OS}" == "Windows" ]]; then
+            cp target/release/merra.exe "dist/${bundle}/bin/"
+            cp target/release/merra-tui.exe "dist/${bundle}/bin/"
+          else
+            cp target/release/merra "dist/${bundle}/bin/"
+            cp target/release/merra-tui "dist/${bundle}/bin/"
+          fi
+          cp README.md LICENSE LICENSE-APACHE LICENSE-CC-BY-4.0 "dist/${bundle}/"
+          cp -R scenarios golden docs/newsletter "dist/${bundle}/"
+          tar -czf "dist/${bundle}.tar.gz" -C dist "${bundle}"
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@96278af6caaf10aea03fd8d33a09a777ca52d62f # v3.2.0
+        with:
+          subject-path: dist/*.tar.gz
+
+      - name: Upload platform bundle
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: merra-${{ runner.os }}-${{ runner.arch }}
+          path: dist/*.tar.gz
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    name: Publish GitHub release
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download platform bundles
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          path: dist
+          pattern: merra-*
+          merge-multiple: true
+
+      - name: Write checksums
+        run: cd dist && sha256sum ./*.tar.gz > SHA256SUMS
+
+      - name: Create Era release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "${GITHUB_REF_NAME}"
+          dist/*.tar.gz
+          dist/SHA256SUMS
+          --repo "${GITHUB_REPOSITORY}"
+          --verify-tag
+          --generate-notes

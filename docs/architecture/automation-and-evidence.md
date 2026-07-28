@@ -1,0 +1,54 @@
+# Automation and Public Evidence
+
+> Status: Accepted foundation
+> Last reviewed: 2026-07-27
+
+GitHub Actions is part of Merra's simulation laboratory, not only a build gate.
+
+## Continuous integration
+
+Every push and pull request checks the pinned toolchain on Linux, macOS, and
+Windows. Formatting, Clippy, documentation, scenario-note structure, dependency
+policy, and secret scanning are independent visible gates.
+
+## Canonical century
+
+The Simulation Laboratory reruns `scenarios/era-01/century.ron` with seed 42,
+verifies golden behavior, renders both TUI views, and places the resulting
+chronicle and terminal preview in the job summary. The complete run is a
+short-lived workflow artifact rather than repository noise.
+
+The summary is evidence, not an approval oracle. Reviewers should ask whether
+the causal result remains legible, not only whether its bytes remain stable.
+
+## Scheduled seed cohort
+
+The Wednesday seed laboratory evaluates seeds 1 through 100 for one hundred
+years. It publishes aggregate lifespan and extinction ranges and attaches CSV
+and JSON evidence. Fixed cohorts make changes comparable; exploratory larger
+cohorts remain local or manually dispatched.
+
+Statistical gates should be added only after a behavior has an intentional
+acceptable range. Early cohort output informs tuning without pretending the
+first model is correct.
+
+## Era releases
+
+Pushing an intentional `era-*` tag builds CLI and TUI bundles on all supported
+platforms. Each bundle includes scenarios, selected golden evidence, newsletter
+sources, and licenses. The release job uses GitHub's short-lived token with
+write permission only in the final release job. Every platform archive receives
+a GitHub build-provenance attestation through short-lived OIDC credentials, and
+the release includes SHA-256 checksums.
+
+## Secret and artifact policy
+
+- Workflows receive read-only repository permission unless a release requires
+  more.
+- Checkout credentials are not persisted in simulation or packaging jobs.
+- No pull-request workflow receives maintainer secrets.
+- Generated manifests contain source identity but no environment variables,
+  absolute paths, hostnames, or credentials.
+- Gitleaks scans committed history, while GitHub push protection blocks known
+  provider credentials before acceptance.
+- Artifacts are retained briefly and contain only reproducible public data.

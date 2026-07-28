@@ -1,20 +1,24 @@
 [package]
-name = "xtask"
+name = "merra-tui"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 publish.workspace = true
-description = "Repository automation for Merra"
+description = "Interactive terminal inspector for deterministic Merra histories"
+
+[[bin]]
+name = "merra-tui"
+path = "src/main.rs"
 
 [dependencies]
 clap.workspace = true
+crossterm.workspace = true
 merra-core.workspace = true
 merra-sim.workspace = true
+ratatui.workspace = true
 ron.workspace = true
-serde.workspace = true
-serde_json.workspace = true
 thiserror.workspace = true
 
 [lints]

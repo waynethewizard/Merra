@@ -1,4 +1,5 @@
 [alias]
 check-all = "check --workspace --all-targets --all-features"
 merra = "run --package merra-cli --"
+tui = "run --package merra-tui --"
 xtask = "run --package xtask --"

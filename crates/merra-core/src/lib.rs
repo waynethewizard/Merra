@@ -10,9 +10,11 @@ mod scenario;
 pub use calendar::{CalendarConfig, SimDuration, SimTime};
 pub use event::{EventKindV1, EventPayloadV1, WorldEventV1};
 pub use ids::{EventId, HouseholdId, LocationId, PersonId};
-pub use output::{RunManifestV1, SimulationSummaryV1, SourceVersionV1};
+pub use output::{PersonRecordV1, RunManifestV1, SimulationSummaryV1, SourceVersionV1};
 pub use rng::{RngDomain, rng_for_domain, seed_for_domain};
-pub use scenario::{SCENARIO_SCHEMA_V1, ScenarioError, ScenarioV1};
+pub use scenario::{
+    MortalityBandV1, PopulationConfigV1, SCENARIO_SCHEMA_V1, ScenarioError, ScenarioV1,
+};
 
 /// Current structured-event schema.
 pub const EVENT_SCHEMA_V1: u32 = 1;

@@ -5,4 +5,10 @@
   calendar: (
     days_per_year: 360,
   ),
+  population: (
+    initial_people: 0,
+    minimum_starting_age: 0,
+    maximum_starting_age: 0,
+    mortality_bands: [],
+  ),
 )

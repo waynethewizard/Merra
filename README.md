@@ -21,8 +21,9 @@ cargo merra run \
   --output runs/smoke
 ```
 
-The new output directory contains a manifest, JSONL event stream, machine
-summary, and Markdown chronicle. `runs/` is intentionally ignored.
+The new output directory contains a manifest, JSONL event stream, population
+records, machine summary, and Markdown chronicle. `runs/` is intentionally
+ignored.
 
 ## Repository guide
 
@@ -39,6 +40,31 @@ summary, and Markdown chronicle. `runs/` is intentionally ignored.
 - [`CHANGELOG.md`](CHANGELOG.md) is the concise release-facing change record.
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) before submitting changes.
+
+## Review a generated century
+
+Open the interactive Events and People inspector:
+
+```sh
+cargo tui
+```
+
+Use arrow keys or `j`/`k` to navigate, `Tab` to switch collections, and `q` to
+quit. For a portable review snapshot:
+
+```sh
+cargo tui --snapshot --view events
+cargo tui --snapshot --view people
+```
+
+Run a fixed multi-seed cohort with:
+
+```sh
+cargo xtask seed-lab --output runs/seed-lab
+```
+
+GitHub Actions repeats the canonical century on changes, exposes its chronicle
+in the job summary, and runs the 100-seed laboratory each week.
 
 ## Run the public site
 

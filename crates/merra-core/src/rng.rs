@@ -8,6 +8,8 @@ const RNG_SCHEME: &[u8] = b"merra-rng-v1\0";
 /// Stable built-in random domains.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RngDomain {
+    /// Initial population demographics.
+    Population,
     /// Birth and fertility decisions.
     Birth,
     /// Mortality decisions.
@@ -25,6 +27,7 @@ impl RngDomain {
     #[must_use]
     pub const fn label(self) -> &'static str {
         match self {
+            Self::Population => "population",
             Self::Birth => "birth",
             Self::Mortality => "mortality",
             Self::Weather => "weather",

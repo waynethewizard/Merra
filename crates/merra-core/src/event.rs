@@ -10,8 +10,12 @@ use crate::{EventId, LocationId, PersonId, SimTime};
 pub enum EventKindV1 {
     /// A simulation was initialized.
     SimulationStarted,
+    /// The scenario's initial people entered the world.
+    PopulationInitialized,
     /// The clock advanced.
     TimeAdvanced,
+    /// A person died.
+    PersonDied,
     /// A requested run completed.
     SimulationCompleted,
 }
@@ -27,6 +31,11 @@ pub enum EventPayloadV1 {
         /// Root deterministic seed.
         seed: u64,
     },
+    /// Initial population count.
+    PopulationInitialized {
+        /// Number of people spawned at the epoch.
+        people: u32,
+    },
     /// One explicit time advancement.
     TimeAdvanced {
         /// Starting absolute day.
@@ -35,6 +44,17 @@ pub enum EventPayloadV1 {
         to_day: u64,
         /// Number of elapsed days.
         elapsed_days: u64,
+    },
+    /// An explainable natural death.
+    PersonDied {
+        /// Stable identity of the person who died.
+        person_id: PersonId,
+        /// Human-readable name at the time of death.
+        name: String,
+        /// Complete age at death.
+        age_years: u64,
+        /// Integer mortality threshold used for the check.
+        annual_deaths_per_10_000: u16,
     },
     /// Final run extent.
     SimulationCompleted {

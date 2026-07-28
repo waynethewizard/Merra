@@ -12,6 +12,8 @@ description = "Headless Bevy ECS orchestration for the Merra simulation"
 bevy_app.workspace = true
 bevy_ecs.workspace = true
 merra-core.workspace = true
+rand.workspace = true
+rand_chacha.workspace = true
 thiserror.workspace = true
 
 [lints]

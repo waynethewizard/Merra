@@ -102,6 +102,7 @@ fn run_simulation(
     write_json(output.join("manifest.json"), &manifest)?;
     write_events(output.join("events.jsonl"), &report)?;
     write_json(output.join("summary.json"), &report.summary)?;
+    write_json(output.join("population.json"), &report.people)?;
     fs::write(output.join("chronicle.md"), &report.chronicle)?;
 
     println!(

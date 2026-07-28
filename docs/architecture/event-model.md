@@ -34,5 +34,19 @@ transmission, incentives, preservation, distortion, and forgetting.
 An event schema change that breaks old readers increments the schema version.
 The run manifest records the event and scenario schema versions used.
 
+The first implemented causal chain is deliberately small:
+
+```text
+SimulationStarted
+→ PopulationInitialized
+→ TimeAdvanced
+  ├→ PersonDied
+  └→ next TimeAdvanced
+→ SimulationCompleted
+```
+
+Deaths within one time step all cite that step's `TimeAdvanced` event. Their
+emission order follows stable person identity, not Bevy query order.
+
 Events support debugging, causal inspection, golden tests, historical records,
 future replay tooling, and the concrete stories used in development writing.

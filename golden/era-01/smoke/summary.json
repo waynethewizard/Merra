@@ -4,5 +4,9 @@
   "seed": 42,
   "elapsed_days": 360,
   "elapsed_years": 1,
-  "event_count": 3
+  "days_per_year": 360,
+  "event_count": 3,
+  "initial_population": 0,
+  "living_population": 0,
+  "deaths": 0
 }

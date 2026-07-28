@@ -17,6 +17,11 @@ interfaces stabilize.
 - Deterministic smoke scenario with structured events and reproducible reports.
 - Architecture, development chronicle, newsletter, licensing, security, and
   contribution foundations.
+- Deterministic population initialization, stable person records, aging, and
+  data-driven annual mortality over a canonical hundred-year scenario.
+- Interactive and ANSI-free terminal views for inspecting events and lives.
+- Golden century evidence, a multi-seed simulation laboratory, and GitHub
+  Actions that publish reproducible run evidence and package Era releases.
 - Static public project site with a development chronicle and interactive
   explorer for curated, reproducible golden runs.
 - Railway container and deployment configuration for the public site.

@@ -1,0 +1,111 @@
+name: Simulation Laboratory
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "41 6 * * 3"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: simulation-lab-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  canonical-century:
+    name: Canonical century evidence
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.1 --profile minimal
+
+      - name: Verify golden simulations
+        run: cargo test --locked -p merra-testkit
+
+      - name: Generate the canonical century
+        run: >-
+          cargo run --locked -p merra-cli -- run
+          --scenario scenarios/era-01/century.ron
+          --seed 42
+          --years 100
+          --output runs/actions-century
+
+      - name: Render terminal evidence
+        run: |
+          cargo run --locked -p merra-tui -- \
+            --scenario scenarios/era-01/century.ron \
+            --seed 42 \
+            --years 100 \
+            --snapshot \
+            --view events > runs/actions-century/tui-events.txt
+          cargo run --locked -p merra-tui -- \
+            --scenario scenarios/era-01/century.ron \
+            --seed 42 \
+            --years 100 \
+            --snapshot \
+            --view people > runs/actions-century/tui-people.txt
+
+      - name: Publish chronicle to the job summary
+        run: |
+          {
+            cat runs/actions-century/chronicle.md
+            printf '\n## Terminal Snapshot\n\n```\n'
+            sed -n '1,28p' runs/actions-century/tui-events.txt
+            printf '```\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attach complete run evidence
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: canonical-century-${{ github.sha }}
+          path: runs/actions-century/
+          if-no-files-found: error
+          retention-days: 14
+
+  seed-cohort:
+    name: One hundred-seed cohort
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.1 --profile minimal
+
+      - name: Run deterministic seed laboratory
+        run: >-
+          cargo xtask seed-lab
+          --scenario scenarios/era-01/century.ron
+          --first-seed 1
+          --count 100
+          --years 100
+          --output runs/actions-seed-lab
+
+      - name: Publish cohort summary
+        run: cat runs/actions-seed-lab/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attach cohort evidence
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: seed-lab-${{ github.sha }}
+          path: runs/actions-seed-lab/
+          if-no-files-found: error
+          retention-days: 30

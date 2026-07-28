@@ -7,6 +7,7 @@ Merra separates historical meaning from engine orchestration and presentation.
 
 ```text
 merra-cli ───────┐
+merra-tui ───────┤
                  ▼
              merra-sim ─────▶ merra-core
                  ▲
@@ -38,7 +39,9 @@ concept.
 
 ### Applications and presentation
 
-`merra-cli` is Era I's headless composition root. Era II will add a graphical
+`merra-cli` is Era I's headless batch composition root. `merra-tui` is an
+optional terminal inspector over completed simulation evidence; it does not
+participate in authoritative world updates. Era II will add a graphical
 application and presentation boundary. Simulation crates must not depend on
 rendering, UI, audio, or platform windows.
 
