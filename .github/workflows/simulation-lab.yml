@@ -75,7 +75,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Attach complete run evidence
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: canonical-century-${{ github.sha }}
           path: runs/actions-century/
@@ -143,7 +143,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Attach complete dynasty evidence
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: canonical-dynasty-${{ github.sha }}
           path: runs/actions-dynasty/
@@ -203,7 +203,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Attach world, atlas, events, and history
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: canonical-world-history-${{ github.sha }}
           path: |
@@ -239,7 +239,7 @@ jobs:
         run: cat runs/actions-seed-lab/summary.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Attach cohort evidence
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: seed-lab-${{ github.sha }}
           path: runs/actions-seed-lab/
@@ -273,7 +273,7 @@ jobs:
         run: cat runs/actions-dynasty-lab/summary.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Attach dynasty cohort evidence
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: dynasty-lab-${{ github.sha }}
           path: runs/actions-dynasty-lab/
@@ -308,7 +308,7 @@ jobs:
         run: cat runs/actions-world-lab/summary.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Attach world cohort evidence
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: world-lab-${{ github.sha }}
           path: runs/actions-world-lab/
