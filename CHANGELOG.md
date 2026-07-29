@@ -58,6 +58,15 @@ interfaces stabilize.
   generation, theme portability, and the separation of lineage, culture,
   faith, and polity.
 
+### Changed
+
+- GitHub Actions now use the current immutable-SHA releases of artifact
+  transfer, Node setup, provenance attestation, and secret scanning, including
+  stricter artifact digest verification and Node 24 action runtimes.
+- The public-site toolchain now uses TypeScript 7 through Next.js's supported
+  CLI compatibility path, OpenNext for Cloudflare 1.20, and current Node,
+  React, and TSX type/build dependencies.
+
 ### Fixed
 
 - Final family records now clear a dead person's current household membership,
