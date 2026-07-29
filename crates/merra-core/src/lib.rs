@@ -17,9 +17,10 @@ pub use ids::{
     PersonId, PolityId, PopulationId, RegionId, RouteId,
 };
 pub use local_history::{
-    HouseholdHistoricalContextV1, LOCAL_HISTORY_SCHEMA_V1, LocalConnectionV1,
-    LocalHistoryConfigError, LocalHistoryConfigV1, LocalHistoryManifestV1, LocalHistoryReportV1,
-    LocalHistorySummaryV1, LocalSettlementRecordV1, PopulationAllocationV1, RegionalHistoryV1,
+    HouseholdHistoricalContextV1, LOCAL_HISTORY_SCHEMA_V1, LOCAL_PLAYBACK_SCHEMA_V1,
+    LocalConnectionV1, LocalHistoryConfigError, LocalHistoryConfigV1, LocalHistoryManifestV1,
+    LocalHistoryPlaybackV1, LocalHistoryReportV1, LocalHistorySummaryV1, LocalPlaybackEventV1,
+    LocalPlaybackPersonV1, LocalSettlementRecordV1, PopulationAllocationV1, RegionalHistoryV1,
     ResidenceDecisionV1, ResidenceReasonV1,
 };
 pub use output::{

@@ -1,7 +1,7 @@
 # Historical Event Model
 
 > Status: Accepted foundation
-> Last reviewed: 2026-07-28
+> Last reviewed: 2026-07-29
 
 Every meaningful authoritative change should be capable of emitting a
 structured world event.
@@ -69,6 +69,13 @@ events that preserve earlier parentage.
 
 Events support debugging, causal inspection, golden tests, historical records,
 future replay tooling, and the concrete stories used in development writing.
+
+Replay surfaces consume explicit projections of these authoritative events.
+For example, `LocalHistoryPlaybackV1` retains person metadata plus only the
+ordered household-settlement, birth, and death events needed to reconstruct
+who is alive and where they reside. The projection is versioned and derived
+from the completed report; it does not advance time, recalculate decisions, or
+become an independent source of truth.
 
 ## Macro-history events
 

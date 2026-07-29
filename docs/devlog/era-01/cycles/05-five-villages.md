@@ -155,6 +155,9 @@ fixtures are required to prove those rules independently.
 - Household contexts retain culture, faith, institution, and lore evidence.
 - Canonical summaries, settlement records, connections, chronicle, and all
   five 120×36 TUI views exactly match committed golden evidence.
+- The compact playback projection retains all 108 named sampled people and the
+  164 ordered settlement, birth, and death events used by the public
+  generation-by-generation visualization.
 - Compact rendering contains no ANSI escapes and gives an explicit minimum-size
   fallback.
 

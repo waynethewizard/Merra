@@ -187,12 +187,69 @@ export type LocalHistoryShowcase = {
     route_ids: number[];
     path: number[];
   }[];
+  playback: LocalHistoryPlayback;
   views: {
     slug: string;
     title: string;
     description: string;
     screen: string;
   }[];
+};
+
+export type LocalPlaybackPerson = {
+  id: number;
+  name: string;
+  generation: number;
+  starting_age_years: number;
+  birth_day: number | null;
+  death_day: number | null;
+  parent_ids: number[];
+};
+
+export type LocalPlaybackEvent =
+  | {
+      type: "household_settled";
+      event_id: number;
+      day: number;
+      household_id: number;
+      origin_location_ids: number[];
+      destination_location_id: number;
+      traveler_ids: number[];
+      route_ids: number[];
+      travel_cost: number;
+      travel_days: number;
+      living_kin_support: number;
+      reason:
+        | "macro_projection"
+        | "living_kin"
+        | "shortest_journey"
+        | "seeded_tie_break";
+    }
+  | {
+      type: "person_born";
+      event_id: number;
+      day: number;
+      person_id: number;
+      household_id: number;
+      location_id: number;
+    }
+  | {
+      type: "person_died";
+      event_id: number;
+      day: number;
+      person_id: number;
+      age_years: number;
+      location_id: number;
+    };
+
+export type LocalHistoryPlayback = {
+  schema_version: number;
+  seed: number;
+  projection_year: number;
+  elapsed_years: number;
+  days_per_year: number;
+  people: LocalPlaybackPerson[];
+  events: LocalPlaybackEvent[];
 };
 
 const snapshot = content as unknown as {

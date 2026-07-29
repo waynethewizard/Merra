@@ -12,10 +12,10 @@ use std::{
 use clap::{Parser, Subcommand};
 use merra_core::{
     BEVY_VERSION, EVENT_SCHEMA_V3, HISTORY_SCHEMA_V1, HistoryConfigV1, HistoryManifestV1,
-    LOCAL_HISTORY_SCHEMA_V1, LocalHistoryConfigV1, LocalHistoryManifestV1, LocalHistoryReportV1,
-    MANIFEST_SCHEMA_V1, RUST_TOOLCHAIN_VERSION, RegionalHistoryV1, RunManifestV1, ScenarioV1,
-    SimDuration, SourceVersionV1, WORLD_GENESIS_SCHEMA_V1, WorldGenesisConfigV1,
-    WorldGenesisManifestV1,
+    LOCAL_HISTORY_SCHEMA_V1, LocalHistoryConfigV1, LocalHistoryManifestV1, LocalHistoryPlaybackV1,
+    LocalHistoryReportV1, MANIFEST_SCHEMA_V1, RUST_TOOLCHAIN_VERSION, RegionalHistoryV1,
+    RunManifestV1, ScenarioV1, SimDuration, SourceVersionV1, WORLD_GENESIS_SCHEMA_V1,
+    WorldGenesisConfigV1, WorldGenesisManifestV1,
 };
 use merra_sim::{
     HistoricalReport, HistorySimulationError, LocalHistoryError, Simulation, SimulationError,
@@ -285,6 +285,10 @@ fn run_villages(
     fs::create_dir_all(output)?;
     write_json(output.join("manifest.json"), &manifest)?;
     write_json(output.join("local-history.json"), &report)?;
+    write_json(
+        output.join("playback.json"),
+        &LocalHistoryPlaybackV1::from_report(&report),
+    )?;
     write_local_events(output.join("events.jsonl"), &report)?;
     write_json(output.join("summary.json"), &report.summary)?;
     write_json(output.join("population.json"), &report.people)?;

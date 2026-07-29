@@ -159,6 +159,10 @@ living-kin support, shortest road cost, and an isolated seeded tie-break.
 Births and deaths retain authoritative places, while household contexts carry
 culture, faith, institutions, and competing historical claims.
 
+The run also writes `playback.json`, a compact, versioned projection of the
+named people and settlement, birth, and death events required to replay the
+local history without turning the website into a second simulation.
+
 Inspect the consequence, roads, settlements, migrations, and households:
 
 ```sh
@@ -172,6 +176,8 @@ cargo tui villages \
 Seed 42 makes the comparison legible: Fenstead grows from 12 to 37 sampled
 residents while Fenholm falls from 4 to 0. Exact compact evidence is in
 [`golden/era-01/five-villages-seed-42/`](golden/era-01/five-villages-seed-42/).
+The public Five Villages page uses that same evidence to animate all four
+generations year by year.
 
 ## Run the public site
 

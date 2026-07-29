@@ -64,6 +64,9 @@ interfaces stabilize.
 - Story-first five-village terminal inspector with consequence, shortest-path
   road matrix, settlements, migrations, and household-context views plus exact
   golden snapshots.
+- Versioned five-village playback evidence and an interactive public-site
+  network that replays 108 named lives through settlement, birth, death, and
+  household migration events across four generations.
 
 ### Changed
 

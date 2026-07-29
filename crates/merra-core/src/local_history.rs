@@ -4,14 +4,17 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::{
-    CultureId, CultureRecordV1, EventId, FaithId, FaithRecordV1, HistoricalEventV1, HouseholdId,
-    HouseholdRecordV1, InstitutionId, InstitutionRecordV1, LocationId, LoreClaimV1, PersonId,
-    PersonRecordV1, PopulationId, PopulationRecordV1, RouteId, ScenarioError, ScenarioV1,
+    CultureId, CultureRecordV1, EventId, EventPayloadV1, FaithId, FaithRecordV1, HistoricalEventV1,
+    HouseholdId, HouseholdRecordV1, InstitutionId, InstitutionRecordV1, LocationId, LoreClaimV1,
+    PersonId, PersonRecordV1, PopulationId, PopulationRecordV1, RouteId, ScenarioError, ScenarioV1,
     SettlementRecordV1, SimulationSummaryV1, SourceVersionV1, StartingRegionV1, WorldEventV1,
 };
 
 /// Current local-history schema.
 pub const LOCAL_HISTORY_SCHEMA_V1: u32 = 1;
+
+/// Current person-level local-history playback schema.
+pub const LOCAL_PLAYBACK_SCHEMA_V1: u32 = 1;
 
 /// Rules for one deterministic projection into detailed local simulation.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -239,6 +242,101 @@ pub struct LocalHistorySummaryV1 {
     pub located_events: usize,
 }
 
+/// Stable person metadata used by the local-history playback.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct LocalPlaybackPersonV1 {
+    /// Stable detailed person identity.
+    pub id: PersonId,
+    /// Human-readable name at the end of the run.
+    pub name: String,
+    /// Founder generation is zero.
+    pub generation: u16,
+    /// Complete age at the projection boundary for initial people.
+    pub starting_age_years: u16,
+    /// Absolute birth day for people born during local history.
+    pub birth_day: Option<u64>,
+    /// Absolute death day when the person died during local history.
+    pub death_day: Option<u64>,
+    /// Stable parent identities, empty for the projected founders.
+    pub parent_ids: Vec<PersonId>,
+}
+
+/// One location-changing or vital event required to replay sampled people.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum LocalPlaybackEventV1 {
+    /// A household and its founders acquired one authoritative residence.
+    HouseholdSettled {
+        /// Source event identity in the complete local event stream.
+        event_id: EventId,
+        /// Absolute local-simulation day.
+        day: u64,
+        /// Household selecting a residence.
+        household_id: HouseholdId,
+        /// Prior residences of the founding members.
+        origin_location_ids: Vec<LocationId>,
+        /// Selected residence.
+        destination_location_id: LocationId,
+        /// People who moved with the household.
+        traveler_ids: Vec<PersonId>,
+        /// Shortest-path route identities used by the travelers.
+        route_ids: Vec<RouteId>,
+        /// Greatest shortest-path cost paid by a traveler.
+        travel_cost: u32,
+        /// Calendar travel time implied by the configured scale.
+        travel_days: u32,
+        /// Living close kin counted at the destination.
+        living_kin_support: u16,
+        /// Dominant deterministic residence rule.
+        reason: ResidenceReasonV1,
+    },
+    /// A sampled person was born at one authoritative location.
+    PersonBorn {
+        /// Source event identity in the complete local event stream.
+        event_id: EventId,
+        /// Absolute local-simulation day.
+        day: u64,
+        /// Stable newborn identity.
+        person_id: PersonId,
+        /// Household into which the person was born.
+        household_id: HouseholdId,
+        /// Authoritative birthplace.
+        location_id: LocationId,
+    },
+    /// A sampled person died at one authoritative location.
+    PersonDied {
+        /// Source event identity in the complete local event stream.
+        event_id: EventId,
+        /// Absolute local-simulation day.
+        day: u64,
+        /// Stable identity of the person who died.
+        person_id: PersonId,
+        /// Complete age at death.
+        age_years: u64,
+        /// Authoritative place of death.
+        location_id: LocationId,
+    },
+}
+
+/// Compact, event-faithful stream used to animate sampled local lives.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct LocalHistoryPlaybackV1 {
+    /// Playback schema version.
+    pub schema_version: u32,
+    /// Root deterministic local-history seed.
+    pub seed: u64,
+    /// Macro-history year at which local playback begins.
+    pub projection_year: u32,
+    /// Number of detailed years in the playback.
+    pub elapsed_years: u32,
+    /// Calendar days represented by one local year.
+    pub days_per_year: u16,
+    /// Stable metadata for every sampled person who ever lived in the run.
+    pub people: Vec<LocalPlaybackPersonV1>,
+    /// Ordered placements, births, deaths, and later residence choices.
+    pub events: Vec<LocalPlaybackEventV1>,
+}
+
 /// Reproducibility metadata for a local-history run.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct LocalHistoryManifestV1 {
@@ -303,6 +401,91 @@ pub struct LocalHistoryReportV1 {
     pub summary: LocalHistorySummaryV1,
     /// Human-readable place history.
     pub chronicle: String,
+}
+
+impl LocalHistoryPlaybackV1 {
+    /// Extracts the minimal person-level stream needed for a faithful animation.
+    #[must_use]
+    pub fn from_report(report: &LocalHistoryReportV1) -> Self {
+        let people = report
+            .people
+            .iter()
+            .map(|person| LocalPlaybackPersonV1 {
+                id: person.id,
+                name: person.name.clone(),
+                generation: person.generation,
+                starting_age_years: person.starting_age_years,
+                birth_day: person.birth_day,
+                death_day: person.death_day,
+                parent_ids: person.parent_ids.clone(),
+            })
+            .collect();
+        let events = report
+            .events
+            .iter()
+            .filter_map(|event| match &event.payload {
+                EventPayloadV1::HouseholdSettled {
+                    household_id,
+                    origin_location_ids,
+                    destination_location_id,
+                    traveler_ids,
+                    route_ids,
+                    travel_cost,
+                    travel_days,
+                    living_kin_support,
+                    reason,
+                } => Some(LocalPlaybackEventV1::HouseholdSettled {
+                    event_id: event.id,
+                    day: event.time.day(),
+                    household_id: *household_id,
+                    origin_location_ids: origin_location_ids.clone(),
+                    destination_location_id: *destination_location_id,
+                    traveler_ids: traveler_ids.clone(),
+                    route_ids: route_ids.clone(),
+                    travel_cost: *travel_cost,
+                    travel_days: *travel_days,
+                    living_kin_support: *living_kin_support,
+                    reason: *reason,
+                }),
+                EventPayloadV1::PersonBorn {
+                    person_id,
+                    household_id,
+                    ..
+                } => event
+                    .location
+                    .map(|location_id| LocalPlaybackEventV1::PersonBorn {
+                        event_id: event.id,
+                        day: event.time.day(),
+                        person_id: *person_id,
+                        household_id: *household_id,
+                        location_id,
+                    }),
+                EventPayloadV1::PersonDied {
+                    person_id,
+                    age_years,
+                    ..
+                } => event
+                    .location
+                    .map(|location_id| LocalPlaybackEventV1::PersonDied {
+                        event_id: event.id,
+                        day: event.time.day(),
+                        person_id: *person_id,
+                        age_years: *age_years,
+                        location_id,
+                    }),
+                _ => None,
+            })
+            .collect();
+        Self {
+            schema_version: LOCAL_PLAYBACK_SCHEMA_V1,
+            seed: report.seed,
+            projection_year: report.summary.projection_year,
+            elapsed_years: report.summary.elapsed_years,
+            days_per_year: report.simulation_summary.days_per_year,
+            people,
+            events,
+        }
+    }
 }
 
 /// Invalid local-history configuration.

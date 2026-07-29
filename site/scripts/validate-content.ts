@@ -422,6 +422,55 @@ const localConnections = readJson<
     path: number[];
   }[]
 >(path.join(localHistoryDirectory, "connections.json"));
+type LocalPlaybackPerson = {
+  id: number;
+  name: string;
+  generation: number;
+  starting_age_years: number;
+  birth_day: number | null;
+  death_day: number | null;
+  parent_ids: number[];
+};
+type LocalPlaybackEvent =
+  | {
+      type: "household_settled";
+      event_id: number;
+      day: number;
+      household_id: number;
+      origin_location_ids: number[];
+      destination_location_id: number;
+      traveler_ids: number[];
+      route_ids: number[];
+      travel_cost: number;
+      travel_days: number;
+      living_kin_support: number;
+      reason: string;
+    }
+  | {
+      type: "person_born";
+      event_id: number;
+      day: number;
+      person_id: number;
+      household_id: number;
+      location_id: number;
+    }
+  | {
+      type: "person_died";
+      event_id: number;
+      day: number;
+      person_id: number;
+      age_years: number;
+      location_id: number;
+    };
+const localPlayback = readJson<{
+  schema_version: number;
+  seed: number;
+  projection_year: number;
+  elapsed_years: number;
+  days_per_year: number;
+  people: LocalPlaybackPerson[];
+  events: LocalPlaybackEvent[];
+}>(path.join(localHistoryDirectory, "playback.json"));
 const localTerminalViews = [
   {
     slug: "overview",
@@ -481,6 +530,7 @@ const localHistoryShowcase = {
   locatedEvents: localHistorySummary.located_events,
   settlements: localSettlements,
   connections: localConnections,
+  playback: localPlayback,
   views: localTerminalViews
 };
 
@@ -616,6 +666,130 @@ assert(
   "local showcase must retain the growing and empty village contrast"
 );
 assert(
+  localPlayback.schema_version === 1 &&
+    localPlayback.seed === localHistorySummary.seed &&
+    localPlayback.projection_year === localHistorySummary.projection_year &&
+    localPlayback.elapsed_years === localHistorySummary.elapsed_years &&
+    localPlayback.days_per_year === 360,
+  "local playback metadata must match the canonical local history"
+);
+const playbackPeople = new Map(
+  localPlayback.people.map((person) => [person.id, person])
+);
+assert(
+  playbackPeople.size === 108 &&
+    localPlayback.people.length === playbackPeople.size,
+  "local playback requires 108 uniquely identified sampled people"
+);
+const generationCounts = [0, 1, 2, 3].map(
+  (generation) =>
+    localPlayback.people.filter((person) => person.generation === generation)
+      .length
+);
+assert(
+  generationCounts.join(",") === "30,30,26,22",
+  "local playback must retain the canonical four generations"
+);
+
+const selectedLocationIds = new Set(
+  localSettlements.map((settlement) => settlement.location_id)
+);
+const livingPlaybackPeople = new Set<number>();
+const seenPlaybackPeople = new Set<number>();
+const playbackLocations = new Map<number, number>();
+let previousPlaybackEventId = 0;
+let previousPlaybackDay = 0;
+let playbackBirths = 0;
+let playbackDeaths = 0;
+let playbackSettlements = 0;
+let playbackMigrations = 0;
+for (const event of localPlayback.events) {
+  assert(
+    event.event_id > previousPlaybackEventId && event.day >= previousPlaybackDay,
+    `playback event ${event.event_id} is not in stable causal order`
+  );
+  previousPlaybackEventId = event.event_id;
+  previousPlaybackDay = event.day;
+  if (event.type === "household_settled") {
+    playbackSettlements += 1;
+    assert(
+      selectedLocationIds.has(event.destination_location_id),
+      `playback household ${event.household_id} settled outside the five villages`
+    );
+    if (
+      event.origin_location_ids.some(
+        (origin) => origin !== event.destination_location_id
+      )
+    ) {
+      playbackMigrations += 1;
+    }
+    for (const personId of event.traveler_ids) {
+      assert(
+        playbackPeople.has(personId),
+        `playback settlement references unknown person ${personId}`
+      );
+      livingPlaybackPeople.add(personId);
+      seenPlaybackPeople.add(personId);
+      playbackLocations.set(personId, event.destination_location_id);
+    }
+  } else if (event.type === "person_born") {
+    playbackBirths += 1;
+    const person = playbackPeople.get(event.person_id);
+    assert(
+      person?.birth_day === event.day,
+      `playback birth for person ${event.person_id} disagrees with person metadata`
+    );
+    livingPlaybackPeople.add(event.person_id);
+    seenPlaybackPeople.add(event.person_id);
+    playbackLocations.set(event.person_id, event.location_id);
+  } else {
+    playbackDeaths += 1;
+    const person = playbackPeople.get(event.person_id);
+    assert(
+      person?.death_day === event.day &&
+        playbackLocations.get(event.person_id) === event.location_id,
+      `playback death for person ${event.person_id} disagrees with lived location`
+    );
+    livingPlaybackPeople.delete(event.person_id);
+  }
+}
+assert(
+  localPlayback.events.length === 164 &&
+    playbackSettlements === 52 &&
+    playbackBirths === localHistorySummary.births &&
+    playbackDeaths === localHistorySummary.deaths &&
+    playbackMigrations === localHistorySummary.household_migrations,
+  "local playback event totals must match the canonical local summary"
+);
+assert(
+  seenPlaybackPeople.size === playbackPeople.size &&
+    livingPlaybackPeople.size === localHistorySummary.living_sample_people,
+  "local playback must place every sampled life and reconcile final survivors"
+);
+for (const settlement of localSettlements) {
+  const livingHere = [...livingPlaybackPeople].filter(
+    (personId) => playbackLocations.get(personId) === settlement.location_id
+  ).length;
+  assert(
+    livingHere === settlement.final_living_people,
+    `playback final population disagrees with ${settlement.name}`
+  );
+}
+const generationStarts = [1, 2, 3].map((generation) => {
+  const firstBirth = localPlayback.people
+    .filter((person) => person.generation === generation)
+    .map((person) => person.birth_day)
+    .filter((day): day is number => day !== null)
+    .sort((first, second) => first - second)[0];
+  return firstBirth === undefined
+    ? -1
+    : Math.floor(firstBirth / localPlayback.days_per_year);
+});
+assert(
+  generationStarts.join(",") === "2,22,42",
+  "local playback generation milestones must remain Year +2, +22, and +42"
+);
+assert(
   localTerminalViews.length === 5,
   "local history showcase requires all five terminal views"
 );
@@ -671,5 +845,5 @@ fs.writeFileSync(
 );
 
 console.log(
-  `Validated ${run.events.length} foundation events, ${terminalViews.length + localTerminalViews.length} terminal views, and the ${worldSummary.regions.toLocaleString("en-US")}-region world atlas.`
+  `Validated ${run.events.length} foundation events, ${terminalViews.length + localTerminalViews.length} terminal views, the ${worldSummary.regions.toLocaleString("en-US")}-region world atlas, and ${localPlayback.people.length} replayable village lives.`
 );

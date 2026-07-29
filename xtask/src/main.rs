@@ -11,7 +11,9 @@ use std::{
 };
 
 use clap::{Parser, Subcommand};
-use merra_core::{HistoryConfigV1, ScenarioV1, WorldGenesisConfigV1};
+use merra_core::{
+    HistoryConfigV1, LocalHistoryPlaybackV1, LocalHistoryReportV1, ScenarioV1, WorldGenesisConfigV1,
+};
 use merra_sim::{run_history, run_years};
 use merra_worldgen::{generate_world, summarize_world};
 use serde::Serialize;
@@ -44,6 +46,15 @@ enum Commands {
     Preflight,
     /// Validate documentation structure and active cycle records.
     VerifyDocs,
+    /// Refresh a compact website playback artifact from a complete local report.
+    RefreshLocalPlayback {
+        /// Complete `local-history.json` produced by `cargo merra villages`.
+        #[arg(long)]
+        input: PathBuf,
+        /// Playback JSON artifact to create or replace.
+        #[arg(long)]
+        output: PathBuf,
+    },
     /// Create a cycle record from the standard template.
     NewCycle {
         /// Zero-padded or numeric era number.
@@ -114,6 +125,7 @@ fn execute(cli: Cli) -> Result<(), XtaskError> {
     match cli.command {
         Commands::Preflight => preflight(),
         Commands::VerifyDocs => verify_docs(),
+        Commands::RefreshLocalPlayback { input, output } => refresh_local_playback(&input, &output),
         Commands::NewCycle {
             era,
             cycle,
@@ -136,6 +148,22 @@ fn execute(cli: Cli) -> Result<(), XtaskError> {
             output,
         } => world_lab(&world, &history, first_seed, count, years, &output),
     }
+}
+
+fn refresh_local_playback(input: &Path, output: &Path) -> Result<(), XtaskError> {
+    let report: LocalHistoryReportV1 = serde_json::from_slice(&fs::read(input)?)?;
+    let playback = LocalHistoryPlaybackV1::from_report(&report);
+    if let Some(parent) = output.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    fs::write(output, serde_json::to_string_pretty(&playback)? + "\n")?;
+    println!(
+        "wrote {} people and {} playback events to {}",
+        playback.people.len(),
+        playback.events.len(),
+        output.display()
+    );
+    Ok(())
 }
 
 fn preflight() -> Result<(), XtaskError> {

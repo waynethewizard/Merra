@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { TerminalShowcase } from "@/components/TerminalShowcase";
+import { VillagePlayback } from "@/components/VillagePlayback";
 import { getLocalHistoryShowcase } from "@/lib/content";
 
 export const metadata: Metadata = {
@@ -66,10 +67,30 @@ export default function VillagesPage() {
         </div>
       </section>
 
+      <section className="section village-playback-section">
+        <div className="shell">
+          <div className="world-section-heading">
+            <p className="section-number">01 / Living history</p>
+            <h2>Watch four generations redistribute five villages.</h2>
+            <p>
+              Every dot is one named person in the canonical detailed sample.
+              Play all 60 years, scrub one year at a time, or jump to the first
+              appearance of each generation. Births, deaths, and household
+              migrations come directly from the checked event stream.
+            </p>
+          </div>
+          <VillagePlayback
+            connections={showcase.connections}
+            playback={showcase.playback}
+            settlements={showcase.settlements}
+          />
+        </div>
+      </section>
+
       <section className="section village-consequence">
         <div className="shell">
           <div className="world-section-heading">
-            <p className="section-number">01 / The consequence</p>
+            <p className="section-number">02 / The consequence</p>
             <h2>Growth is comparative. Disappearance leaves evidence.</h2>
             <p>
               Fenstead attracts households and grows. Fenholm records births
@@ -150,7 +171,7 @@ export default function VillagesPage() {
       <section className="section residence-model">
         <div className="shell">
           <div className="world-section-heading light-heading">
-            <p className="section-number light">02 / Residence model</p>
+            <p className="section-number light">03 / Residence model</p>
             <h2>Kin first. Roads second. Seed only for a true tie.</h2>
             <p>
               A household owns one residence; every member derives place from
@@ -204,7 +225,7 @@ export default function VillagesPage() {
       <section className="shell terminal-showcase-section villages-terminal">
         <div className="section-heading">
           <div>
-            <p className="section-number">03 / Inspect the evidence</p>
+            <p className="section-number">04 / Inspect the evidence</p>
             <h2>The overview tells the story. Every tab can prove it.</h2>
           </div>
           <p>
@@ -220,7 +241,7 @@ export default function VillagesPage() {
       <section className="reproduce-section village-reproduce">
         <div className="shell reproduce-grid">
           <div>
-            <p className="section-number light">04 / Reproduce it</p>
+            <p className="section-number light">05 / Reproduce it</p>
             <h2>One handoff. No hidden spreadsheet.</h2>
             <p>
               The history command emits a versioned regional handoff. The

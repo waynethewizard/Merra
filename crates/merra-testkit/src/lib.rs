@@ -68,7 +68,8 @@ mod tests {
 
     use merra_core::{
         EventKindV1, EventPayloadV1, HistoricalEventKindV1, HistoryConfigV1, HouseholdId,
-        LineageId, LocalHistoryConfigV1, PersonId, ScenarioV1, WorldEventV1, WorldGenesisConfigV1,
+        LineageId, LocalHistoryConfigV1, LocalHistoryPlaybackV1, LocalPlaybackEventV1, PersonId,
+        ScenarioV1, WorldEventV1, WorldGenesisConfigV1,
     };
     use merra_sim::{SimulationReport, regional_history, run_history, run_local_history};
     use merra_worldgen::{generate_world, summarize_world};
@@ -341,6 +342,33 @@ mod tests {
         let local = run_local_history(&world, &regional, local_config.clone(), 42)?;
         let repeated_local = run_local_history(&world, &regional, local_config, 42)?;
         assert_eq!(local, repeated_local);
+        let playback = LocalHistoryPlaybackV1::from_report(&local);
+        assert_eq!(playback.people.len(), 108);
+        assert_eq!(playback.events.len(), 164);
+        assert_eq!(
+            playback
+                .events
+                .iter()
+                .filter(|event| matches!(event, LocalPlaybackEventV1::HouseholdSettled { .. }))
+                .count(),
+            52
+        );
+        assert_eq!(
+            playback
+                .events
+                .iter()
+                .filter(|event| matches!(event, LocalPlaybackEventV1::PersonBorn { .. }))
+                .count(),
+            78
+        );
+        assert_eq!(
+            playback
+                .events
+                .iter()
+                .filter(|event| matches!(event, LocalPlaybackEventV1::PersonDied { .. }))
+                .count(),
+            34
+        );
         assert_eq!(local.summary.settlements, 5);
         assert_eq!(local.summary.macro_population, 40_751);
         assert_eq!(
@@ -411,6 +439,10 @@ mod tests {
         assert_eq!(
             local.chronicle,
             fs::read_to_string(local_golden.join("chronicle.md"))?
+        );
+        assert_eq!(
+            serde_json::to_string_pretty(&playback)? + "\n",
+            fs::read_to_string(local_golden.join("playback.json"))?
         );
         Ok(())
     }
