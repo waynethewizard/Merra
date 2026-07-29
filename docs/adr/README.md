@@ -17,3 +17,5 @@ difficult-to-reverse project policy.
 - [0003: Public Site](0003-public-site.md)
 - [0004: Data-Driven Season Boundaries](0004-data-driven-season-boundaries.md)
 - [0005: Keep Kinship, Partnership, and Household Separate](0005-kinship-partnership-and-household.md)
+- [0006: Generate the World Before Historical Populations](0006-world-first-place-graph.md)
+- [0007: Separate Lineage, Culture, Faith, and Polity](0007-lineage-culture-faith.md)

@@ -68,3 +68,38 @@ events that preserve earlier parentage.
 
 Events support debugging, causal inspection, golden tests, historical records,
 future replay tooling, and the concrete stories used in development writing.
+
+## Macro-history events
+
+World generation records stable pass summaries and hashes but does not pretend
+that plate placement is a witnessed human event. Once populations are seeded,
+the aggregate history uses a parallel `HistoricalEventV1` contract:
+
+```text
+HistoricalEventV1
+├── stable event ID and historical year
+├── typed subjects: population, culture, faith, institution, polity, feature
+├── optional stable location
+├── backward causal event IDs
+├── searchable tags
+└── typed payload
+```
+
+Its initial categories cover population and settlement founding, migration,
+culture, faith, institutions, polities, route opening, first contact, mixed
+populations, faith spread and schism, abandonment, and completion.
+
+Route opening is capability-based. A surface-world adapter may emit
+`SeaRouteOpened`; an abstract graph emits `RouteOpened`. First contact must cite
+the earlier opening event and cannot occur merely because two homelands exist
+in the same scenario.
+
+`LoreClaimV1` is explicitly not another authoritative event. It identifies its
+source culture and optional faith, references stable events, and records
+confidence. The canonical first contact therefore supports two incompatible
+claims without making the event stream contradictory.
+
+The person-level and macro-history schemas are currently separate because they
+operate at different resolutions. Projecting a five-settlement macro region
+into people and households will require an explicit handoff rather than
+silently treating a population cohort as an individual actor.

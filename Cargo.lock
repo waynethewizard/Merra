@@ -1237,6 +1237,7 @@ dependencies = [
  "clap",
  "merra-core",
  "merra-sim",
+ "merra-worldgen",
  "ron",
  "serde",
  "serde_json",
@@ -1260,7 +1261,9 @@ version = "0.1.0"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
+ "blake3",
  "merra-core",
+ "merra-worldgen",
  "rand 0.10.2",
  "rand_chacha",
  "thiserror 2.0.19",
@@ -1272,6 +1275,7 @@ version = "0.1.0"
 dependencies = [
  "merra-core",
  "merra-sim",
+ "merra-worldgen",
  "ron",
  "serde_json",
 ]
@@ -1284,8 +1288,22 @@ dependencies = [
  "crossterm",
  "merra-core",
  "merra-sim",
+ "merra-worldgen",
  "ratatui",
  "ron",
+ "serde_json",
+ "thiserror 2.0.19",
+]
+
+[[package]]
+name = "merra-worldgen"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "merra-core",
+ "rand 0.10.2",
+ "serde",
+ "serde_json",
  "thiserror 2.0.19",
 ]
 
@@ -2599,6 +2617,7 @@ dependencies = [
  "clap",
  "merra-core",
  "merra-sim",
+ "merra-worldgen",
  "ron",
  "serde",
  "serde_json",

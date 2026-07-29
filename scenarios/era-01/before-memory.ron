@@ -1,0 +1,29 @@
+(
+  schema_version: 1,
+  id: "era-01-before-memory",
+  title: "Before Memory",
+  width: 128,
+  height: 96,
+  plate_count: 12,
+  land_fraction_per_10_000: 4800,
+  island_land_fraction_per_10_000: 800,
+  island_separation: 12,
+  place_count: 30,
+  mythic_motifs: [
+    (
+      id: "fallen-stars",
+      name: "Fallen-Star Scar",
+      count: 4,
+    ),
+    (
+      id: "stone-rings",
+      name: "Impossible Stone Ring",
+      count: 5,
+    ),
+    (
+      id: "buried-ways",
+      name: "Buried Way",
+      count: 4,
+    ),
+  ],
+)

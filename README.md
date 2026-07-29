@@ -4,9 +4,10 @@ Merra is an open-source historical simulation game built with Rust and Bevy.
 Its long-term goal is a world that creates causal history, remembers it
 imperfectly, and lets the player live inside the result.
 
-The project is in its repository-foundation stage. Era I is deliberately
-headless: it will prove deterministic time, people, households, resources, and
-succession before the visible village arrives.
+Era I is deliberately headless. Merra can now generate a deterministic physical
+world before placing aggregate populations into it, run separate human and orc
+histories through first contact, and select five historically meaningful
+settlements for the detailed local simulation that follows.
 
 ## Run the foundation smoke scenario
 
@@ -90,6 +91,55 @@ cargo xtask seed-lab --output runs/seed-lab
 GitHub Actions repeats the canonical century and dynasty on changes, exposes
 their story-first terminal overviews in the job summary, and runs the 100-seed
 laboratories each week.
+
+## Generate a world before its people
+
+The canonical world has one main landmass, a separated island, rivers,
+resources, prehuman traces, thirty candidate places, and a maritime route that
+history cannot use until navigation develops:
+
+```sh
+cargo merra worldgen \
+  --template scenarios/era-01/before-memory.ron \
+  --seed 42 \
+  --output runs/before-memory-42
+
+cargo merra history \
+  --world runs/before-memory-42 \
+  --scenario scenarios/era-01/first-histories.ron \
+  --seed 42 \
+  --years 600 \
+  --output runs/first-histories-42
+```
+
+Inspect the completed world or history with:
+
+```sh
+cargo tui world --input runs/first-histories-42
+cargo tui world \
+  --input runs/first-histories-42 \
+  --snapshot \
+  --layer biome
+```
+
+World mode cycles terrain, biome, habitability, resources, and mythic layers.
+The macro-history uses a portable place graph rather than terrain-specific
+rules; an orbital habitat fixture runs through the same Bevy schedule.
+
+Run a deterministic cohort of complete generated histories with:
+
+```sh
+cargo xtask world-lab \
+  --first-seed 1 \
+  --count 20 \
+  --years 600 \
+  --output runs/world-lab
+```
+
+The canonical seed's reviewable evidence is in
+[`golden/era-01/first-histories-seed-42/`](golden/era-01/first-histories-seed-42/).
+The public site's World Atlas page is generated from those same checked
+artifacts.
 
 ## Run the public site
 

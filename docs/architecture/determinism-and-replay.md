@@ -67,6 +67,29 @@ that current membership is bidirectional, dead people retain no current
 household or partner, active households are nonempty, dissolved households are
 empty, and every causal reference points to an earlier event.
 
+World generation extends the domain list without changing any existing stream:
+tectonics, elevation, climate, hydrology, resources, mythic traces, places,
+macro population, culture, faith, institutions, and world names each receive
+their own stable label. Existing labels retain their original bytes, so adding
+the generator does not rewrite the tagged family histories.
+
+Authoritative world and macro-history calculations use integers. Geography
+records each generation pass with a deterministic evidence hash. The world
+manifest identifies template bytes, root seed, generator version, and complete
+world hash. The history manifest independently identifies world bytes, history
+configuration bytes, seed, and duration.
+
+The macro-history Bevy schedule executes one historical year per update. Work
+is ordered by stable population, location, route, culture, faith, institution,
+and polity identifiers before decisions or event emission. Affiliation shares
+use integer parts per 10,000 and must normalize exactly.
+
+Canonical testing regenerates the entire surface and six-century history twice,
+then compares the reports and selected golden artifacts. A twenty-seed
+structural cohort additionally requires a continent, separated island, rivers,
+places, locked route, completed history, backward-causal events, and a
+five-settlement starting region in every run.
+
 ## Run products
 
 The headless runner writes:
@@ -76,6 +99,13 @@ The headless runner writes:
 - `population.json`: final inspectable person records;
 - `summary.json`: compact deterministic measurements;
 - `chronicle.md`: human-readable evidence.
+
+World generation additionally writes `world.json`, pass, feature and place
+evidence, and SVG/text atlases. Macro-history writes its own manifest and event
+stream plus populations, settlements, cultures, faiths, institutions, polities,
+lore, important places, starting region, chronicle, and historical atlases.
+The selected repository golden omits the multi-megabyte full world while
+retaining exact commands and reviewable products.
 
 Exploratory products live in ignored `runs/`. Selected golden runs must state
 their exact reproduction command and remain small enough to review.

@@ -8,6 +8,30 @@ const RNG_SCHEME: &[u8] = b"merra-rng-v1\0";
 /// Stable built-in random domains.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RngDomain {
+    /// Tectonic plate placement and motion.
+    Tectonics,
+    /// Fine elevation variation.
+    Elevation,
+    /// Climate fields.
+    Climate,
+    /// River and lake details.
+    Hydrology,
+    /// Geological and ecological resource placement.
+    Resources,
+    /// Ambiguous prehuman traces.
+    MythicTraces,
+    /// Candidate location selection and connections.
+    Places,
+    /// Aggregate population history.
+    MacroPopulation,
+    /// Cultural divergence and transmission.
+    Culture,
+    /// Faith emergence and transmission.
+    Faith,
+    /// Institution and polity history.
+    Institutions,
+    /// Macro-history names and prose.
+    WorldNames,
     /// Initial population demographics.
     Population,
     /// Birth and fertility decisions.
@@ -29,6 +53,18 @@ impl RngDomain {
     #[must_use]
     pub const fn label(self) -> &'static str {
         match self {
+            Self::Tectonics => "tectonics",
+            Self::Elevation => "elevation",
+            Self::Climate => "climate",
+            Self::Hydrology => "hydrology",
+            Self::Resources => "resources",
+            Self::MythicTraces => "mythic-traces",
+            Self::Places => "places",
+            Self::MacroPopulation => "macro-population",
+            Self::Culture => "culture",
+            Self::Faith => "faith",
+            Self::Institutions => "institutions",
+            Self::WorldNames => "world-names",
             Self::Population => "population",
             Self::Birth => "birth",
             Self::Households => "households",

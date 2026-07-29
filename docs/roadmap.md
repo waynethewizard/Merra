@@ -618,7 +618,8 @@ Each cycle should aim to produce at least three of these:
 
 ## Goal
 
-Create a headless simulation capable of generating a small but coherent century of history.
+Create a headless simulation capable of generating a small but coherent century
+of local history inside a world with a longer generated past.
 
 No player character is required yet.
 
@@ -663,22 +664,54 @@ Rusting post:
 
 **“The First Family Survived. Its Name Did Not.”**
 
-## Cycle 3: Settlements and geography
+## Cycle 3: Before memory
 
 Build:
 
-* five settlements;
-* graph-based roads;
-* travel times;
-* settlement populations;
-* migration;
-* births and deaths by place.
+* a coarse deterministic world substrate;
+* tectonics, elevation, climate, hydrology and biomes;
+* resources and prehuman mythic traces;
+* one main landmass and a separated island;
+* a portable place graph with routes and affordances;
+* visual and machine-readable generation evidence.
 
 Deliverable:
 
-> Watch one village grow while another disappears.
+> Generate the world before placing historical populations inside it.
 
-## Cycle 4: Food and survival
+## Cycle 4: The first histories
+
+Build:
+
+* aggregate population cohorts;
+* separate lineage, culture, faith and polity affiliations;
+* one isolated non-human society using shared parameters;
+* migration and settlement founding;
+* institutions, navigation and route opening;
+* contingent first contact and mixed populations;
+* competing lore claims and a selected starting region.
+
+Deliverable:
+
+> Run separate human and orc histories until a learned maritime capability
+> makes first contact possible.
+
+## Cycle 5: Five villages
+
+Build:
+
+* project the selected macro-history region into detailed settlements;
+* graph-based roads and travel times;
+* settlement populations reconciled with aggregate cohorts;
+* local migration;
+* births and deaths by place;
+* historical institutions and claims visible at household scale.
+
+Deliverable:
+
+> Enter five villages whose differences have world-scale causes.
+
+## Cycle 6: Food and survival
 
 Build:
 
@@ -695,7 +728,7 @@ Deliverable:
 
 > A failed harvest visibly alters household and settlement history.
 
-## Cycle 5: Property and inheritance
+## Cycle 7: Property and inheritance
 
 Build:
 
@@ -711,7 +744,7 @@ Deliverable:
 
 > Property changes hands through death, marriage and debt.
 
-## Cycle 6: Titles and nobility
+## Cycle 8: Titles and nobility
 
 Build:
 
@@ -725,6 +758,22 @@ Build:
 Deliverable:
 
 > Generate the first unscripted succession dispute.
+
+## Cycle 9: The disputed heir
+
+Build:
+
+* competing claims;
+* political factions;
+* inherited obligations;
+* legitimacy disputes;
+* mobilization and negotiated settlement;
+* the first understandable political crisis.
+
+Deliverable:
+
+> Trace one conflict from household history through institutions to a disputed
+> succession.
 
 ## Era I completion criteria
 
@@ -1548,7 +1597,8 @@ Each cycle must avoid:
 
 * replacing working systems without strong reason;
 * beginning three unrelated major features;
-* expanding geography before local depth works;
+* simulating the whole world's actors at local resolution before local depth
+  works;
 * adding lore unconnected to simulation;
 * polishing graphics to conceal shallow systems;
 * adding AI where deterministic rules are better;
@@ -1561,7 +1611,7 @@ The rule is:
 
 ---
 
-# 25. The first twelve cycles
+# 25. The first fourteen cycles
 
 A concrete opening sequence:
 
@@ -1571,34 +1621,40 @@ A concrete opening sequence:
 2. **The Household**
    Families, marriage, childbirth and household continuity.
 
-3. **Five Villages**
+3. **Before Memory**
+   Physical context, resources, mythic traces and a portable place graph.
+
+4. **The First Histories**
+   Separate peoples, migration, institutions, navigation and first contact.
+
+5. **Five Villages**
    Places, roads, migration and settlement identity.
 
-4. **The Harvest**
+6. **The Harvest**
    Food, labor, weather and hunger.
 
-5. **What the Dead Leave Behind**
+7. **What the Dead Leave Behind**
    Property, debt and inheritance.
 
-6. **The First Crown**
+8. **The First Crown**
    Titles, rulers, legitimacy and succession.
 
-7. **The Disputed Heir**
+9. **The Disputed Heir**
    Claims, factions and the first political conflict.
 
-8. **A Village You Can See**
+10. **A Village You Can See**
    Pixel rendering of one simulated settlement.
 
-9. **A Day in Dunmere**
+11. **A Day in Dunmere**
    Visible routines and schedules.
 
-10. **What People Remember**
+12. **What People Remember**
     Personal memory and relationship consequences.
 
-11. **The Rumor Crosses the River**
+13. **The Rumor Crosses the River**
     Limited knowledge and information propagation.
 
-12. **The Chronicle Lies**
+14. **The Chronicle Lies**
     Divergence between actual events and recorded history.
 
 At the end of these cycles, the project should already possess a distinctive identity.

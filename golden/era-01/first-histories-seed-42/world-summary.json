@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "template_id": "era-01-before-memory",
+  "seed": 42,
+  "regions": 12288,
+  "land_regions": 5898,
+  "island_regions": 471,
+  "river_regions": 786,
+  "biome_count": 6,
+  "feature_count": 15,
+  "location_count": 30,
+  "route_count": 43,
+  "locked_sea_routes": 1
+}

@@ -1,0 +1,616 @@
+[
+  {
+    "id": 1,
+    "name": "People of Nettleford",
+    "location_id": 1,
+    "people": 24480,
+    "founded_year": 0,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": [
+      {
+        "id": 2,
+        "parts_per_10_000": 10000
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "People of Eskerhaven",
+    "location_id": 24,
+    "people": 24480,
+    "founded_year": 0,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 2,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": []
+  },
+  {
+    "id": 3,
+    "name": "People of Fenhaven",
+    "location_id": 10,
+    "people": 24480,
+    "founded_year": 0,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 3,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": []
+  },
+  {
+    "id": 4,
+    "name": "People of Hallowgate",
+    "location_id": 25,
+    "people": 6032,
+    "founded_year": 0,
+    "lineage": [
+      {
+        "id": 2,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 4,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "People of Cairnrest",
+    "location_id": 2,
+    "people": 23986,
+    "founded_year": 60,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": [
+      {
+        "id": 2,
+        "parts_per_10_000": 10000
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "name": "People of Cairnstead",
+    "location_id": 21,
+    "people": 24350,
+    "founded_year": 90,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 2,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": []
+  },
+  {
+    "id": 7,
+    "name": "People of Valeford",
+    "location_id": 5,
+    "people": 24384,
+    "founded_year": 120,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 3,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": []
+  },
+  {
+    "id": 8,
+    "name": "People of Quillgate",
+    "location_id": 12,
+    "people": 24193,
+    "founded_year": 150,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 3,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": []
+  },
+  {
+    "id": 9,
+    "name": "People of Hallowhaven",
+    "location_id": 6,
+    "people": 24221,
+    "founded_year": 180,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": [
+      {
+        "id": 2,
+        "parts_per_10_000": 10000
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "name": "People of Eskerrest",
+    "location_id": 13,
+    "people": 24236,
+    "founded_year": 210,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 3,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": []
+  },
+  {
+    "id": 11,
+    "name": "People of Juniperwatch",
+    "location_id": 26,
+    "people": 5498,
+    "founded_year": 240,
+    "lineage": [
+      {
+        "id": 2,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 4,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ]
+  },
+  {
+    "id": 12,
+    "name": "People of Fenholm",
+    "location_id": 27,
+    "people": 4459,
+    "founded_year": 270,
+    "lineage": [
+      {
+        "id": 2,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 4,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ]
+  },
+  {
+    "id": 13,
+    "name": "Tidebound of Fenstead",
+    "location_id": 20,
+    "people": 19514,
+    "founded_year": 293,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 7967
+      },
+      {
+        "id": 2,
+        "parts_per_10_000": 2033
+      }
+    ],
+    "cultures": [
+      {
+        "id": 2,
+        "parts_per_10_000": 6373
+      },
+      {
+        "id": 4,
+        "parts_per_10_000": 1626
+      },
+      {
+        "id": 5,
+        "parts_per_10_000": 2001
+      }
+    ],
+    "faiths": [
+      {
+        "id": 1,
+        "parts_per_10_000": 6500
+      },
+      {
+        "id": 3,
+        "parts_per_10_000": 3500
+      }
+    ]
+  },
+  {
+    "id": 14,
+    "name": "People of Merestead",
+    "location_id": 4,
+    "people": 10392,
+    "founded_year": 300,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 3,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": []
+  },
+  {
+    "id": 15,
+    "name": "People of Thorngate",
+    "location_id": 18,
+    "people": 8074,
+    "founded_year": 330,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 2,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": []
+  },
+  {
+    "id": 16,
+    "name": "People of Dunreach",
+    "location_id": 3,
+    "people": 7873,
+    "founded_year": 360,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": [
+      {
+        "id": 2,
+        "parts_per_10_000": 10000
+      }
+    ]
+  },
+  {
+    "id": 17,
+    "name": "People of Eskerrest",
+    "location_id": 19,
+    "people": 9102,
+    "founded_year": 390,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": [
+      {
+        "id": 2,
+        "parts_per_10_000": 10000
+      }
+    ]
+  },
+  {
+    "id": 18,
+    "name": "People of Larkwatch",
+    "location_id": 9,
+    "people": 8966,
+    "founded_year": 420,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 3,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": []
+  },
+  {
+    "id": 19,
+    "name": "People of Gorsegate",
+    "location_id": 14,
+    "people": 8078,
+    "founded_year": 450,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": [
+      {
+        "id": 2,
+        "parts_per_10_000": 10000
+      }
+    ]
+  },
+  {
+    "id": 20,
+    "name": "People of Alderholm",
+    "location_id": 11,
+    "people": 7539,
+    "founded_year": 480,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 7967
+      },
+      {
+        "id": 2,
+        "parts_per_10_000": 2033
+      }
+    ],
+    "cultures": [
+      {
+        "id": 2,
+        "parts_per_10_000": 6373
+      },
+      {
+        "id": 4,
+        "parts_per_10_000": 1626
+      },
+      {
+        "id": 5,
+        "parts_per_10_000": 2001
+      }
+    ],
+    "faiths": [
+      {
+        "id": 1,
+        "parts_per_10_000": 6500
+      },
+      {
+        "id": 3,
+        "parts_per_10_000": 3500
+      }
+    ]
+  },
+  {
+    "id": 21,
+    "name": "People of Junipercross",
+    "location_id": 17,
+    "people": 6048,
+    "founded_year": 510,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 7967
+      },
+      {
+        "id": 2,
+        "parts_per_10_000": 2033
+      }
+    ],
+    "cultures": [
+      {
+        "id": 2,
+        "parts_per_10_000": 6373
+      },
+      {
+        "id": 4,
+        "parts_per_10_000": 1626
+      },
+      {
+        "id": 5,
+        "parts_per_10_000": 2001
+      }
+    ],
+    "faiths": [
+      {
+        "id": 1,
+        "parts_per_10_000": 6500
+      },
+      {
+        "id": 3,
+        "parts_per_10_000": 3500
+      }
+    ]
+  },
+  {
+    "id": 22,
+    "name": "People of Yarrowmere",
+    "location_id": 28,
+    "people": 3191,
+    "founded_year": 540,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 7967
+      },
+      {
+        "id": 2,
+        "parts_per_10_000": 2033
+      }
+    ],
+    "cultures": [
+      {
+        "id": 2,
+        "parts_per_10_000": 6373
+      },
+      {
+        "id": 4,
+        "parts_per_10_000": 1626
+      },
+      {
+        "id": 5,
+        "parts_per_10_000": 2001
+      }
+    ],
+    "faiths": [
+      {
+        "id": 1,
+        "parts_per_10_000": 6500
+      },
+      {
+        "id": 3,
+        "parts_per_10_000": 3500
+      }
+    ]
+  },
+  {
+    "id": 23,
+    "name": "People of Fenrest",
+    "location_id": 16,
+    "people": 2005,
+    "founded_year": 570,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 2,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": []
+  },
+  {
+    "id": 24,
+    "name": "People of Juniperhaven",
+    "location_id": 7,
+    "people": 1968,
+    "founded_year": 600,
+    "lineage": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "cultures": [
+      {
+        "id": 1,
+        "parts_per_10_000": 10000
+      }
+    ],
+    "faiths": [
+      {
+        "id": 2,
+        "parts_per_10_000": 10000
+      }
+    ]
+  }
+]

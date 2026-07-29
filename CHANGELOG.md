@@ -32,6 +32,31 @@ interfaces stabilize.
 - Static public project site with a development chronicle and interactive
   explorers for curated event evidence and the five-view terminal showcase.
 - Railway container and deployment configuration for the public site.
+- Deterministic `merra-worldgen` crate with tectonic, elevation, climate,
+  hydrology, biome, resource, mythic-feature, place, and route passes over a
+  canonical continent and separated island.
+- Versioned surface-world and portable place-graph contracts, stable region,
+  feature, route, population, lineage, culture, faith, institution, and polity
+  identities, and independently derived world/history random streams.
+- Aggregate Bevy macro-history schedule for population growth, migration,
+  settlements, cultures, faiths, institutions, polities, navigation, first
+  contact, mixed populations, cultural synthesis, faith spread, and schism.
+- Data-driven human and orc founding populations with inherited physiology
+  separated from learned culture and faith; no lineage-specific behavior
+  branch is required.
+- World-generation and historical CLI commands with complete machine evidence,
+  chronicles, SVG atlases, and ANSI-free text atlases.
+- Interactive world TUI with terrain, biome, habitability, resource, and mythic
+  layers plus completed-history summaries.
+- Canonical six-century first-contact golden evidence, exact regression tests,
+  twenty-seed structural tests, an orbital-habitat portability fixture, and a
+  reusable multi-world cohort laboratory.
+- Public World Atlas page sourced from golden evidence, visualizing generation
+  order, separate homelands, lineage parameters, learned cultures, first
+  contact, contradictory lore, and the five-settlement handoff.
+- ADRs and extensive Cycle 3 and Cycle 4 records covering world-first
+  generation, theme portability, and the separation of lineage, culture,
+  faith, and polity.
 
 ### Fixed
 

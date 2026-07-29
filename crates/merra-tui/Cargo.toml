@@ -17,8 +17,10 @@ clap.workspace = true
 crossterm.workspace = true
 merra-core.workspace = true
 merra-sim.workspace = true
+merra-worldgen.workspace = true
 ratatui.workspace = true
 ron.workspace = true
+serde_json.workspace = true
 thiserror.workspace = true
 
 [lints]

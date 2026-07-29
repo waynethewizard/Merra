@@ -9,15 +9,20 @@ use std::{
     time::Duration,
 };
 
-use clap::{Parser, ValueEnum};
+use clap::{Args as ClapArgs, Parser, Subcommand, ValueEnum};
 use crossterm::{
+    cursor::MoveTo,
     event::{self, Event, KeyCode, KeyEventKind},
     execute,
-    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
+    terminal::{
+        Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode,
+        enable_raw_mode,
+    },
 };
-use merra_core::{EventId, HouseholdId, PersonId, ScenarioV1};
+use merra_core::{EventId, HistorySummaryV1, HouseholdId, PersonId, ScenarioV1, SurfaceWorldV1};
 use merra_sim::run_years;
 use merra_tui::{Focus, Inspector, View, render, render_snapshot};
+use merra_worldgen::{AtlasLayer, render_snapshot as render_world_snapshot};
 use ratatui::{Terminal, backend::CrosstermBackend};
 use thiserror::Error;
 
@@ -28,6 +33,9 @@ use thiserror::Error;
     about = "Inspect a deterministic Merra history"
 )]
 struct Args {
+    /// Inspect a generated world rather than a detailed local history.
+    #[command(subcommand)]
+    command: Option<InspectorCommand>,
     /// RON scenario to simulate before opening the inspector.
     #[arg(long, default_value = "scenarios/era-01/dynasty.ron")]
     scenario: PathBuf,
@@ -72,6 +80,52 @@ struct Args {
     focus_event: Option<u64>,
 }
 
+#[derive(Debug, Subcommand)]
+enum InspectorCommand {
+    /// Inspect continent generation and optional aggregate history.
+    World(WorldArgs),
+}
+
+#[derive(Debug, ClapArgs)]
+struct WorldArgs {
+    /// World-generation or history output directory, or a `world.json` file.
+    #[arg(long)]
+    input: PathBuf,
+    /// Print an ANSI-free screen instead of entering interactive mode.
+    #[arg(long)]
+    snapshot: bool,
+    /// Snapshot width in terminal cells.
+    #[arg(long, default_value_t = 120)]
+    width: u16,
+    /// Snapshot height in terminal cells.
+    #[arg(long, default_value_t = 42)]
+    height: u16,
+    /// Initial generated-world layer.
+    #[arg(long, value_enum, default_value_t = InitialWorldLayer::Terrain)]
+    layer: InitialWorldLayer,
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum InitialWorldLayer {
+    Terrain,
+    Biome,
+    Habitability,
+    Resources,
+    Mythic,
+}
+
+impl From<InitialWorldLayer> for AtlasLayer {
+    fn from(value: InitialWorldLayer) -> Self {
+        match value {
+            InitialWorldLayer::Terrain => Self::Terrain,
+            InitialWorldLayer::Biome => Self::Biome,
+            InitialWorldLayer::Habitability => Self::Habitability,
+            InitialWorldLayer::Resources => Self::Resources,
+            InitialWorldLayer::Mythic => Self::Mythic,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, ValueEnum)]
 enum InitialView {
     Overview,
@@ -106,6 +160,9 @@ fn main() -> ExitCode {
 }
 
 fn run(args: Args) -> Result<(), TuiError> {
+    if let Some(InspectorCommand::World(world)) = args.command {
+        return run_world(world);
+    }
     let scenario_bytes = fs::read(&args.scenario)?;
     let scenario: ScenarioV1 = ron::de::from_bytes(&scenario_bytes)?;
     scenario.validate()?;
@@ -135,6 +192,127 @@ fn run(args: Args) -> Result<(), TuiError> {
         return Err(TuiError::InteractiveTerminalRequired);
     }
     run_interactive(inspector)
+}
+
+fn run_world(args: WorldArgs) -> Result<(), TuiError> {
+    let world_path = if args.input.is_dir() {
+        args.input.join("world.json")
+    } else {
+        args.input.clone()
+    };
+    let world: SurfaceWorldV1 = serde_json::from_slice(&fs::read(world_path)?)?;
+    let history_path = args.input.join("summary.json");
+    let history = if args.input.is_dir() && args.input.join("events.jsonl").is_file() {
+        Some(serde_json::from_slice::<HistorySummaryV1>(&fs::read(
+            history_path,
+        )?)?)
+    } else {
+        None
+    };
+    let layer = AtlasLayer::from(args.layer);
+    if args.snapshot {
+        print_world_snapshot(&world, history.as_ref(), layer, args.width, args.height);
+        return Ok(());
+    }
+    if !io::stdin().is_terminal() || !io::stdout().is_terminal() {
+        return Err(TuiError::InteractiveTerminalRequired);
+    }
+    run_world_interactive(&world, history.as_ref(), layer, args.width, args.height)
+}
+
+fn print_world_snapshot(
+    world: &SurfaceWorldV1,
+    history: Option<&HistorySummaryV1>,
+    layer: AtlasLayer,
+    width: u16,
+    height: u16,
+) {
+    let mut screen = render_world_snapshot(world, layer, width, height);
+    if let Some(history) = history {
+        screen.push_str(&format!(
+            "\nHISTORY / YEAR {}\n{} people · {} settlements · {} cultures · {} faiths\n",
+            history.elapsed_years,
+            history.total_population,
+            history.settlements,
+            history.cultures,
+            history.faiths
+        ));
+        screen.push_str(&history.first_contact_year.map_or_else(
+            || String::from("The capability-gated route remained closed.\n"),
+            |year| {
+                format!(
+                    "First cross-homeland contact: Year {year} · {} mixed population(s)\n",
+                    history.mixed_lineage_populations
+                )
+            },
+        ));
+    }
+    print!("{screen}");
+}
+
+fn run_world_interactive(
+    world: &SurfaceWorldV1,
+    history: Option<&HistorySummaryV1>,
+    initial_layer: AtlasLayer,
+    width: u16,
+    height: u16,
+) -> Result<(), TuiError> {
+    enable_raw_mode()?;
+    let mut output = stdout();
+    execute!(output, EnterAlternateScreen)?;
+    let result = (|| {
+        let mut layer = initial_layer;
+        loop {
+            execute!(output, MoveTo(0, 0), Clear(ClearType::All))?;
+            let mut screen = render_world_snapshot(world, layer, width, height);
+            if let Some(history) = history {
+                screen.push_str(&format!(
+                    "\nYear {} · {} people · first contact {}\n",
+                    history.elapsed_years,
+                    history.total_population,
+                    history
+                        .first_contact_year
+                        .map_or_else(|| String::from("not reached"), |year| year.to_string())
+                ));
+            }
+            screen.push_str("\nTab/l layer · q quit\n");
+            print!("{screen}");
+            use std::io::Write;
+            output.flush()?;
+            if !event::poll(Duration::from_millis(250))? {
+                continue;
+            }
+            let Event::Key(key) = event::read()? else {
+                continue;
+            };
+            if key.kind != KeyEventKind::Press {
+                continue;
+            }
+            match key.code {
+                KeyCode::Char('q') | KeyCode::Esc => return Ok(()),
+                KeyCode::Tab | KeyCode::Char('l') => {
+                    layer = next_world_layer(layer);
+                }
+                _ => {}
+            }
+        }
+    })();
+    let cleanup = (|| {
+        disable_raw_mode()?;
+        execute!(output, LeaveAlternateScreen)?;
+        Ok(())
+    })();
+    result.and(cleanup)
+}
+
+const fn next_world_layer(layer: AtlasLayer) -> AtlasLayer {
+    match layer {
+        AtlasLayer::Terrain => AtlasLayer::Biome,
+        AtlasLayer::Biome => AtlasLayer::Habitability,
+        AtlasLayer::Habitability => AtlasLayer::Resources,
+        AtlasLayer::Resources => AtlasLayer::Mythic,
+        AtlasLayer::Mythic => AtlasLayer::Terrain,
+    }
 }
 
 fn run_interactive(mut inspector: Inspector) -> Result<(), TuiError> {
@@ -215,6 +393,8 @@ enum TuiError {
     Io(#[from] std::io::Error),
     #[error("invalid RON scenario: {0}")]
     Ron(#[from] ron::error::SpannedError),
+    #[error("invalid generated-world JSON: {0}")]
+    Json(#[from] serde_json::Error),
     #[error(transparent)]
     Scenario(#[from] merra_core::ScenarioError),
     #[error(transparent)]

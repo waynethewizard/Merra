@@ -18,8 +18,10 @@ source, scenario files, seeds, and recorded commands.
 
 1. Time and Death
 2. The Household
-3. Five Villages
-4. The Harvest
-5. What the Dead Leave Behind
-6. The First Crown
-7. The Disputed Heir
+3. Before Memory
+4. The First Histories
+5. Five Villages
+6. The Harvest
+7. What the Dead Leave Behind
+8. The First Crown
+9. The Disputed Heir

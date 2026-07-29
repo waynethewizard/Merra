@@ -1,5 +1,12 @@
 //! Headless Bevy ECS orchestration for Merra.
 
+mod history;
+
+pub use history::{
+    HistoricalReport, HistoricalSimulation, HistorySimulationError, run_history,
+    run_history_on_graph,
+};
+
 use std::collections::{BTreeMap, BTreeSet};
 
 use bevy_app::{App, Plugin};

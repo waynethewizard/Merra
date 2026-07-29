@@ -67,9 +67,11 @@ mod tests {
     };
 
     use merra_core::{
-        EventKindV1, EventPayloadV1, HouseholdId, PersonId, ScenarioV1, WorldEventV1,
+        EventKindV1, EventPayloadV1, HistoricalEventKindV1, HistoryConfigV1, HouseholdId,
+        LineageId, PersonId, ScenarioV1, WorldEventV1, WorldGenesisConfigV1,
     };
-    use merra_sim::SimulationReport;
+    use merra_sim::{SimulationReport, run_history};
+    use merra_worldgen::{generate_world, summarize_world};
 
     use super::run_smoke;
 
@@ -230,6 +232,139 @@ mod tests {
             report.chronicle,
             fs::read_to_string(golden.join("chronicle.md"))?
         );
+        Ok(())
+    }
+
+    #[test]
+    fn canonical_world_and_first_histories_match_golden_evidence()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = workspace_root();
+        let world_config: WorldGenesisConfigV1 =
+            ron::de::from_bytes(&fs::read(root.join("scenarios/era-01/before-memory.ron"))?)?;
+        let history_config: HistoryConfigV1 = ron::de::from_bytes(&fs::read(
+            root.join("scenarios/era-01/first-histories.ron"),
+        )?)?;
+        let world = generate_world(&world_config, 42)?;
+        let repeated_world = generate_world(&world_config, 42)?;
+        assert_eq!(world, repeated_world);
+        let world_summary = summarize_world(&world);
+        let history = run_history(&world, history_config, 42)?;
+        let repeated_history = run_history(
+            &world,
+            ron::de::from_bytes(&fs::read(
+                root.join("scenarios/era-01/first-histories.ron"),
+            )?)?,
+            42,
+        )?;
+        assert_eq!(history, repeated_history);
+
+        assert_eq!(world_summary.regions, 12_288);
+        assert_eq!(world_summary.land_regions, 5_898);
+        assert_eq!(world_summary.island_regions, 471);
+        assert_eq!(world_summary.locked_sea_routes, 1);
+        assert_eq!(history.summary.elapsed_years, 600);
+        assert_eq!(history.summary.first_contact_year, Some(293));
+        assert_eq!(history.summary.mixed_lineage_populations, 4);
+        assert_eq!(history.starting_region.settlement_ids.len(), 5);
+        assert!(
+            history
+                .events
+                .iter()
+                .any(|event| { event.kind == HistoricalEventKindV1::FirstContact })
+        );
+        assert!(
+            history
+                .events
+                .iter()
+                .all(|event| event.causes.iter().all(|cause| cause.0 < event.id.0))
+        );
+        assert!(history.populations.iter().all(|population| {
+            population
+                .lineage
+                .iter()
+                .map(|share| u32::from(share.parts_per_10_000))
+                .sum::<u32>()
+                == 10_000
+                && (population.cultures.is_empty()
+                    || population
+                        .cultures
+                        .iter()
+                        .map(|share| u32::from(share.parts_per_10_000))
+                        .sum::<u32>()
+                        == 10_000)
+                && (population.faiths.is_empty()
+                    || population
+                        .faiths
+                        .iter()
+                        .map(|share| u32::from(share.parts_per_10_000))
+                        .sum::<u32>()
+                        == 10_000)
+        }));
+        let founders: Vec<_> = history
+            .populations
+            .iter()
+            .filter(|population| population.founded_year == 0)
+            .collect();
+        assert_eq!(founders.len(), 4);
+        assert_eq!(
+            founders
+                .iter()
+                .filter(|population| population.lineage[0].id == LineageId(1))
+                .count(),
+            3
+        );
+        assert_eq!(
+            founders
+                .iter()
+                .filter(|population| population.lineage[0].id == LineageId(2))
+                .count(),
+            1
+        );
+
+        let golden = root.join("golden/era-01/first-histories-seed-42");
+        assert_eq!(
+            serde_json::to_string_pretty(&world_summary)? + "\n",
+            fs::read_to_string(golden.join("world-summary.json"))?
+        );
+        assert_eq!(
+            serde_json::to_string_pretty(&history.summary)? + "\n",
+            fs::read_to_string(golden.join("history-summary.json"))?
+        );
+        assert_eq!(
+            history.chronicle,
+            fs::read_to_string(golden.join("chronicle.md"))?
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn world_history_cohort_preserves_structural_invariants()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = workspace_root();
+        let world_config: WorldGenesisConfigV1 =
+            ron::de::from_bytes(&fs::read(root.join("scenarios/era-01/before-memory.ron"))?)?;
+        let history_config: HistoryConfigV1 = ron::de::from_bytes(&fs::read(
+            root.join("scenarios/era-01/first-histories.ron"),
+        )?)?;
+        let mut contacts = 0;
+        for seed in 1..=20 {
+            let world = generate_world(&world_config, seed)?;
+            let summary = summarize_world(&world);
+            assert_eq!(summary.regions, 12_288);
+            assert!(summary.land_regions > 5_000);
+            assert!(summary.island_regions > 300);
+            assert_eq!(summary.locked_sea_routes, 1);
+            let history = run_history(&world, history_config.clone(), seed)?;
+            contacts += usize::from(history.summary.first_contact_year.is_some());
+            assert_eq!(history.summary.elapsed_years, 600);
+            assert!(history.summary.settlements >= 5);
+            assert_eq!(history.starting_region.settlement_ids.len(), 5);
+            assert!(history.events.iter().enumerate().all(|(index, event)| {
+                event.id.0 == index as u64 + 1
+                    && event.causes.iter().all(|cause| cause.0 < event.id.0)
+            }));
+        }
+        assert!(contacts > 0);
         Ok(())
     }
 

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "history_id": "era-01-first-histories",
+  "seed": 42,
+  "elapsed_years": 600,
+  "total_population": 327549,
+  "population_cohorts": 24,
+  "settlements": 24,
+  "cultures": 5,
+  "faiths": 3,
+  "institutions": 7,
+  "mixed_lineage_populations": 4,
+  "first_contact_year": 293,
+  "event_count": 69
+}

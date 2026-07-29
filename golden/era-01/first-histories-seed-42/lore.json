@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "title": "The Discovery of the Outer Shore",
+    "text": "Continental pilots claimed they discovered an island that had waited beyond the charts.",
+    "source_culture_id": 1,
+    "source_faith_id": null,
+    "about_events": [
+      37
+    ],
+    "confidence_per_10_000": 7200
+  },
+  {
+    "id": 2,
+    "title": "The Return of the Divided Kin",
+    "text": "Island rites remember no discovery: the sea opened when distant kin finally learned to listen.",
+    "source_culture_id": 4,
+    "source_faith_id": 1,
+    "about_events": [
+      37
+    ],
+    "confidence_per_10_000": 8400
+  }
+]
