@@ -1,11 +1,13 @@
 //! Headless Bevy ECS orchestration for Merra.
 
 mod history;
+mod villages;
 
 pub use history::{
     HistoricalReport, HistoricalSimulation, HistorySimulationError, run_history,
     run_history_on_graph,
 };
+pub use villages::{LocalHistoryError, regional_history, run_local_history};
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -943,6 +945,7 @@ impl Simulation {
                     founded_day: household.founded_day,
                     dissolved_day: household.dissolved_day,
                     children_born: household.children_born,
+                    residence_id: None,
                 })
             })
             .collect();

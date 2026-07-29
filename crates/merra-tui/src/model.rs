@@ -85,6 +85,7 @@ impl EventFilter {
             Self::Households => matches!(
                 kind,
                 EventKindV1::HouseholdFormed
+                    | EventKindV1::HouseholdSettled
                     | EventKindV1::PartnershipFormed
                     | EventKindV1::PartnershipEnded
                     | EventKindV1::HouseholdDissolved
@@ -996,7 +997,8 @@ pub(crate) fn event_household_id(event: &WorldEventV1) -> Option<HouseholdId> {
         EventPayloadV1::HouseholdFormed { household_id, .. }
         | EventPayloadV1::PartnershipFormed { household_id, .. }
         | EventPayloadV1::PersonBorn { household_id, .. }
-        | EventPayloadV1::HouseholdDissolved { household_id, .. } => Some(*household_id),
+        | EventPayloadV1::HouseholdDissolved { household_id, .. }
+        | EventPayloadV1::HouseholdSettled { household_id, .. } => Some(*household_id),
         _ => None,
     }
 }

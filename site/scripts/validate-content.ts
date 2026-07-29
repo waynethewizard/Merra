@@ -116,7 +116,7 @@ const cycleSource = fs.readFileSync(
     "devlog",
     "era-01",
     "cycles",
-    "04-the-first-histories.md"
+    "05-five-villages.md"
   ),
   "utf8"
 );
@@ -377,6 +377,113 @@ const worldGenesisShowcase = {
   }
 };
 
+const localHistoryDirectory = path.join(
+  repoRoot,
+  "golden",
+  "era-01",
+  "five-villages-seed-42"
+);
+const localHistorySummary = readJson<{
+  seed: number;
+  projection_year: number;
+  elapsed_years: number;
+  settlements: number;
+  macro_population: number;
+  represented_population: number;
+  living_sample_people: number;
+  births: number;
+  deaths: number;
+  residence_decisions: number;
+  household_migrations: number;
+  located_events: number;
+}>(path.join(localHistoryDirectory, "summary.json"));
+const localSettlements = readJson<
+  {
+    location_id: number;
+    name: string;
+    macro_population: number;
+    represented_population: number;
+    initial_sample_people: number;
+    final_living_people: number;
+    births: number;
+    deaths: number;
+    arrivals: number;
+    departures: number;
+    active_households: number;
+  }[]
+>(path.join(localHistoryDirectory, "settlements.json"));
+const localConnections = readJson<
+  {
+    from: number;
+    to: number;
+    travel_cost: number;
+    travel_days: number;
+    route_ids: number[];
+    path: number[];
+  }[]
+>(path.join(localHistoryDirectory, "connections.json"));
+const localTerminalViews = [
+  {
+    slug: "overview",
+    title: "Overview",
+    description:
+      "The comparative consequence first: one village grows while another empties.",
+    file: "tui-overview.txt"
+  },
+  {
+    slug: "roads",
+    title: "Roads",
+    description:
+      "Exact shortest paths and pairwise costs without invented map geometry.",
+    file: "tui-roads.txt"
+  },
+  {
+    slug: "settlements",
+    title: "Settlements",
+    description:
+      "Macro reconciliation, local vital events, migration, and surviving homes.",
+    file: "tui-settlements.txt"
+  },
+  {
+    slug: "migrations",
+    title: "Migrations",
+    description:
+      "Origins, destination, kin support, road cost, route, and causal evidence.",
+    file: "tui-migrations.txt"
+  },
+  {
+    slug: "households",
+    title: "Households",
+    description:
+      "Residence, represented cohorts, institutions, faiths, and inherited claims.",
+    file: "tui-households.txt"
+  }
+].map(({ file, ...view }) => ({
+  ...view,
+  screen: fs.readFileSync(path.join(localHistoryDirectory, file), "utf8")
+}));
+const localHistoryShowcase = {
+  title: "Five Villages After First Contact",
+  description:
+    "A Year 600 aggregate region becomes 60 years of located household history, with every macro person reconciled and every move explainable.",
+  command:
+    "cargo tui villages --input runs/five-villages-42 --snapshot --view overview",
+  seed: localHistorySummary.seed,
+  projectionYear: localHistorySummary.projection_year,
+  years: localHistorySummary.elapsed_years,
+  macroPopulation: localHistorySummary.macro_population,
+  representedPopulation: localHistorySummary.represented_population,
+  livingPeople: localHistorySummary.living_sample_people,
+  births: localHistorySummary.births,
+  deaths: localHistorySummary.deaths,
+  residenceDecisions: localHistorySummary.residence_decisions,
+  migrations: localHistorySummary.household_migrations,
+  locatedEvents: localHistorySummary.located_events,
+  settlements: localSettlements,
+  connections: localConnections,
+  views: localTerminalViews
+};
+
 const run = foundationRun;
 const cycle = currentCycle;
 
@@ -479,6 +586,46 @@ assert(
   "the generated atlas must be a script-free SVG"
 );
 assert(!worldTuiScreen.includes("\u001b"), "world TUI snapshot contains ANSI");
+assert(
+  localHistorySummary.settlements === 5 &&
+    localSettlements.length === 5 &&
+    localConnections.length === 10,
+  "local history must preserve five settlements and ten pairwise connections"
+);
+assert(
+  localHistorySummary.macro_population ===
+    localHistorySummary.represented_population &&
+    localSettlements.every(
+      (settlement) =>
+        settlement.macro_population === settlement.represented_population
+    ),
+  "local household allocations must exactly reconcile aggregate populations"
+);
+assert(
+  localSettlements.some(
+    (settlement) =>
+      settlement.name === "Fenstead" &&
+      settlement.final_living_people > settlement.initial_sample_people
+  ) &&
+    localSettlements.some(
+      (settlement) =>
+        settlement.name === "Fenholm" &&
+        settlement.initial_sample_people > 0 &&
+        settlement.final_living_people === 0
+    ),
+  "local showcase must retain the growing and empty village contrast"
+);
+assert(
+  localTerminalViews.length === 5,
+  "local history showcase requires all five terminal views"
+);
+for (const view of localTerminalViews) {
+  assert(!view.screen.includes("\u001b"), `${view.slug} local snapshot contains ANSI`);
+  assert(
+    view.screen.trimEnd().split("\n").length <= 36,
+    `${view.slug} local snapshot exceeds the canonical 120x36 screen`
+  );
+}
 
 let previousId = 0;
 const knownIds = new Set<number>();
@@ -518,10 +665,11 @@ fs.writeFileSync(
     foundationRun,
     currentCycle,
     terminalShowcase,
-    worldGenesisShowcase
+    worldGenesisShowcase,
+    localHistoryShowcase
   })}\n`
 );
 
 console.log(
-  `Validated ${run.events.length} foundation events, ${terminalViews.length} terminal views, and the ${worldSummary.regions.toLocaleString("en-US")}-region world atlas.`
+  `Validated ${run.events.length} foundation events, ${terminalViews.length + localTerminalViews.length} terminal views, and the ${worldSummary.regions.toLocaleString("en-US")}-region world atlas.`
 );

@@ -19,9 +19,15 @@ use crossterm::{
         enable_raw_mode,
     },
 };
-use merra_core::{EventId, HistorySummaryV1, HouseholdId, PersonId, ScenarioV1, SurfaceWorldV1};
+use merra_core::{
+    EventId, HistorySummaryV1, HouseholdId, LocalHistoryReportV1, LocationId, PersonId, ScenarioV1,
+    SurfaceWorldV1,
+};
 use merra_sim::run_years;
-use merra_tui::{Focus, Inspector, View, render, render_snapshot};
+use merra_tui::{
+    Focus, Inspector, LocalInspector, LocalView, View, render, render_local_snapshot,
+    render_snapshot,
+};
 use merra_worldgen::{AtlasLayer, render_snapshot as render_world_snapshot};
 use ratatui::{Terminal, backend::CrosstermBackend};
 use thiserror::Error;
@@ -84,6 +90,8 @@ struct Args {
 enum InspectorCommand {
     /// Inspect continent generation and optional aggregate history.
     World(WorldArgs),
+    /// Inspect the detailed five-settlement local history.
+    Villages(VillageArgs),
 }
 
 #[derive(Debug, ClapArgs)]
@@ -105,6 +113,31 @@ struct WorldArgs {
     layer: InitialWorldLayer,
 }
 
+#[derive(Debug, ClapArgs)]
+struct VillageArgs {
+    /// Local-history output directory or `local-history.json` file.
+    #[arg(long)]
+    input: PathBuf,
+    /// Print an ANSI-free screen instead of entering interactive mode.
+    #[arg(long)]
+    snapshot: bool,
+    /// Snapshot width in terminal cells.
+    #[arg(long, default_value_t = 120)]
+    width: u16,
+    /// Snapshot height in terminal cells.
+    #[arg(long, default_value_t = 36)]
+    height: u16,
+    /// Initial five-village collection.
+    #[arg(long, value_enum, default_value_t = InitialLocalView::Overview)]
+    view: InitialLocalView,
+    /// Focus a stable settlement identity.
+    #[arg(long, value_name = "ID", conflicts_with = "focus_household")]
+    focus_settlement: Option<u64>,
+    /// Focus a stable household identity.
+    #[arg(long, value_name = "ID", conflicts_with = "focus_settlement")]
+    focus_household: Option<u64>,
+}
+
 #[derive(Clone, Copy, Debug, ValueEnum)]
 enum InitialWorldLayer {
     Terrain,
@@ -112,6 +145,27 @@ enum InitialWorldLayer {
     Habitability,
     Resources,
     Mythic,
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum InitialLocalView {
+    Overview,
+    Roads,
+    Settlements,
+    Migrations,
+    Households,
+}
+
+impl From<InitialLocalView> for LocalView {
+    fn from(value: InitialLocalView) -> Self {
+        match value {
+            InitialLocalView::Overview => Self::Overview,
+            InitialLocalView::Roads => Self::Roads,
+            InitialLocalView::Settlements => Self::Settlements,
+            InitialLocalView::Migrations => Self::Migrations,
+            InitialLocalView::Households => Self::Households,
+        }
+    }
 }
 
 impl From<InitialWorldLayer> for AtlasLayer {
@@ -160,8 +214,10 @@ fn main() -> ExitCode {
 }
 
 fn run(args: Args) -> Result<(), TuiError> {
-    if let Some(InspectorCommand::World(world)) = args.command {
-        return run_world(world);
+    match args.command {
+        Some(InspectorCommand::World(world)) => return run_world(world),
+        Some(InspectorCommand::Villages(villages)) => return run_villages(villages),
+        None => {}
     }
     let scenario_bytes = fs::read(&args.scenario)?;
     let scenario: ScenarioV1 = ron::de::from_bytes(&scenario_bytes)?;
@@ -192,6 +248,85 @@ fn run(args: Args) -> Result<(), TuiError> {
         return Err(TuiError::InteractiveTerminalRequired);
     }
     run_interactive(inspector)
+}
+
+fn run_villages(args: VillageArgs) -> Result<(), TuiError> {
+    let report_path = if args.input.is_dir() {
+        args.input.join("local-history.json")
+    } else {
+        args.input.clone()
+    };
+    let report: LocalHistoryReportV1 = serde_json::from_slice(&fs::read(report_path)?)?;
+    let mut inspector = LocalInspector::new(report);
+    inspector.set_view(LocalView::from(args.view));
+    if let Some(id) = args.focus_settlement
+        && !inspector.focus_location(LocationId(id))
+    {
+        return Err(TuiError::LocalFocusNotFound(format!("settlement #{id}")));
+    }
+    if let Some(id) = args.focus_household
+        && !inspector.focus_household(HouseholdId(id))
+    {
+        return Err(TuiError::LocalFocusNotFound(format!("household #{id}")));
+    }
+    if args.snapshot {
+        print!(
+            "{}",
+            render_local_snapshot(&inspector, args.width, args.height)
+        );
+        return Ok(());
+    }
+    if !io::stdin().is_terminal() || !io::stdout().is_terminal() {
+        return Err(TuiError::InteractiveTerminalRequired);
+    }
+    run_villages_interactive(inspector, args.width, args.height)
+}
+
+fn run_villages_interactive(
+    mut inspector: LocalInspector,
+    width: u16,
+    height: u16,
+) -> Result<(), TuiError> {
+    enable_raw_mode()?;
+    let mut output = stdout();
+    execute!(output, EnterAlternateScreen)?;
+    let result = (|| {
+        loop {
+            execute!(output, MoveTo(0, 0), Clear(ClearType::All))?;
+            print!("{}", render_local_snapshot(&inspector, width, height));
+            use std::io::Write;
+            output.flush()?;
+            if !event::poll(Duration::from_millis(250))? {
+                continue;
+            }
+            let Event::Key(key) = event::read()? else {
+                continue;
+            };
+            if key.kind != KeyEventKind::Press {
+                continue;
+            }
+            match key.code {
+                KeyCode::Char('q') | KeyCode::Esc => return Ok(()),
+                KeyCode::Tab => inspector.toggle_view(),
+                KeyCode::Char('1') => inspector.set_view(LocalView::Overview),
+                KeyCode::Char('2') => inspector.set_view(LocalView::Roads),
+                KeyCode::Char('3') => inspector.set_view(LocalView::Settlements),
+                KeyCode::Char('4') => inspector.set_view(LocalView::Migrations),
+                KeyCode::Char('5') => inspector.set_view(LocalView::Households),
+                KeyCode::Up | KeyCode::Char('k') => inspector.previous(),
+                KeyCode::Down | KeyCode::Char('j') => inspector.next(),
+                KeyCode::Enter => inspector.activate(),
+                KeyCode::Char('x') => inspector.clear_filter(),
+                _ => {}
+            }
+        }
+    })();
+    let cleanup = (|| {
+        disable_raw_mode()?;
+        execute!(output, LeaveAlternateScreen)?;
+        Ok(())
+    })();
+    result.and(cleanup)
 }
 
 fn run_world(args: WorldArgs) -> Result<(), TuiError> {
@@ -403,4 +538,6 @@ enum TuiError {
     InteractiveTerminalRequired,
     #[error("requested stable focus does not exist: {0:?}")]
     FocusNotFound(Focus),
+    #[error("requested local focus does not exist: {0}")]
+    LocalFocusNotFound(String),
 }

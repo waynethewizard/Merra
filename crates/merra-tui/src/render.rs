@@ -1001,6 +1001,15 @@ pub(crate) fn event_short_label(report: &SimulationReport, event: &WorldEventV1)
         EventPayloadV1::HouseholdDissolved { household_id, name } => {
             format!("{name} #{} dissolved", household_id.0)
         }
+        EventPayloadV1::HouseholdSettled {
+            household_id,
+            destination_location_id,
+            living_kin_support,
+            ..
+        } => format!(
+            "household #{} settled at place #{} · {} living kin",
+            household_id.0, destination_location_id.0, living_kin_support
+        ),
         EventPayloadV1::PersonDied {
             name, age_years, ..
         } => format!("{name} died at age {age_years}"),
@@ -1172,6 +1181,26 @@ fn payload_evidence(report: &SimulationReport, event: &WorldEventV1) -> Vec<Stri
         EventPayloadV1::HouseholdDissolved { .. } => {
             vec![String::from("No living members remained.")]
         }
+        EventPayloadV1::HouseholdSettled {
+            origin_location_ids,
+            destination_location_id,
+            route_ids,
+            travel_cost,
+            travel_days,
+            living_kin_support,
+            reason,
+            ..
+        } => vec![
+            format!(
+                "Residence: {:?} → #{}",
+                origin_location_ids, destination_location_id.0
+            ),
+            format!(
+                "Journey: {travel_cost} cost · {travel_days} days · {} route(s)",
+                route_ids.len()
+            ),
+            format!("Support: {living_kin_support} living kin · {reason:?}"),
+        ],
         EventPayloadV1::PersonDied {
             person_id,
             age_years,
@@ -1260,6 +1289,7 @@ fn event_kind_label(kind: EventKindV1) -> &'static str {
         EventKindV1::PartnershipEnded => "partnership ended",
         EventKindV1::PersonBorn => "person born",
         EventKindV1::HouseholdDissolved => "household dissolved",
+        EventKindV1::HouseholdSettled => "household settled",
         EventKindV1::PersonDied => "person died",
         EventKindV1::SimulationCompleted => "simulation completed",
     }

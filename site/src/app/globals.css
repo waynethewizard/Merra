@@ -2271,6 +2271,257 @@
     font-size: 0.76rem;
     opacity: 0.78;
   }
+
+  .villages-hero {
+    background:
+      radial-gradient(circle at 78% 22%, rgba(201, 169, 104, 0.17), transparent 28%),
+      linear-gradient(125deg, rgba(20, 40, 32, 0.98), rgba(31, 58, 46, 0.92)),
+      var(--forest);
+    color: var(--paper);
+  }
+
+  .villages-hero .eyebrow {
+    color: var(--gold);
+  }
+
+  .villages-hero .page-title-row p {
+    color: rgba(242, 234, 216, 0.72);
+  }
+
+  .village-stamp {
+    border-color: var(--gold);
+    color: var(--paper);
+  }
+
+  .village-stamp span,
+  .village-stamp small {
+    display: block;
+  }
+
+  .village-stamp span {
+    font-family: var(--serif);
+    font-size: 3rem;
+    line-height: 1;
+  }
+
+  .village-consequence {
+    background: var(--paper-light);
+  }
+
+  .village-outcome-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    margin-top: 64px;
+  }
+
+  .village-outcome {
+    border: 1px solid var(--line);
+    border-right: 0;
+    min-width: 0;
+    padding: 28px 22px 24px;
+    position: relative;
+  }
+
+  .village-outcome:last-child {
+    border-right: 1px solid var(--line);
+  }
+
+  .village-outcome.is-empty {
+    background:
+      repeating-linear-gradient(
+        -45deg,
+        rgba(189, 86, 58, 0.05),
+        rgba(189, 86, 58, 0.05) 7px,
+        transparent 7px,
+        transparent 14px
+      ),
+      var(--paper);
+  }
+
+  .village-outcome h3 {
+    font-size: 1.75rem;
+    margin-top: 7px;
+  }
+
+  .village-population {
+    margin-top: 34px;
+  }
+
+  .village-population strong,
+  .village-population small {
+    display: block;
+  }
+
+  .village-population strong {
+    font-family: var(--serif);
+    font-size: 2.35rem;
+    letter-spacing: -0.05em;
+    line-height: 1;
+  }
+
+  .village-population strong span {
+    color: var(--rust);
+    font-size: 0.65em;
+    margin-inline: 6px;
+  }
+
+  .village-population small {
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    margin-top: 8px;
+    text-transform: uppercase;
+  }
+
+  .village-bar {
+    background: var(--paper-deep);
+    height: 7px;
+    margin-block: 22px;
+    overflow: hidden;
+  }
+
+  .village-bar span {
+    background: var(--moss);
+    display: block;
+    height: 100%;
+    min-width: 0;
+  }
+
+  .is-empty .village-bar span {
+    background: var(--rust);
+  }
+
+  .village-outcome dl {
+    display: grid;
+    gap: 11px;
+  }
+
+  .village-outcome dl > div {
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    padding-top: 9px;
+  }
+
+  .village-outcome dt {
+    color: var(--muted);
+    font-size: 0.58rem;
+  }
+
+  .village-outcome dd {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+  }
+
+  .empty-mark {
+    color: var(--rust-dark);
+    font-family: var(--mono);
+    font-size: 0.57rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-top: 18px;
+    text-transform: uppercase;
+  }
+
+  .village-field-note {
+    border-left: 3px solid var(--rust);
+    color: var(--muted);
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    line-height: 1.45;
+    margin-top: 42px;
+    max-width: 860px;
+    padding-left: 24px;
+  }
+
+  .residence-model {
+    background: var(--forest);
+    color: var(--paper);
+  }
+
+  .residence-rule-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin-top: 64px;
+  }
+
+  .residence-rule-grid li {
+    border: 1px solid rgba(242, 234, 216, 0.18);
+    border-right: 0;
+    list-style: none;
+    min-height: 245px;
+    padding: 30px;
+  }
+
+  .residence-rule-grid li:last-child {
+    border-right: 1px solid rgba(242, 234, 216, 0.18);
+  }
+
+  .residence-rule-grid span {
+    color: var(--gold);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+  }
+
+  .residence-rule-grid strong {
+    display: block;
+    font-family: var(--serif);
+    font-size: 1.8rem;
+    font-weight: 500;
+    margin-top: 35px;
+  }
+
+  .residence-rule-grid p {
+    color: rgba(242, 234, 216, 0.64);
+    font-size: 0.78rem;
+    margin-top: 18px;
+    max-width: 270px;
+  }
+
+  .residence-proof {
+    border-top: 1px solid rgba(242, 234, 216, 0.18);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin-top: 48px;
+    padding-top: 25px;
+  }
+
+  .residence-proof > div {
+    border-right: 1px solid rgba(242, 234, 216, 0.18);
+    padding-left: 20px;
+  }
+
+  .residence-proof > div:last-child {
+    border-right: 0;
+  }
+
+  .residence-proof span,
+  .residence-proof strong {
+    display: block;
+  }
+
+  .residence-proof span {
+    color: rgba(242, 234, 216, 0.55);
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    text-transform: uppercase;
+  }
+
+  .residence-proof strong {
+    font-family: var(--serif);
+    font-size: 2rem;
+    font-weight: 500;
+    margin-top: 8px;
+  }
+
+  .villages-terminal {
+    padding-block: 120px 140px;
+  }
+
+  .village-reproduce {
+    background: var(--rust-dark);
+  }
 }
 
 @layer responsive {
@@ -2304,6 +2555,18 @@
 
     .terminal-view-tabs button {
       border-bottom: 1px solid var(--line);
+    }
+
+    .village-outcome-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .village-outcome:nth-child(3) {
+      border-right: 1px solid var(--line);
+    }
+
+    .village-outcome:nth-child(n + 4) {
+      border-top: 0;
     }
 
     .world-section-heading {
@@ -2472,6 +2735,45 @@
 
     .terminal-view-tabs {
       grid-template-columns: 1fr 1fr;
+    }
+
+    .village-outcome-grid,
+    .residence-rule-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .village-outcome:nth-child(2n) {
+      border-right: 1px solid var(--line);
+    }
+
+    .village-outcome:nth-child(3) {
+      border-right: 0;
+    }
+
+    .village-outcome:nth-child(n + 3) {
+      border-top: 0;
+    }
+
+    .residence-rule-grid li:nth-child(2) {
+      border-right: 1px solid rgba(242, 234, 216, 0.18);
+    }
+
+    .residence-rule-grid li:last-child {
+      border-top: 0;
+      grid-column: 1 / -1;
+    }
+
+    .residence-proof {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .residence-proof > div {
+      border-bottom: 1px solid rgba(242, 234, 216, 0.18);
+      padding-block: 18px;
+    }
+
+    .residence-proof > div:nth-child(2n) {
+      border-right: 0;
     }
 
     .world-stat-grid {
@@ -2675,6 +2977,39 @@
 
     .terminal-view-tabs {
       grid-template-columns: 1fr;
+    }
+
+    .village-outcome-grid,
+    .residence-rule-grid,
+    .residence-proof {
+      grid-template-columns: 1fr;
+    }
+
+    .village-outcome,
+    .village-outcome:nth-child(3),
+    .village-outcome:nth-child(2n) {
+      border-right: 1px solid var(--line);
+    }
+
+    .village-outcome:nth-child(n + 2) {
+      border-top: 0;
+    }
+
+    .residence-rule-grid li,
+    .residence-rule-grid li:nth-child(2) {
+      border-right: 1px solid rgba(242, 234, 216, 0.18);
+    }
+
+    .residence-rule-grid li:nth-child(n + 2) {
+      border-top: 0;
+    }
+
+    .residence-rule-grid li:last-child {
+      grid-column: auto;
+    }
+
+    .residence-proof > div {
+      border-right: 0;
     }
 
     .terminal-view-tabs button {

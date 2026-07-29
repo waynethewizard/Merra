@@ -1,8 +1,10 @@
 //! Story-first terminal rendering and navigation for Merra simulation evidence.
 
+mod local;
 mod model;
 mod render;
 
+pub use local::{LocalInspector, LocalView, render_local_snapshot};
 pub use model::{EventFilter, Focus, HouseholdSort, Inspector, PersonSort, View};
 pub use render::{render, render_snapshot, snapshot, snapshot_view, snapshot_view_with_focus};
 
@@ -11,13 +13,18 @@ mod tests {
     use std::path::PathBuf;
 
     use merra_core::{
-        CalendarConfig, FamilyConfigV1, HouseholdId, PersonId, PopulationConfigV1,
-        SCENARIO_SCHEMA_V1, ScenarioV1, SeasonConfigV1,
+        CalendarConfig, FamilyConfigV1, HistoryConfigV1, HouseholdId, LocalHistoryConfigV1,
+        LocationId, PersonId, PopulationConfigV1, SCENARIO_SCHEMA_V1, ScenarioV1, SeasonConfigV1,
+        WorldGenesisConfigV1,
     };
-    use merra_sim::{SimulationReport, run_years};
+    use merra_sim::{
+        SimulationReport, regional_history, run_history, run_local_history, run_years,
+    };
+    use merra_worldgen::generate_world;
 
     use super::{
-        Focus, Inspector, View, render_snapshot, snapshot, snapshot_view, snapshot_view_with_focus,
+        Focus, Inspector, LocalInspector, LocalView, View, render_local_snapshot, render_snapshot,
+        snapshot, snapshot_view, snapshot_view_with_focus,
     };
 
     #[test]
@@ -201,6 +208,78 @@ mod tests {
         assert_eq!(inspector.view(), View::Households);
         assert!(render_snapshot_from_inspector(&inspector).contains("Thorn household  #1"));
         assert!(!inspector.focus(Focus::Person(PersonId(9_999))));
+        Ok(())
+    }
+
+    #[test]
+    fn five_village_views_show_consequence_routes_and_historical_context()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let world_config: WorldGenesisConfigV1 = ron::de::from_bytes(&std::fs::read(
+            root.join("scenarios/era-01/before-memory.ron"),
+        )?)?;
+        let history_config: HistoryConfigV1 = ron::de::from_bytes(&std::fs::read(
+            root.join("scenarios/era-01/first-histories.ron"),
+        )?)?;
+        let local_config: LocalHistoryConfigV1 = ron::de::from_bytes(&std::fs::read(
+            root.join("scenarios/era-01/five-villages.ron"),
+        )?)?;
+        let world = generate_world(&world_config, 42)?;
+        let history = run_history(&world, history_config, 42)?;
+        let local = run_local_history(&world, &regional_history(&history), local_config, 42)?;
+        let mut inspector = LocalInspector::new(local);
+
+        let overview = render_local_snapshot(&inspector, 120, 36);
+        assert!(overview.contains("40751 macro people represented exactly"));
+        assert!(overview.contains("Fenstead grew 12→37"));
+        assert!(overview.contains("Fenholm changed 4→0 and emptied"));
+        assert!(overview.contains("one residence per household"));
+        assert_eq!(
+            overview,
+            include_str!("../../../golden/era-01/five-villages-seed-42/tui-overview.txt")
+        );
+
+        inspector.set_view(LocalView::Roads);
+        let roads = render_local_snapshot(&inspector, 120, 36);
+        assert!(roads.contains("PAIRWISE TRAVEL COST"));
+        assert!(roads.contains("Longest: Junipercross → Fenstead → Yarrowmere → Fenholm"));
+        assert_eq!(
+            roads,
+            include_str!("../../../golden/era-01/five-villages-seed-42/tui-roads.txt")
+        );
+
+        assert!(inspector.focus_location(LocationId(27)));
+        let settlement = render_local_snapshot(&inspector, 120, 36);
+        assert!(settlement.contains("No sampled household remains"));
+        assert_eq!(
+            settlement,
+            include_str!("../../../golden/era-01/five-villages-seed-42/tui-settlements.txt")
+        );
+        inspector.activate();
+        let households = render_local_snapshot(&inspector, 120, 36);
+        assert!(households.contains("HISTORICAL INHERITANCE · Fenholm"));
+        inspector.clear_filter();
+        assert!(inspector.focus_household(HouseholdId(1)));
+        let household = render_local_snapshot(&inspector, 120, 36);
+        assert!(household.contains("Institutions:"));
+        assert!(household.contains("Claims:"));
+        assert_eq!(
+            household,
+            include_str!("../../../golden/era-01/five-villages-seed-42/tui-households.txt")
+        );
+
+        inspector.set_view(LocalView::Migrations);
+        let migrations = render_local_snapshot(&inspector, 120, 36);
+        assert_eq!(
+            migrations,
+            include_str!("../../../golden/era-01/five-villages-seed-42/tui-migrations.txt")
+        );
+
+        let compact = render_local_snapshot(&inspector, 72, 20);
+        assert!(compact.contains("MERRA // FIVE VILLAGES"));
+        assert!(!compact.contains('\u{1b}'));
+        let tiny = render_local_snapshot(&inspector, 40, 8);
+        assert!(tiny.contains("use at least 60×16"));
         Ok(())
     }
 

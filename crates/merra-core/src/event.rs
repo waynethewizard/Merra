@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{EventId, HouseholdId, LocationId, PersonId, SimTime};
+use crate::{EventId, HouseholdId, LocationId, PersonId, ResidenceReasonV1, RouteId, SimTime};
 
 /// Stable event categories in schema version 1.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -26,6 +26,8 @@ pub enum EventKindV1 {
     PersonBorn,
     /// A household ceased to have living members.
     HouseholdDissolved,
+    /// A newly formed household selected one residence and traveled there.
+    HouseholdSettled,
     /// A person died.
     PersonDied,
     /// A requested run completed.
@@ -110,6 +112,27 @@ pub enum EventPayloadV1 {
         household_id: HouseholdId,
         /// Human-readable household name at dissolution.
         name: String,
+    },
+    /// A household selected one residence using kin support and road cost.
+    HouseholdSettled {
+        /// Stable household identity.
+        household_id: HouseholdId,
+        /// Previous residences of its founding members.
+        origin_location_ids: Vec<LocationId>,
+        /// New authoritative household residence.
+        destination_location_id: LocationId,
+        /// People who traveled.
+        traveler_ids: Vec<PersonId>,
+        /// Stable shortest-path route identities used.
+        route_ids: Vec<RouteId>,
+        /// Greatest shortest-path cost paid by a traveler.
+        travel_cost: u32,
+        /// Calendar days implied by the configured travel scale.
+        travel_days: u32,
+        /// Living close kin counted at the destination.
+        living_kin_support: u16,
+        /// Dominant deterministic selection rule.
+        reason: ResidenceReasonV1,
     },
     /// An explainable natural death.
     PersonDied {

@@ -19,3 +19,4 @@ difficult-to-reverse project policy.
 - [0005: Keep Kinship, Partnership, and Household Separate](0005-kinship-partnership-and-household.md)
 - [0006: Generate the World Before Historical Populations](0006-world-first-place-graph.md)
 - [0007: Separate Lineage, Culture, Faith, and Polity](0007-lineage-culture-faith.md)
+- [0008: Let Households Own Residence](0008-household-residence-and-local-projection.md)

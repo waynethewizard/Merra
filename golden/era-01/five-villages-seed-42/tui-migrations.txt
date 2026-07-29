@@ -1,0 +1,36 @@
+MERRA // FIVE VILLAGES AFTER FIRST CONTACT
+YEAR 600 + 60 · seed 42 · 40751 macro people represented exactly
+1 Overview  2 Roads  3 Settlements  [4 Migrations]  5 Households
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+MIGRATIONS // KIN FIRST, ROAD COST SECOND, SEEDED TIE LAST
+   YEAR  HOUSEHOLD   ORIGIN                    → DESTINATION   WHY          KIN  COST/DAYS
+>   20   #20        Alderholm+Junipercross  → Junipercross  living kin     3     6/12
+    20   #21        Junipercross+Yarrowmere → Junipercross  living kin     3   76/152
+    20   #22        Fenholm+Yarrowmere      → Yarrowmere    living kin     3     6/12
+    22   #23        Alderholm+Fenholm       → Alderholm     living kin     3   82/164
+    24   #28        Alderholm+Junipercross  → Junipercross  living kin     4     6/12
+    24   #29        Junipercross+Yarrowmere → Junipercross  living kin     4   76/152
+    24   #30        Fenholm+Yarrowmere      → Yarrowmere    living kin     4     6/12
+    29   #32        Alderholm+Fenstead      → Fenstead      living kin     2     8/16
+    40   #34        Junipercross+Fenstead   → Fenstead      living kin     3     8/16
+    41   #35        Alderholm+Yarrowmere    → Yarrowmere    living kin     3   76/152
+    44   #36        Junipercross+Fenholm    → Yarrowmere    living kin     2   76/152
+    44   #38        Junipercross+Fenstead   → Fenstead      living kin     3     8/16
+    44   #39        Junipercross+Yarrowmere → Yarrowmere    living kin     3   76/152
+    44   #41        Junipercross+Fenstead   → Junipercross  living kin     3     8/16
+
+CAUSES #29,#32,#252 · ROUTES #16 · TRAVELERS #39,#40
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tab/1–5 view · ↑↓ select · Enter households · x clear filter · q quit

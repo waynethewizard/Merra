@@ -23,6 +23,10 @@ World and macro-history scenarios use separate versioned contracts:
   historical duration, and capability thresholds. Inherited physiology belongs
   to lineage; ritual, preservation, and transmission belong to culture or
   faith.
+- `five-villages.ron` configures the detailed sample, five-settlement
+  requirement, local duration, and conversion from route cost to travel days.
+  It consumes a generated `regional-history.json`; it does not author village
+  locations or predetermined migration outcomes.
 
 Committed world/history scenarios must also keep all affiliation shares
 normalizable to 10,000, provide three primary and one isolated founder

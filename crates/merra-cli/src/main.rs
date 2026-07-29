@@ -11,13 +11,15 @@ use std::{
 
 use clap::{Parser, Subcommand};
 use merra_core::{
-    BEVY_VERSION, HISTORY_SCHEMA_V1, HistoryConfigV1, HistoryManifestV1, MANIFEST_SCHEMA_V1,
-    RUST_TOOLCHAIN_VERSION, RunManifestV1, ScenarioV1, SimDuration, SourceVersionV1,
-    WORLD_GENESIS_SCHEMA_V1, WorldGenesisConfigV1, WorldGenesisManifestV1,
+    BEVY_VERSION, EVENT_SCHEMA_V3, HISTORY_SCHEMA_V1, HistoryConfigV1, HistoryManifestV1,
+    LOCAL_HISTORY_SCHEMA_V1, LocalHistoryConfigV1, LocalHistoryManifestV1, LocalHistoryReportV1,
+    MANIFEST_SCHEMA_V1, RUST_TOOLCHAIN_VERSION, RegionalHistoryV1, RunManifestV1, ScenarioV1,
+    SimDuration, SourceVersionV1, WORLD_GENESIS_SCHEMA_V1, WorldGenesisConfigV1,
+    WorldGenesisManifestV1,
 };
 use merra_sim::{
-    HistoricalReport, HistorySimulationError, Simulation, SimulationError, SimulationReport,
-    run_history,
+    HistoricalReport, HistorySimulationError, LocalHistoryError, Simulation, SimulationError,
+    SimulationReport, regional_history, run_history, run_local_history,
 };
 use merra_worldgen::{
     AtlasLayer, GenerationError, generate_world, generator_version, render_snapshot, render_svg,
@@ -79,6 +81,21 @@ enum Commands {
         #[arg(long)]
         output: PathBuf,
     },
+    /// Project a completed regional history into five detailed villages.
+    Villages {
+        /// Aggregate-history output directory containing `world.json` and `regional-history.json`.
+        #[arg(long)]
+        history: PathBuf,
+        /// RON detailed local-history configuration.
+        #[arg(long)]
+        scenario: PathBuf,
+        /// Root deterministic local-history seed.
+        #[arg(long)]
+        seed: u64,
+        /// New directory in which five-village evidence will be created.
+        #[arg(long)]
+        output: PathBuf,
+    },
 }
 
 fn main() -> ExitCode {
@@ -111,6 +128,12 @@ fn run(cli: Cli) -> Result<(), CliError> {
             years,
             output,
         } => run_world_history(&world, &scenario, seed, years, &output),
+        Commands::Villages {
+            history,
+            scenario,
+            seed,
+            output,
+        } => run_villages(&history, &scenario, seed, &output),
     }
 }
 
@@ -201,6 +224,10 @@ fn run_world_history(
         &report.important_places,
     )?;
     write_json(output.join("starting-region.json"), &report.starting_region)?;
+    write_json(
+        output.join("regional-history.json"),
+        &regional_history(&report),
+    )?;
     fs::write(output.join("chronicle.md"), &report.chronicle)?;
     fs::write(
         output.join("history-atlas.svg"),
@@ -217,6 +244,69 @@ fn run_world_history(
         report.summary.total_population,
         report.summary.settlements,
         report.summary.event_count,
+        output.display()
+    );
+    Ok(())
+}
+
+fn run_villages(
+    history: &Path,
+    scenario_path: &Path,
+    seed: u64,
+    output: &Path,
+) -> Result<(), CliError> {
+    ensure_new_output(output)?;
+    if !history.is_dir() {
+        return Err(CliError::HistoryDirectoryRequired(history.to_path_buf()));
+    }
+    let world_bytes = fs::read(history.join("world.json"))?;
+    let world: merra_core::SurfaceWorldV1 = serde_json::from_slice(&world_bytes)?;
+    let regional_bytes = fs::read(history.join("regional-history.json"))?;
+    let regional: RegionalHistoryV1 = serde_json::from_slice(&regional_bytes)?;
+    let scenario_bytes = fs::read(scenario_path)?;
+    let config: LocalHistoryConfigV1 = ron::de::from_bytes(&scenario_bytes)?;
+    config.validate()?;
+    let report = run_local_history(&world, &regional, config.clone(), seed)?;
+    let manifest = LocalHistoryManifestV1 {
+        schema_version: LOCAL_HISTORY_SCHEMA_V1,
+        event_schema_version: EVENT_SCHEMA_V3,
+        merra_version: env!("CARGO_PKG_VERSION").to_owned(),
+        bevy_version: BEVY_VERSION.to_owned(),
+        rust_version: RUST_TOOLCHAIN_VERSION.to_owned(),
+        source: source_version(),
+        local_history_id: config.id,
+        local_history_hash: blake3::hash(&scenario_bytes).to_hex().to_string(),
+        world_hash: blake3::hash(&world_bytes).to_hex().to_string(),
+        regional_history_hash: blake3::hash(&regional_bytes).to_hex().to_string(),
+        seed,
+        years: config.years,
+    };
+
+    fs::create_dir_all(output)?;
+    write_json(output.join("manifest.json"), &manifest)?;
+    write_json(output.join("local-history.json"), &report)?;
+    write_local_events(output.join("events.jsonl"), &report)?;
+    write_json(output.join("summary.json"), &report.summary)?;
+    write_json(output.join("population.json"), &report.people)?;
+    write_json(output.join("households.json"), &report.households)?;
+    write_json(
+        output.join("household-contexts.json"),
+        &report.household_contexts,
+    )?;
+    write_json(
+        output.join("residence-decisions.json"),
+        &report.residence_decisions,
+    )?;
+    write_json(output.join("settlements.json"), &report.settlements)?;
+    write_json(output.join("connections.json"), &report.connections)?;
+    write_json(output.join("institutions.json"), &report.institutions)?;
+    write_json(output.join("lore.json"), &report.lore)?;
+    fs::write(output.join("chronicle.md"), &report.chronicle)?;
+    println!(
+        "projected {} aggregate people into {} detailed settlements for {} years; evidence: {}",
+        report.summary.represented_population,
+        report.summary.settlements,
+        report.summary.elapsed_years,
         output.display()
     );
     Ok(())
@@ -298,6 +388,16 @@ fn write_events(path: PathBuf, report: &SimulationReport) -> Result<(), CliError
 }
 
 fn write_history_events(path: PathBuf, report: &HistoricalReport) -> Result<(), CliError> {
+    let file = File::create(path)?;
+    let mut writer = BufWriter::new(file);
+    for event in &report.events {
+        serde_json::to_writer(&mut writer, event)?;
+        writer.write_all(b"\n")?;
+    }
+    Ok(())
+}
+
+fn write_local_events(path: PathBuf, report: &LocalHistoryReportV1) -> Result<(), CliError> {
     let file = File::create(path)?;
     let mut writer = BufWriter::new(file);
     for event in &report.events {
@@ -423,6 +523,8 @@ fn git_output<const N: usize>(args: [&str; N]) -> Option<String> {
 enum CliError {
     #[error("output directory already exists: {0}")]
     OutputExists(PathBuf),
+    #[error("aggregate history input must be a directory: {0}")]
+    HistoryDirectoryRequired(PathBuf),
     #[error("I/O failure: {0}")]
     Io(#[from] std::io::Error),
     #[error("invalid RON scenario: {0}")]
@@ -437,6 +539,10 @@ enum CliError {
     HistoryConfig(#[from] merra_core::HistoryError),
     #[error(transparent)]
     History(#[from] HistorySimulationError),
+    #[error(transparent)]
+    LocalHistoryConfig(#[from] merra_core::LocalHistoryConfigError),
+    #[error(transparent)]
+    LocalHistory(#[from] LocalHistoryError),
     #[error("could not encode JSON report: {0}")]
     Json(#[from] serde_json::Error),
 }

@@ -1,10 +1,15 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { TerminalShowcase as TerminalShowcaseData } from "@/lib/content";
-
 type Props = {
-  showcase: TerminalShowcaseData;
+  showcase: {
+    views: {
+      slug: string;
+      title: string;
+      description: string;
+      screen: string;
+    }[];
+  };
 };
 
 export function TerminalShowcase({ showcase }: Props) {

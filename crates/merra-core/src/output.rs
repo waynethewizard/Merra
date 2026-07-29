@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{HouseholdId, PersonId};
+use crate::{HouseholdId, LocationId, PersonId};
 
 /// Source revision associated with a run.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -122,4 +122,7 @@ pub struct HouseholdRecordV1 {
     pub dissolved_day: Option<u64>,
     /// Number of children born into this household.
     pub children_born: u16,
+    /// One authoritative residence when the household is projected into place.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub residence_id: Option<LocationId>,
 }

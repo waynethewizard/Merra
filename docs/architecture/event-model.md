@@ -35,7 +35,8 @@ An event schema change that breaks old readers increments the schema version.
 The run manifest records the event and scenario schema versions used. Cycle 1
 time, season, and mortality runs remain event schema v1; family-enabled runs
 declare event schema v2 because household, partnership, and birth variants are
-new exhaustive event categories.
+new exhaustive event categories. Five-settlement local history declares event
+schema v3 for `HouseholdSettled`.
 
 The first implemented causal chain is deliberately small:
 
@@ -99,7 +100,31 @@ source culture and optional faith, references stable events, and records
 confidence. The canonical first contact therefore supports two incompatible
 claims without making the event stream contradictory.
 
-The person-level and macro-history schemas are currently separate because they
-operate at different resolutions. Projecting a five-settlement macro region
-into people and households will require an explicit handoff rather than
-silently treating a population cohort as an individual actor.
+The person-level and macro-history schemas are separate because they operate at
+different resolutions. `RegionalHistoryV1` is their explicit handoff; a
+population cohort never silently becomes an individual actor.
+
+## Local place evidence
+
+The regional handoff preserves selected aggregate populations, macro events,
+institutions, lore, and routes available at the projection year. Exact
+population weights attach those aggregate cohorts to sampled initial
+households.
+
+The detailed replay adds:
+
+```text
+HouseholdFormed
+└→ HouseholdSettled
+   ├── origins and destination
+   ├── travelers
+   ├── shortest-path routes, cost, and days
+   ├── living-kin support and selection reason
+   └→ later birth, death, partnership, and dissolution locations
+```
+
+A person's location is not a second mutable field. It resolves through the
+person's household residence when each event occurs. Derived local event IDs
+are renumbered contiguously, and location evidence is added as an earlier
+cause. Macro event IDs remain in separate historical context fields rather
+than being mixed into the local causal namespace.

@@ -6,8 +6,8 @@ imperfectly, and lets the player live inside the result.
 
 Era I is deliberately headless. Merra can now generate a deterministic physical
 world before placing aggregate populations into it, run separate human and orc
-histories through first contact, and select five historically meaningful
-settlements for the detailed local simulation that follows.
+histories through first contact, and project five historically meaningful
+settlements into household-scale local history.
 
 ## Run the foundation smoke scenario
 
@@ -140,6 +140,38 @@ The canonical seed's reviewable evidence is in
 [`golden/era-01/first-histories-seed-42/`](golden/era-01/first-histories-seed-42/).
 The public site's World Atlas page is generated from those same checked
 artifacts.
+
+## Enter the five villages
+
+Project the selected Year 600 region into 60 years of detailed households:
+
+```sh
+cargo merra villages \
+  --history runs/first-histories-42 \
+  --scenario scenarios/era-01/five-villages.ron \
+  --seed 42 \
+  --output runs/five-villages-42
+```
+
+The handoff reconciles all 40,751 aggregate inhabitants exactly across the
+initial weighted household sample. New households choose one residence through
+living-kin support, shortest road cost, and an isolated seeded tie-break.
+Births and deaths retain authoritative places, while household contexts carry
+culture, faith, institutions, and competing historical claims.
+
+Inspect the consequence, roads, settlements, migrations, and households:
+
+```sh
+cargo tui villages --input runs/five-villages-42
+cargo tui villages \
+  --input runs/five-villages-42 \
+  --snapshot \
+  --view overview
+```
+
+Seed 42 makes the comparison legible: Fenstead grows from 12 to 37 sampled
+residents while Fenholm falls from 4 to 0. Exact compact evidence is in
+[`golden/era-01/five-villages-seed-42/`](golden/era-01/five-villages-seed-42/).
 
 ## Run the public site
 

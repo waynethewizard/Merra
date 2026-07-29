@@ -3,6 +3,7 @@
 mod calendar;
 mod event;
 mod ids;
+mod local_history;
 mod output;
 mod rng;
 mod scenario;
@@ -14,6 +15,12 @@ pub use event::{EventKindV1, EventPayloadV1, WorldEventV1};
 pub use ids::{
     CultureId, EventId, FaithId, FeatureId, HouseholdId, InstitutionId, LineageId, LocationId,
     PersonId, PolityId, PopulationId, RegionId, RouteId,
+};
+pub use local_history::{
+    HouseholdHistoricalContextV1, LOCAL_HISTORY_SCHEMA_V1, LocalConnectionV1,
+    LocalHistoryConfigError, LocalHistoryConfigV1, LocalHistoryManifestV1, LocalHistoryReportV1,
+    LocalHistorySummaryV1, LocalSettlementRecordV1, PopulationAllocationV1, RegionalHistoryV1,
+    ResidenceDecisionV1, ResidenceReasonV1,
 };
 pub use output::{
     HouseholdRecordV1, PersonRecordV1, RunManifestV1, SimulationSummaryV1, SourceVersionV1,
@@ -42,6 +49,9 @@ pub const EVENT_SCHEMA_V1: u32 = 1;
 
 /// Family event schema with households, partnerships, and births.
 pub const EVENT_SCHEMA_V2: u32 = 2;
+
+/// Local-history event schema with household residence and movement evidence.
+pub const EVENT_SCHEMA_V3: u32 = 3;
 
 /// Current simulation-summary schema.
 pub const SUMMARY_SCHEMA_V1: u32 = 1;

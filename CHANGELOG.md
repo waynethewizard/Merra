@@ -57,6 +57,13 @@ interfaces stabilize.
 - ADRs and extensive Cycle 3 and Cycle 4 records covering world-first
   generation, theme portability, and the separation of lineage, culture,
   faith, and polity.
+- Exact five-settlement macro-to-local projection with weighted household
+  reconciliation, one residence per household, kin- and road-aware migration,
+  located births and deaths, inherited institutions and lore, and event schema
+  v3 residence evidence.
+- Story-first five-village terminal inspector with consequence, shortest-path
+  road matrix, settlements, migrations, and household-context views plus exact
+  golden snapshots.
 
 ### Changed
 

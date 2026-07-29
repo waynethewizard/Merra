@@ -151,11 +151,56 @@ export type WorldGenesisShowcase = {
   };
 };
 
+export type LocalHistoryShowcase = {
+  title: string;
+  description: string;
+  command: string;
+  seed: number;
+  projectionYear: number;
+  years: number;
+  macroPopulation: number;
+  representedPopulation: number;
+  livingPeople: number;
+  births: number;
+  deaths: number;
+  residenceDecisions: number;
+  migrations: number;
+  locatedEvents: number;
+  settlements: {
+    location_id: number;
+    name: string;
+    macro_population: number;
+    represented_population: number;
+    initial_sample_people: number;
+    final_living_people: number;
+    births: number;
+    deaths: number;
+    arrivals: number;
+    departures: number;
+    active_households: number;
+  }[];
+  connections: {
+    from: number;
+    to: number;
+    travel_cost: number;
+    travel_days: number;
+    route_ids: number[];
+    path: number[];
+  }[];
+  views: {
+    slug: string;
+    title: string;
+    description: string;
+    screen: string;
+  }[];
+};
+
 const snapshot = content as unknown as {
   foundationRun: GoldenRun;
   currentCycle: CycleRecord;
   terminalShowcase: TerminalShowcase;
   worldGenesisShowcase: WorldGenesisShowcase;
+  localHistoryShowcase: LocalHistoryShowcase;
 };
 
 export function getFoundationRun(): GoldenRun {
@@ -172,4 +217,8 @@ export function getTerminalShowcase(): TerminalShowcase {
 
 export function getWorldGenesisShowcase(): WorldGenesisShowcase {
   return snapshot.worldGenesisShowcase;
+}
+
+export function getLocalHistoryShowcase(): LocalHistoryShowcase {
+  return snapshot.localHistoryShowcase;
 }

@@ -151,7 +151,7 @@ jobs:
           retention-days: 14
 
   canonical-world-history:
-    name: World before memory and first histories
+    name: World, first histories, and five villages
     if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -183,6 +183,14 @@ jobs:
           --years 600
           --output runs/actions-first-histories
 
+      - name: Project the five-village local history
+        run: >-
+          cargo run --locked -p merra-cli -- villages
+          --history runs/actions-first-histories
+          --scenario scenarios/era-01/five-villages.ron
+          --seed 42
+          --output runs/actions-five-villages
+
       - name: Render the inspectable world
         run: >-
           cargo run --locked -p merra-tui -- world
@@ -190,6 +198,31 @@ jobs:
           --snapshot
           --layer biome
           > runs/actions-first-histories/tui-biome.txt
+
+      - name: Render the five-village field report
+        run: |
+          cargo run --locked -p merra-tui -- villages \
+            --input runs/actions-five-villages \
+            --snapshot \
+            --view overview > runs/actions-five-villages/tui-overview.txt
+          cargo run --locked -p merra-tui -- villages \
+            --input runs/actions-five-villages \
+            --snapshot \
+            --view roads > runs/actions-five-villages/tui-roads.txt
+          cargo run --locked -p merra-tui -- villages \
+            --input runs/actions-five-villages \
+            --snapshot \
+            --view settlements \
+            --focus-settlement 27 > runs/actions-five-villages/tui-settlements.txt
+          cargo run --locked -p merra-tui -- villages \
+            --input runs/actions-five-villages \
+            --snapshot \
+            --view migrations > runs/actions-five-villages/tui-migrations.txt
+          cargo run --locked -p merra-tui -- villages \
+            --input runs/actions-five-villages \
+            --snapshot \
+            --view households \
+            --focus-household 1 > runs/actions-five-villages/tui-households.txt
 
       - name: Publish the historical field report
         run: |
@@ -199,6 +232,8 @@ jobs:
             cat runs/actions-before-memory/summary.json
             printf '```\n\n## World TUI / biome layer\n\n```\n'
             sed -n '1,46p' runs/actions-first-histories/tui-biome.txt
+            printf '```\n\n## Five Villages / local consequence\n\n```\n'
+            sed -n '1,36p' runs/actions-five-villages/tui-overview.txt
             printf '```\n'
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -209,6 +244,7 @@ jobs:
           path: |
             runs/actions-before-memory/
             runs/actions-first-histories/
+            runs/actions-five-villages/
           if-no-files-found: error
           retention-days: 14
 

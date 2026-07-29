@@ -13,6 +13,10 @@ world template ─▶ merra-worldgen ─▶ SurfaceWorldV1
                                       │
 history config ───────────────────────┤
                                       ▼
+                              RegionalHistoryV1
+                                      │
+local config ─────────────────────────┤
+                                      ▼
 merra-cli ───────┐                merra-sim ─────▶ merra-core
 merra-tui ───────┤                    ▲
 future game ─────┘────────────────────┘
@@ -53,6 +57,12 @@ Its configuration contains data-defined founders rather than permanent
 tag, and culture. Faith and lore sources reference culture keys. A third
 lineage can therefore enter a theme without changing the contract.
 
+The local-history projector consumes the selected `RegionalHistoryV1` handoff,
+not the full surface grid. It runs the existing detailed person-and-household
+schedule, reconciles aggregate cohorts exactly across sampled epoch
+households, and replays stable events into place. Household residence is the
+authoritative local state; people derive their current place from it.
+
 ### `merra-worldgen`
 
 Owns deterministic, Bevy-independent construction of physical context:
@@ -80,6 +90,11 @@ domain-ID focus controls.
 World mode reads completed world or historical run directories. It can inspect
 terrain, biome, habitability, resource, and mythic layers and summarize the
 macro-history handoff. It never advances either simulation.
+
+Five-village mode reads `LocalHistoryReportV1`. Its consequence overview,
+shortest-path road matrix, settlement comparison, causal migration list, and
+household historical context are all views over immutable output. It never
+changes residence or recalculates the simulation.
 
 The current schedule orders time advancement, season transition, annual
 mortality, and family maintenance explicitly. Large advances are split at

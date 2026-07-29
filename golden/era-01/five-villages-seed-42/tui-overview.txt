@@ -1,0 +1,36 @@
+MERRA // FIVE VILLAGES AFTER FIRST CONTACT
+YEAR 600 + 60 · seed 42 · 40751 macro people represented exactly
+[1 Overview]  2 Roads  3 Settlements  4 Migrations  5 Households
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+THE LOCAL CONSEQUENCE
+Fenstead grew 12→37 while Fenholm changed 4→0 and emptied.
+74 living sample · 78 births · 34 deaths · 22 household migrations · 316/800 events located
+
+SETTLEMENT       MACRO     SAMPLE  Δ    B/D    IN/OUT   LIVING POPULATION
+Fenstead          19514   12→37   +25  36/14   5/2    ██████████████
+Alderholm          7539    6→2     -4   8/5    1/8    █
+Junipercross       6048    4→18   +14  16/6   11/7    ███████
+Yarrowmere         3191    4→17   +13  14/6    8/3    ███████
+Fenholm            4459    4→0     -4   4/3    0/5     EMPTY
+
+WHY HOUSEHOLDS MOVED
+22 kin-led · 0 road-led · 0 seeded ties · one residence per household
+2 claims · 6 inherited institutions · 10 shortest-path connections
+Inherited claim: “The Discovery of the Outer Shore”
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tab/1–5 view · ↑↓ select · Enter households · x clear filter · q quit

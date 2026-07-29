@@ -68,9 +68,9 @@ mod tests {
 
     use merra_core::{
         EventKindV1, EventPayloadV1, HistoricalEventKindV1, HistoryConfigV1, HouseholdId,
-        LineageId, PersonId, ScenarioV1, WorldEventV1, WorldGenesisConfigV1,
+        LineageId, LocalHistoryConfigV1, PersonId, ScenarioV1, WorldEventV1, WorldGenesisConfigV1,
     };
-    use merra_sim::{SimulationReport, run_history};
+    use merra_sim::{SimulationReport, regional_history, run_history, run_local_history};
     use merra_worldgen::{generate_world, summarize_world};
 
     use super::run_smoke;
@@ -334,6 +334,84 @@ mod tests {
             history.chronicle,
             fs::read_to_string(golden.join("chronicle.md"))?
         );
+
+        let local_config: LocalHistoryConfigV1 =
+            ron::de::from_bytes(&fs::read(root.join("scenarios/era-01/five-villages.ron"))?)?;
+        let regional = regional_history(&history);
+        let local = run_local_history(&world, &regional, local_config.clone(), 42)?;
+        let repeated_local = run_local_history(&world, &regional, local_config, 42)?;
+        assert_eq!(local, repeated_local);
+        assert_eq!(local.summary.settlements, 5);
+        assert_eq!(local.summary.macro_population, 40_751);
+        assert_eq!(
+            local.summary.represented_population,
+            local.summary.macro_population
+        );
+        assert_eq!(local.connections.len(), 10);
+        assert!(local.summary.household_migrations > 0);
+        assert!(
+            local
+                .households
+                .iter()
+                .all(|household| household.residence_id.is_some())
+        );
+        assert!(
+            local
+                .events
+                .iter()
+                .enumerate()
+                .all(|(index, event)| event.id.0 == index as u64 + 1
+                    && event.causes.iter().all(|cause| cause.0 < event.id.0))
+        );
+        assert!(local.events.iter().all(|event| {
+            !matches!(
+                event.kind,
+                EventKindV1::PersonBorn | EventKindV1::PersonDied
+            ) || event.location.is_some()
+        }));
+        assert!(
+            local
+                .household_contexts
+                .iter()
+                .any(|context| !context.institution_ids.is_empty())
+        );
+        assert!(
+            local
+                .household_contexts
+                .iter()
+                .any(|context| !context.lore_claim_ids.is_empty())
+        );
+        let fenholm = local
+            .settlements
+            .iter()
+            .find(|settlement| settlement.name == "Fenholm");
+        assert!(fenholm.is_some_and(|settlement| {
+            settlement.initial_sample_people > 0 && settlement.final_living_people == 0
+        }));
+        let fenstead = local
+            .settlements
+            .iter()
+            .find(|settlement| settlement.name == "Fenstead");
+        assert!(fenstead.is_some_and(|settlement| {
+            settlement.final_living_people > settlement.initial_sample_people
+        }));
+        let local_golden = root.join("golden/era-01/five-villages-seed-42");
+        assert_eq!(
+            serde_json::to_string_pretty(&local.summary)? + "\n",
+            fs::read_to_string(local_golden.join("summary.json"))?
+        );
+        assert_eq!(
+            serde_json::to_string_pretty(&local.settlements)? + "\n",
+            fs::read_to_string(local_golden.join("settlements.json"))?
+        );
+        assert_eq!(
+            serde_json::to_string_pretty(&local.connections)? + "\n",
+            fs::read_to_string(local_golden.join("connections.json"))?
+        );
+        assert_eq!(
+            local.chronicle,
+            fs::read_to_string(local_golden.join("chronicle.md"))?
+        );
         Ok(())
     }
 
@@ -346,7 +424,10 @@ mod tests {
         let history_config: HistoryConfigV1 = ron::de::from_bytes(&fs::read(
             root.join("scenarios/era-01/first-histories.ron"),
         )?)?;
+        let local_config: LocalHistoryConfigV1 =
+            ron::de::from_bytes(&fs::read(root.join("scenarios/era-01/five-villages.ron"))?)?;
         let mut contacts = 0;
+        let mut runs_with_an_empty_village = 0;
         for seed in 1..=20 {
             let world = generate_world(&world_config, seed)?;
             let summary = summarize_world(&world);
@@ -363,8 +444,33 @@ mod tests {
                 event.id.0 == index as u64 + 1
                     && event.causes.iter().all(|cause| cause.0 < event.id.0)
             }));
+            let local = run_local_history(
+                &world,
+                &regional_history(&history),
+                local_config.clone(),
+                seed,
+            )?;
+            assert_eq!(local.summary.settlements, 5);
+            assert_eq!(
+                local.summary.macro_population,
+                local.summary.represented_population
+            );
+            assert!(local.summary.household_migrations > 0);
+            assert!(local.events.iter().all(|event| {
+                !matches!(
+                    event.kind,
+                    EventKindV1::PersonBorn | EventKindV1::PersonDied
+                ) || event.location.is_some()
+            }));
+            runs_with_an_empty_village += usize::from(
+                local
+                    .settlements
+                    .iter()
+                    .any(|settlement| settlement.final_living_people == 0),
+            );
         }
         assert!(contacts > 0);
+        assert!(runs_with_an_empty_village > 0);
         Ok(())
     }
 
@@ -588,6 +694,10 @@ mod tests {
                 | (
                     EventKindV1::HouseholdDissolved,
                     EventPayloadV1::HouseholdDissolved { .. }
+                )
+                | (
+                    EventKindV1::HouseholdSettled,
+                    EventPayloadV1::HouseholdSettled { .. }
                 )
                 | (EventKindV1::PersonDied, EventPayloadV1::PersonDied { .. })
                 | (

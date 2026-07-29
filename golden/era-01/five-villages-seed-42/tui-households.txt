@@ -1,0 +1,36 @@
+MERRA // FIVE VILLAGES AFTER FIRST CONTACT
+YEAR 600 + 60 · seed 42 · 40751 macro people represented exactly
+1 Overview  2 Roads  3 Settlements  4 Migrations  [5 Households]
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+HOUSEHOLDS // HISTORICAL INHERITANCE · all places · 52 shown
+   HOUSEHOLD   RESIDENCE          MEMBERS  REPRESENTS  CULT  FAITH  INST  LORE
+>  #1         Fenstead                 2        3253     3      2     4     1
+   #2         Fenstead                 0        3252     3      2     4     1
+   #3         Fenstead                 0        3252     3      2     4     1
+   #4         Fenstead                 0        3252     3      2     4     1
+   #5         Fenstead                 0        3253     3      2     4     1
+   #6         Fenstead                 0        3252     3      2     4     1
+   #7         Alderholm                0        2513     3      2     4     1
+   #8         Alderholm                0        2513     3      2     4     1
+   #9         Alderholm                0        2513     3      2     4     1
+   #10        Junipercross             0        3024     3      2     4     1
+   #11        Junipercross             2        3024     3      2     4     1
+   #12        Yarrowmere               0        1596     3      2     4     1
+   #13        Yarrowmere               0        1595     3      2     4     1
+   #14        Fenholm                  0        2230     1      1     1     1
+
+Household #1 · cultures #2,#4,#5 · faiths #1,#3
+Institutions: Eskerhaven Assembly #3,#4,#5 · Keepers of The Ring Witness #1
+Claims: The Return of the Divided Kin
+
+
+
+
+
+
+
+
+
+
+
+Tab/1–5 view · ↑↓ select · Enter households · x clear filter · q quit

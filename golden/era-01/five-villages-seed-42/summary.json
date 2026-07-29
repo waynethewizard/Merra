@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "local_history_id": "era-01-five-villages",
+  "seed": 42,
+  "projection_year": 600,
+  "elapsed_years": 60,
+  "settlements": 5,
+  "macro_population": 40751,
+  "represented_population": 40751,
+  "living_sample_people": 74,
+  "births": 78,
+  "deaths": 34,
+  "residence_decisions": 37,
+  "household_migrations": 22,
+  "located_events": 316
+}
