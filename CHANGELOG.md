@@ -67,6 +67,9 @@ interfaces stabilize.
 - Versioned five-village playback evidence and an interactive public-site
   network that replays 108 named lives through settlement, birth, death, and
   household migration events across four generations.
+- Dedicated public History & Lore reader spanning Years 0–660, with
+  event-referenced milestones, an explicit authoritative first-contact record,
+  competing sourced cultural claims, and the exact macro and local chronicles.
 
 ### Changed
 

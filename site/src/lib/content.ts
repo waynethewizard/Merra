@@ -252,12 +252,48 @@ export type LocalHistoryPlayback = {
   events: LocalPlaybackEvent[];
 };
 
+export type HistoryLoreShowcase = {
+  seed: number;
+  startYear: number;
+  projectionYear: number;
+  endYear: number;
+  recordedEvents: number;
+  localLocatedEvents: number;
+  firstContact: {
+    year: number;
+    eventId: number;
+    routeEventId: number;
+    locationId: number;
+    record: string;
+  };
+  milestones: {
+    years: string;
+    phase: string;
+    title: string;
+    description: string;
+    evidenceScope: string;
+    eventIds: number[];
+  }[];
+  claims: {
+    id: number;
+    title: string;
+    text: string;
+    sourceCulture: string;
+    sourceFaith: string | null;
+    confidence: number;
+    aboutEventIds: number[];
+  }[];
+  macroChronicle: string;
+  localChronicle: string;
+};
+
 const snapshot = content as unknown as {
   foundationRun: GoldenRun;
   currentCycle: CycleRecord;
   terminalShowcase: TerminalShowcase;
   worldGenesisShowcase: WorldGenesisShowcase;
   localHistoryShowcase: LocalHistoryShowcase;
+  historyLoreShowcase: HistoryLoreShowcase;
 };
 
 export function getFoundationRun(): GoldenRun {
@@ -278,4 +314,8 @@ export function getWorldGenesisShowcase(): WorldGenesisShowcase {
 
 export function getLocalHistoryShowcase(): LocalHistoryShowcase {
   return snapshot.localHistoryShowcase;
+}
+
+export function getHistoryLoreShowcase(): HistoryLoreShowcase {
+  return snapshot.historyLoreShowcase;
 }

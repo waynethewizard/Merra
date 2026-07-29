@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { TerminalShowcase } from "@/components/TerminalShowcase";
 import { VillagePlayback } from "@/components/VillagePlayback";
 import { getLocalHistoryShowcase } from "@/lib/content";
@@ -84,6 +85,10 @@ export default function VillagesPage() {
             playback={showcase.playback}
             settlements={showcase.settlements}
           />
+          <p className="playback-history-link">
+            Want the centuries behind these households?{" "}
+            <Link href="/history/">Read the complete history and lore →</Link>
+          </p>
         </div>
       </section>
 

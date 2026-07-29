@@ -16,6 +16,18 @@ type WorldEvent = {
   payload: { type: string };
 };
 
+type HistoricalEvidenceEvent = {
+  id: number;
+  time: { day: number };
+  kind: string;
+  location: number | null;
+  causes: number[];
+  payload: {
+    type: string;
+    name?: string;
+  };
+};
+
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) errors.push(message);
 }
@@ -223,6 +235,12 @@ const worldGenesisDirectory = path.join(
   "era-01",
   "first-histories-seed-42"
 );
+const historicalEvents = fs
+  .readFileSync(path.join(worldGenesisDirectory, "events.jsonl"), "utf8")
+  .trim()
+  .split("\n")
+  .filter(Boolean)
+  .map((line) => JSON.parse(line) as HistoricalEvidenceEvent);
 const worldSummary = readJson<{
   seed: number;
   regions: number;
@@ -250,6 +268,7 @@ const historySummary = readJson<{
 }>(path.join(worldGenesisDirectory, "history-summary.json"));
 const cultures = readJson<
   {
+    id: number;
     name: string;
     founded_year: number;
     ritual_days_per_year: number;
@@ -257,14 +276,19 @@ const cultures = readJson<
 >(path.join(worldGenesisDirectory, "cultures.json"));
 const faiths = readJson<
   {
+    id: number;
     name: string;
     founded_year: number;
   }[]
 >(path.join(worldGenesisDirectory, "faiths.json"));
 const lore = readJson<
   {
+    id: number;
     title: string;
     text: string;
+    source_culture_id: number;
+    source_faith_id: number | null;
+    about_events: number[];
     confidence_per_10_000: number;
   }[]
 >(path.join(worldGenesisDirectory, "lore.json"));
@@ -534,6 +558,135 @@ const localHistoryShowcase = {
   views: localTerminalViews
 };
 
+const historicalEventsById = new Map(
+  historicalEvents.map((event) => [event.id, event])
+);
+const culturesById = new Map(cultures.map((culture) => [culture.id, culture]));
+const faithsById = new Map(faiths.map((faith) => [faith.id, faith]));
+const historyLoreShowcase = {
+  seed: historySummary.seed,
+  startYear: 0,
+  projectionYear: localHistorySummary.projection_year,
+  endYear:
+    localHistorySummary.projection_year + localHistorySummary.elapsed_years,
+  recordedEvents: historySummary.event_count,
+  localLocatedEvents: localHistorySummary.located_events,
+  firstContact: {
+    year: historySummary.first_contact_year,
+    eventId: 37,
+    routeEventId: 36,
+    locationId: 20,
+    record:
+      "A learned sea route opened between the separated homelands. Populations #2 and #4 then met at Fenstead, creating Tidebound culture, a mixed community, and the spread of the Ring Witness."
+  },
+  milestones: [
+    {
+      years: "Year 0",
+      phase: "Origins",
+      title: "Four cultures begin apart",
+      description:
+        "River Folk, Upland Kin, Western Marches, and Keepers of the Ring enter history in separated homelands. The Ring Witness faith forms around an unexplained prehuman trace.",
+      evidenceScope: "Macro events",
+      eventIds: [2, 3, 4, 5, 14]
+    },
+    {
+      years: "Year 120",
+      phase: "Expansion",
+      title: "River life becomes belief",
+      description:
+        "Migration founds Valeford, and the River Folk establish the River Witness as a learned faith rather than an inherited physical trait.",
+      evidenceScope: "Macro events",
+      eventIds: [21, 22, 23]
+    },
+    {
+      years: "Year 270",
+      phase: "Settlement",
+      title: "Fenholm is founded",
+      description:
+        "A migration from Hallowgate establishes Fenholm three centuries before its final sampled household disappears.",
+      evidenceScope: "Macro events",
+      eventIds: [34, 35]
+    },
+    {
+      years: "Year 293",
+      phase: "First contact",
+      title: "The sea opens; history crosses it",
+      description:
+        "Navigation unlocks the route before contact can occur. The meeting produces Tidebound culture, a mixed-lineage population, and a new path for faith.",
+      evidenceScope: "Macro events",
+      eventIds: [36, 37, 38, 39, 40]
+    },
+    {
+      years: "Year 373",
+      phase: "Schism",
+      title: "The Ring Witness divides",
+      description:
+        "First contact remains causally present eighty years later when the Open Hand separates from the Ring Witness at Fenstead.",
+      evidenceScope: "Macro event",
+      eventIds: [48]
+    },
+    {
+      years: "Years 480–540",
+      phase: "The five villages",
+      title: "The contact region takes shape",
+      description:
+        "Alderholm, Junipercross, and Yarrowmere are founded through migration around Fenstead and older Fenholm.",
+      evidenceScope: "Macro events",
+      eventIds: [57, 58, 60, 61, 62, 63]
+    },
+    {
+      years: "Year 600",
+      phase: "Local handoff",
+      title: "Forty thousand lives become thirty detailed witnesses",
+      description:
+        "The five-settlement region closes with 40,751 aggregate people. A weighted sample of 30 named founders preserves that population exactly before detailed household history begins.",
+      evidenceScope: "Macro event",
+      eventIds: [69]
+    },
+    {
+      years: "Years 602–642",
+      phase: "Generations",
+      title: "Three new generations arrive",
+      description:
+        "Generation 1 begins with Elian Thorn, Generation 2 with Leof Fen, and Generation 3 with Frida Fen. Their births are separated by twenty-year intervals.",
+      evidenceScope: "Local events",
+      eventIds: [65, 285, 523]
+    },
+    {
+      years: "Year 660",
+      phase: "Consequence",
+      title: "One village grows; another empties",
+      description:
+        "After 78 births, 34 deaths, and 22 household migrations, 74 sampled people remain. Fenstead holds 37; Fenholm holds none, but its events and inherited memory remain.",
+      evidenceScope: "Canonical summary",
+      eventIds: []
+    }
+  ],
+  claims: lore.map((claim) => ({
+    id: claim.id,
+    title: claim.title,
+    text: claim.text,
+    sourceCulture:
+      culturesById.get(claim.source_culture_id)?.name ??
+      `Culture #${claim.source_culture_id}`,
+    sourceFaith:
+      claim.source_faith_id === null
+        ? null
+        : faithsById.get(claim.source_faith_id)?.name ??
+          `Faith #${claim.source_faith_id}`,
+    confidence: claim.confidence_per_10_000 / 100,
+    aboutEventIds: claim.about_events
+  })),
+  macroChronicle: fs.readFileSync(
+    path.join(worldGenesisDirectory, "chronicle.md"),
+    "utf8"
+  ),
+  localChronicle: fs.readFileSync(
+    path.join(localHistoryDirectory, "chronicle.md"),
+    "utf8"
+  )
+};
+
 const run = foundationRun;
 const cycle = currentCycle;
 
@@ -630,6 +783,38 @@ assert(
   "the showcase must contain both isolated and contact cultures"
 );
 assert(lore.length >= 2, "first contact requires competing lore claims");
+assert(
+  historicalEvents.length === historySummary.event_count &&
+    historicalEventsById.get(36)?.kind === "sea_route_opened" &&
+    historicalEventsById.get(37)?.kind === "first_contact" &&
+    historicalEventsById.get(37)?.causes.includes(36),
+  "history reader requires the canonical route-to-contact causal chain"
+);
+for (const claim of lore) {
+  assert(
+    culturesById.has(claim.source_culture_id) &&
+      (claim.source_faith_id === null ||
+        faithsById.has(claim.source_faith_id)) &&
+      claim.about_events.every(
+        (eventId) => historicalEventsById.get(eventId)?.kind === "first_contact"
+      ),
+    `lore claim ${claim.id} must resolve its source and first-contact evidence`
+  );
+}
+for (const milestone of historyLoreShowcase.milestones) {
+  const sourceEvents =
+    milestone.evidenceScope === "Local events"
+      ? localPlayback.events
+      : historicalEvents;
+  assert(
+    milestone.eventIds.every((eventId) =>
+      sourceEvents.some((event) =>
+        "event_id" in event ? event.event_id === eventId : event.id === eventId
+      )
+    ),
+    `${milestone.title} references missing ${milestone.evidenceScope.toLowerCase()}`
+  );
+}
 assert(
   atlasSvg.trimStart().startsWith("<svg") &&
     !atlasSvg.toLowerCase().includes("<script"),
@@ -840,10 +1025,11 @@ fs.writeFileSync(
     currentCycle,
     terminalShowcase,
     worldGenesisShowcase,
-    localHistoryShowcase
+    localHistoryShowcase,
+    historyLoreShowcase
   })}\n`
 );
 
 console.log(
-  `Validated ${run.events.length} foundation events, ${terminalViews.length + localTerminalViews.length} terminal views, the ${worldSummary.regions.toLocaleString("en-US")}-region world atlas, and ${localPlayback.people.length} replayable village lives.`
+  `Validated ${run.events.length} foundation events, ${terminalViews.length + localTerminalViews.length} terminal views, the ${worldSummary.regions.toLocaleString("en-US")}-region world atlas, ${localPlayback.people.length} replayable village lives, and ${historyLoreShowcase.milestones.length} historical milestones.`
 );

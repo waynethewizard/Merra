@@ -9,6 +9,7 @@ export function SiteHeader() {
         <nav aria-label="Primary navigation">
           <Link href="/world/">World atlas</Link>
           <Link href="/villages/">Five villages</Link>
+          <Link href="/history/">History &amp; lore</Link>
           <Link href="/chronicle/">Chronicle</Link>
           <Link href="/terminal/">Terminal</Link>
           <Link href="/explore/">Explore a run</Link>

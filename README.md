@@ -139,7 +139,9 @@ cargo xtask world-lab \
 The canonical seed's reviewable evidence is in
 [`golden/era-01/first-histories-seed-42/`](golden/era-01/first-histories-seed-42/).
 The public site's World Atlas page is generated from those same checked
-artifacts.
+artifacts. Its History & Lore reader follows the canonical record from Year 0
+through the detailed Year 660 outcome while preserving the distinction between
+authoritative events and the competing claims cultures make about them.
 
 ## Enter the five villages
 

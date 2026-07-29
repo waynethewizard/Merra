@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getWorldGenesisShowcase } from "@/lib/content";
 
 function formatNumber(value: number): string {
@@ -181,6 +182,9 @@ export default function WorldPage() {
                 <small>claimed confidence · {claim.confidence}%</small>
               </blockquote>
             ))}
+            <Link className="contact-history-link" href="/history/">
+              Read the complete history &amp; lore →
+            </Link>
           </div>
         </div>
       </section>
