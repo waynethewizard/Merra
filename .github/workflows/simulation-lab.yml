@@ -150,6 +150,68 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  canonical-world-history:
+    name: World before memory and first histories
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.1 --profile minimal
+
+      - name: Verify exact and structural world evidence
+        run: cargo test --locked -p merra-worldgen -p merra-sim -p merra-testkit
+
+      - name: Generate the canonical world
+        run: >-
+          cargo run --locked -p merra-cli -- worldgen
+          --template scenarios/era-01/before-memory.ron
+          --seed 42
+          --output runs/actions-before-memory
+
+      - name: Run six centuries of macro history
+        run: >-
+          cargo run --locked -p merra-cli -- history
+          --world runs/actions-before-memory
+          --scenario scenarios/era-01/first-histories.ron
+          --seed 42
+          --years 600
+          --output runs/actions-first-histories
+
+      - name: Render the inspectable world
+        run: >-
+          cargo run --locked -p merra-tui -- world
+          --input runs/actions-first-histories
+          --snapshot
+          --layer biome
+          > runs/actions-first-histories/tui-biome.txt
+
+      - name: Publish the historical field report
+        run: |
+          {
+            cat runs/actions-first-histories/chronicle.md
+            printf '\n## World measurements\n\n```json\n'
+            cat runs/actions-before-memory/summary.json
+            printf '```\n\n## World TUI / biome layer\n\n```\n'
+            sed -n '1,46p' runs/actions-first-histories/tui-biome.txt
+            printf '```\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attach world, atlas, events, and history
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: canonical-world-history-${{ github.sha }}
+          path: |
+            runs/actions-before-memory/
+            runs/actions-first-histories/
+          if-no-files-found: error
+          retention-days: 14
+
   seed-cohort:
     name: One hundred-seed cohort
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
@@ -215,5 +277,40 @@ jobs:
         with:
           name: dynasty-lab-${{ github.sha }}
           path: runs/actions-dynasty-lab/
+          if-no-files-found: error
+          retention-days: 30
+
+  world-history-cohort:
+    name: One hundred generated histories
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.1 --profile minimal
+
+      - name: Generate one hundred complete world histories
+        run: >-
+          cargo xtask world-lab
+          --world scenarios/era-01/before-memory.ron
+          --history scenarios/era-01/first-histories.ron
+          --first-seed 1
+          --count 100
+          --years 600
+          --output runs/actions-world-lab
+
+      - name: Publish world cohort summary
+        run: cat runs/actions-world-lab/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attach world cohort evidence
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: world-lab-${{ github.sha }}
+          path: runs/actions-world-lab/
           if-no-files-found: error
           retention-days: 30

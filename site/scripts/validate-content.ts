@@ -116,7 +116,7 @@ const cycleSource = fs.readFileSync(
     "devlog",
     "era-01",
     "cycles",
-    "02-families-and-households.md"
+    "04-the-first-histories.md"
   ),
   "utf8"
 );
@@ -217,6 +217,166 @@ const terminalShowcase = {
   views: terminalViews
 };
 
+const worldGenesisDirectory = path.join(
+  repoRoot,
+  "golden",
+  "era-01",
+  "first-histories-seed-42"
+);
+const worldSummary = readJson<{
+  seed: number;
+  regions: number;
+  land_regions: number;
+  island_regions: number;
+  river_regions: number;
+  biome_count: number;
+  feature_count: number;
+  location_count: number;
+  route_count: number;
+  locked_sea_routes: number;
+}>(path.join(worldGenesisDirectory, "world-summary.json"));
+const historySummary = readJson<{
+  seed: number;
+  elapsed_years: number;
+  total_population: number;
+  population_cohorts: number;
+  settlements: number;
+  cultures: number;
+  faiths: number;
+  institutions: number;
+  mixed_lineage_populations: number;
+  first_contact_year: number;
+  event_count: number;
+}>(path.join(worldGenesisDirectory, "history-summary.json"));
+const cultures = readJson<
+  {
+    name: string;
+    founded_year: number;
+    ritual_days_per_year: number;
+  }[]
+>(path.join(worldGenesisDirectory, "cultures.json"));
+const faiths = readJson<
+  {
+    name: string;
+    founded_year: number;
+  }[]
+>(path.join(worldGenesisDirectory, "faiths.json"));
+const lore = readJson<
+  {
+    title: string;
+    text: string;
+    confidence_per_10_000: number;
+  }[]
+>(path.join(worldGenesisDirectory, "lore.json"));
+const startingRegion = readJson<{
+  settlement_ids: number[];
+  event_ids: number[];
+  summary: string;
+}>(path.join(worldGenesisDirectory, "starting-region.json"));
+const atlasSvg = fs.readFileSync(
+  path.join(worldGenesisDirectory, "history-atlas.svg"),
+  "utf8"
+);
+const worldTuiScreen = fs.readFileSync(
+  path.join(worldGenesisDirectory, "tui-world.txt"),
+  "utf8"
+);
+const worldGenesisShowcase = {
+  title: "Before Memory / The First Histories",
+  description:
+    "One deterministic world generated before its peoples: terrain, climate, water, resources, mythic traces, places, then six centuries of migration and cultural history.",
+  command:
+    "cargo merra worldgen --template scenarios/era-01/before-memory.ron --seed 42 --output runs/before-memory-42",
+  seed: worldSummary.seed,
+  years: historySummary.elapsed_years,
+  world: {
+    regions: worldSummary.regions,
+    landRegions: worldSummary.land_regions,
+    islandRegions: worldSummary.island_regions,
+    riverRegions: worldSummary.river_regions,
+    biomes: worldSummary.biome_count,
+    features: worldSummary.feature_count,
+    places: worldSummary.location_count,
+    routes: worldSummary.route_count
+  },
+  history: {
+    totalPopulation: historySummary.total_population,
+    populationCohorts: historySummary.population_cohorts,
+    settlements: historySummary.settlements,
+    cultures: historySummary.cultures,
+    faiths: historySummary.faiths,
+    institutions: historySummary.institutions,
+    mixedLineagePopulations: historySummary.mixed_lineage_populations,
+    firstContactYear: historySummary.first_contact_year,
+    eventCount: historySummary.event_count
+  },
+  atlasSvg,
+  tuiScreen: worldTuiScreen,
+  stages: [
+    {
+      name: "Deep structure",
+      result: "Tectonic plates and integer elevation establish a reproducible landmass."
+    },
+    {
+      name: "Living surface",
+      result: "Climate, drainage, rivers, biomes, and resources constrain habitation."
+    },
+    {
+      name: "Meaning",
+      result: "Mythic traces and affordances make places culturally legible."
+    },
+    {
+      name: "Peoples",
+      result: "Three human cohorts and one orc cohort begin in separate homelands."
+    },
+    {
+      name: "History",
+      result: "Migration, settlement, institutions, navigation, and belief run for 600 years."
+    },
+    {
+      name: "Playable region",
+      result: "Five connected settlements preserve local evidence of world-scale history."
+    }
+  ],
+  lineages: [
+    {
+      name: "Humans",
+      homeland: "Continental watersheds",
+      mortality: 1,
+      power: 1,
+      speed: 1,
+      sustenance: 1
+    },
+    {
+      name: "Orcs",
+      homeland: "Remote island valley",
+      mortality: 0.75,
+      power: 1.25,
+      speed: 1,
+      sustenance: 1.125
+    }
+  ],
+  cultures: cultures.map((culture) => ({
+    name: culture.name,
+    foundedYear: culture.founded_year,
+    ritualDays: culture.ritual_days_per_year
+  })),
+  faiths: faiths.map((faith) => ({
+    name: faith.name,
+    foundedYear: faith.founded_year
+  })),
+  lore: lore.map((claim) => ({
+    title: claim.title,
+    text: claim.text,
+    confidence: claim.confidence_per_10_000 / 100
+  })),
+  startingRegion: {
+    settlementCount: startingRegion.settlement_ids.length,
+    eventCount: startingRegion.event_ids.length,
+    summary: startingRegion.summary
+  }
+};
+
 const run = foundationRun;
 const cycle = currentCycle;
 
@@ -286,6 +446,39 @@ assert(
     terminalViews[3]?.screen.includes("Garin Fen #14  [CURRENT PARTNER]"),
   "terminal showcase must retain surname and union-aware story evidence"
 );
+assert(
+  worldSummary.regions === 12_288 &&
+    worldSummary.land_regions > 4_800 &&
+    worldSummary.island_regions > 0 &&
+    worldSummary.river_regions > 0,
+  "world genesis must retain the canonical continent, island, and rivers"
+);
+assert(
+  worldSummary.locked_sea_routes === 1,
+  "world genesis must begin with one inaccessible sea route"
+);
+assert(
+  historySummary.first_contact_year === 293 &&
+    historySummary.mixed_lineage_populations === 4 &&
+    historySummary.settlements === 24,
+  "history showcase must retain canonical first-contact evidence"
+);
+assert(
+  startingRegion.settlement_ids.length === 5,
+  "the starting region must contain exactly five settlements"
+);
+assert(
+  cultures.some((culture) => culture.name === "Keepers of the Ring") &&
+    cultures.some((culture) => culture.name === "Tidebound"),
+  "the showcase must contain both isolated and contact cultures"
+);
+assert(lore.length >= 2, "first contact requires competing lore claims");
+assert(
+  atlasSvg.trimStart().startsWith("<svg") &&
+    !atlasSvg.toLowerCase().includes("<script"),
+  "the generated atlas must be a script-free SVG"
+);
+assert(!worldTuiScreen.includes("\u001b"), "world TUI snapshot contains ANSI");
 
 let previousId = 0;
 const knownIds = new Set<number>();
@@ -321,9 +514,14 @@ const generatedDirectory = path.join(siteRoot, "src", "generated");
 fs.mkdirSync(generatedDirectory, { recursive: true });
 fs.writeFileSync(
   path.join(generatedDirectory, "content.json"),
-  `${JSON.stringify({ foundationRun, currentCycle, terminalShowcase })}\n`
+  `${JSON.stringify({
+    foundationRun,
+    currentCycle,
+    terminalShowcase,
+    worldGenesisShowcase
+  })}\n`
 );
 
 console.log(
-  `Validated ${run.events.length} foundation events and ${terminalViews.length} Cycle 2 terminal views.`
+  `Validated ${run.events.length} foundation events, ${terminalViews.length} terminal views, and the ${worldSummary.regions.toLocaleString("en-US")}-region world atlas.`
 );

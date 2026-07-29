@@ -89,10 +89,73 @@ export type TerminalShowcase = {
   }[];
 };
 
+export type WorldGenesisShowcase = {
+  title: string;
+  description: string;
+  command: string;
+  seed: number;
+  years: number;
+  world: {
+    regions: number;
+    landRegions: number;
+    islandRegions: number;
+    riverRegions: number;
+    biomes: number;
+    features: number;
+    places: number;
+    routes: number;
+  };
+  history: {
+    totalPopulation: number;
+    populationCohorts: number;
+    settlements: number;
+    cultures: number;
+    faiths: number;
+    institutions: number;
+    mixedLineagePopulations: number;
+    firstContactYear: number;
+    eventCount: number;
+  };
+  atlasSvg: string;
+  tuiScreen: string;
+  stages: {
+    name: string;
+    result: string;
+  }[];
+  lineages: {
+    name: string;
+    homeland: string;
+    mortality: number;
+    power: number;
+    speed: number;
+    sustenance: number;
+  }[];
+  cultures: {
+    name: string;
+    foundedYear: number;
+    ritualDays: number;
+  }[];
+  faiths: {
+    name: string;
+    foundedYear: number;
+  }[];
+  lore: {
+    title: string;
+    text: string;
+    confidence: number;
+  }[];
+  startingRegion: {
+    settlementCount: number;
+    eventCount: number;
+    summary: string;
+  };
+};
+
 const snapshot = content as unknown as {
   foundationRun: GoldenRun;
   currentCycle: CycleRecord;
   terminalShowcase: TerminalShowcase;
+  worldGenesisShowcase: WorldGenesisShowcase;
 };
 
 export function getFoundationRun(): GoldenRun {
@@ -105,4 +168,8 @@ export function getCurrentCycle(): CycleRecord {
 
 export function getTerminalShowcase(): TerminalShowcase {
   return snapshot.terminalShowcase;
+}
+
+export function getWorldGenesisShowcase(): WorldGenesisShowcase {
+  return snapshot.worldGenesisShowcase;
 }

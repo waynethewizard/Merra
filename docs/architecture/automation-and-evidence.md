@@ -24,6 +24,12 @@ four-generation history, publishes the terminal overview in the job summary,
 and attaches the complete people, household, event, chronicle, history,
 lineage, and household-screen evidence.
 
+Cycles 3 and 4 add a canonical world-history job. It generates the seed-42
+surface, runs 600 years of aggregate history, renders the historical SVG and
+ANSI-free world TUI, verifies golden contracts, and publishes the chronicle,
+world measurements, first-contact year, and atlas as one review surface. The
+full run remains a short-lived artifact.
+
 The summary is evidence, not an approval oracle. Reviewers should ask whether
 the causal result remains legible, not only whether its bytes remain stable.
 
@@ -51,6 +57,17 @@ Statistical gates should be added only after a behavior has an intentional
 acceptable range. Early cohort output informs tuning without pretending the
 first model is correct.
 
+The weekly and manual laboratory also runs a 100-world cohort through
+`cargo xtask world-lab`. Its CSV and JSON report geography, population,
+settlement, culture, faith, institution, contact, and mixing outcomes. The
+initial twenty-seed local baseline reached first contact in every run between
+Years 286 and 302; this is documented as a tuning limitation, not blessed as a
+permanent acceptable range.
+
+The canonical job catches exact drift. The cohort catches structural collapse.
+The public site makes one selected history understandable. These are
+complementary evidence layers rather than three copies of the same assertion.
+
 ## Era releases
 
 Pushing an intentional `era-*` tag builds CLI and TUI bundles on all supported
@@ -71,3 +88,6 @@ the release includes SHA-256 checksums.
 - Gitleaks scans committed history, while GitHub push protection blocks known
   provider credentials before acceptance.
 - Artifacts are retained briefly and contain only reproducible public data.
+- The public site embeds only checked-in, script-free generated SVG and public
+  JSON/text evidence. Content validation rejects an atlas containing script
+  elements or terminal control codes.

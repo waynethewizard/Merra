@@ -4,6 +4,8 @@ import { getCurrentCycle, getFoundationRun } from "@/lib/content";
 const cycles = [
   "Time & death",
   "The household",
+  "Before memory",
+  "The first histories",
   "Five villages",
   "The harvest",
   "What the dead leave",
@@ -226,7 +228,7 @@ export default function HomePage() {
               Hundred Years
             </h2>
             <p>
-              Seven causal slices. One readable century. Each cycle ends with
+              Nine causal slices. One readable century. Each cycle ends with
               working software, tests, reproducible evidence, and an honest
               public record.
             </p>
