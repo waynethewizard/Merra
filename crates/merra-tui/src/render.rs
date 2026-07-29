@@ -1013,6 +1013,55 @@ pub(crate) fn event_short_label(report: &SimulationReport, event: &WorldEventV1)
         EventPayloadV1::PersonDied {
             name, age_years, ..
         } => format!("{name} died at age {age_years}"),
+        EventPayloadV1::HouseholdWorkCompleted {
+            household_id,
+            work_tag,
+            effective_labor,
+            ..
+        } => format!(
+            "household #{} completed {work_tag} work at {effective_labor}",
+            household_id.0
+        ),
+        EventPayloadV1::ItemIntroduced { item_id, name, .. } => {
+            format!("{name} item #{} entered history", item_id.0)
+        }
+        EventPayloadV1::ItemUsed {
+            item_id, work_tag, ..
+        } => {
+            format!("item #{} used for {work_tag}", item_id.0)
+        }
+        EventPayloadV1::ItemRepaired {
+            item_id,
+            repair_number,
+            ..
+        } => {
+            format!("item #{} repaired ({repair_number})", item_id.0)
+        }
+        EventPayloadV1::ItemTransformed {
+            source_item_ids,
+            output_item_ids,
+            ..
+        } => {
+            format!("items {source_item_ids:?} transformed into {output_item_ids:?}")
+        }
+        EventPayloadV1::ItemOwnershipTransferred {
+            item_id, reason, ..
+        } => {
+            format!("item #{} ownership changed by {reason:?}", item_id.0)
+        }
+        EventPayloadV1::ItemCustodyTransferred { item_id, .. } => {
+            format!("item #{} custody changed", item_id.0)
+        }
+        EventPayloadV1::ItemRelocated {
+            item_id, from, to, ..
+        } => {
+            format!("item #{} moved #{} → #{}", item_id.0, from.0, to.0)
+        }
+        EventPayloadV1::ItemLost { item_id, .. } => format!("item #{} lost", item_id.0),
+        EventPayloadV1::ItemRecovered { item_id, .. } => {
+            format!("item #{} recovered", item_id.0)
+        }
+        EventPayloadV1::ItemDestroyed { item_id } => format!("item #{} destroyed", item_id.0),
         EventPayloadV1::SimulationCompleted { .. } => String::from("simulation completed"),
     }
 }
@@ -1211,6 +1260,85 @@ fn payload_evidence(report: &SimulationReport, event: &WorldEventV1) -> Vec<Stri
             format!("Complete age: {age_years}"),
             format!("Annual mortality threshold: {annual_deaths_per_10_000} / 10,000"),
         ],
+        EventPayloadV1::HouseholdWorkCompleted {
+            household_id,
+            item_id,
+            work_tag,
+            base_labor,
+            effective_labor,
+        } => vec![format!(
+            "Household #{} · item #{} · {work_tag} · labor {base_labor}→{effective_labor}",
+            household_id.0, item_id.0
+        )],
+        EventPayloadV1::ItemIntroduced {
+            item_id,
+            archetype_id,
+            owner,
+            custody,
+            ..
+        } => vec![
+            format!("Item: #{} · archetype {archetype_id}", item_id.0),
+            format!("Owner: {owner:?} · custody: {custody:?}"),
+        ],
+        EventPayloadV1::ItemUsed {
+            item_id,
+            work_tag,
+            productivity_per_10_000,
+            condition_before_per_10_000,
+            condition_after_per_10_000,
+        } => vec![format!(
+            "Item #{} · {work_tag} · productivity {productivity_per_10_000}/10,000 · condition {condition_before_per_10_000}→{condition_after_per_10_000}",
+            item_id.0
+        )],
+        EventPayloadV1::ItemRepaired {
+            item_id,
+            condition_before_per_10_000,
+            condition_after_per_10_000,
+            repair_number,
+        } => vec![format!(
+            "Item #{} · repair {repair_number} · condition {condition_before_per_10_000}→{condition_after_per_10_000}",
+            item_id.0
+        )],
+        EventPayloadV1::ItemTransformed {
+            source_item_ids,
+            output_item_ids,
+            ..
+        } => vec![
+            format!("Sources: {source_item_ids:?}"),
+            format!("Descendants: {output_item_ids:?}"),
+        ],
+        EventPayloadV1::ItemOwnershipTransferred {
+            item_id,
+            from,
+            to,
+            reason,
+        } => vec![format!(
+            "Item #{} · {from:?} → {to:?} · {reason:?}",
+            item_id.0
+        )],
+        EventPayloadV1::ItemCustodyTransferred { item_id, from, to } => {
+            vec![format!("Item #{} · custody {from:?} → {to:?}", item_id.0)]
+        }
+        EventPayloadV1::ItemRelocated {
+            item_id,
+            from,
+            to,
+            route_ids,
+        } => vec![format!(
+            "Item #{} · place #{} → #{} · routes {route_ids:?}",
+            item_id.0, from.0, to.0
+        )],
+        EventPayloadV1::ItemLost {
+            item_id,
+            previous_custody,
+        } => vec![format!(
+            "Item #{} · last custody {previous_custody:?}",
+            item_id.0
+        )],
+        EventPayloadV1::ItemRecovered { item_id, custody } => {
+            vec![format!("Item #{} · recovered into {custody:?}", item_id.0)]
+        }
+        EventPayloadV1::ItemDestroyed { item_id } => vec![format!("Item #{} destroyed", item_id.0)],
         EventPayloadV1::SimulationCompleted {
             final_day,
             elapsed_years,
@@ -1291,6 +1419,17 @@ fn event_kind_label(kind: EventKindV1) -> &'static str {
         EventKindV1::HouseholdDissolved => "household dissolved",
         EventKindV1::HouseholdSettled => "household settled",
         EventKindV1::PersonDied => "person died",
+        EventKindV1::HouseholdWorkCompleted => "household work completed",
+        EventKindV1::ItemIntroduced => "item introduced",
+        EventKindV1::ItemUsed => "item used",
+        EventKindV1::ItemRepaired => "item repaired",
+        EventKindV1::ItemTransformed => "item transformed",
+        EventKindV1::ItemOwnershipTransferred => "item ownership transferred",
+        EventKindV1::ItemCustodyTransferred => "item custody transferred",
+        EventKindV1::ItemRelocated => "item relocated",
+        EventKindV1::ItemLost => "item lost",
+        EventKindV1::ItemRecovered => "item recovered",
+        EventKindV1::ItemDestroyed => "item destroyed",
         EventKindV1::SimulationCompleted => "simulation completed",
     }
 }

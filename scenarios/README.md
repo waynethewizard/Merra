@@ -27,6 +27,9 @@ World and macro-history scenarios use separate versioned contracts:
   requirement, local duration, and conversion from route cost to travel days.
   It consumes a generated `regional-history.json`; it does not author village
   locations or predetermined migration outcomes.
+- `item-lineage.ron` preserves the same handoff and household rules while
+  enabling data-defined durable tools, condition-scaled work, repair,
+  household contributions, inheritance, and recursive reforging.
 
 Committed world/history scenarios must also keep all affiliation shares
 normalizable to 10,000, provide three primary and one isolated founder

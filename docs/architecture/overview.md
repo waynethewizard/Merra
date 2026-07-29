@@ -63,6 +63,12 @@ schedule, reconciles aggregate cohorts exactly across sampled epoch
 households, and replays stable events into place. Household residence is the
 authoritative local state; people derive their current place from it.
 
+Item-enabled scenarios add stable durable objects after initial households
+form. The simulation owns identity, provenance, condition, legal ownership,
+and custody without requiring geography. The local projector resolves item
+events through custody, inserts settlement escheat and relocation evidence
+where necessary, and never infers location from legal ownership.
+
 ### `merra-worldgen`
 
 Owns deterministic, Bevy-independent construction of physical context:

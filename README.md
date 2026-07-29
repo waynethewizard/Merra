@@ -181,6 +181,28 @@ residents while Fenholm falls from 4 to 0. Exact compact evidence is in
 The public Five Villages page uses that same evidence to animate all four
 generations year by year.
 
+## Trace a working heirloom
+
+Run the item-enabled local scenario against the same Year 600 handoff:
+
+```sh
+cargo merra villages \
+  --history runs/first-histories-42 \
+  --scenario scenarios/era-01/item-lineage.ron \
+  --seed 42 \
+  --output runs/item-lineage-42
+
+cargo tui villages \
+  --input runs/item-lineage-42 \
+  --view items
+```
+
+Durable tools receive stable identities independently from their owners.
+Meaningful work wears them, condition changes their effective labor, repairs
+preserve identity, and reforging creates descendants with typed source links.
+The item inspector separates authoritative provenance, legal ownership,
+physical custody, and location while the Cycle 5 scenario remains byte-stable.
+
 ## Run the public site
 
 The site reads published prose from `docs/` and selected deterministic evidence

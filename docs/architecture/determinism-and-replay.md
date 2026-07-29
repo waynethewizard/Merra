@@ -61,6 +61,13 @@ limits rather than a probabilistic fertility claim. Every child receives the
 next stable `PersonId`, two earlier parent IDs, its household surname, and one
 generation greater than its parents.
 
+Item-enabled scenarios use no shared random draws. Initial items are ordered by
+household, archetype, and stable ordinal. Annual maintenance and work are
+ordered by `ItemId`; condition, productivity, wear, and repair use bounded
+integers. Reworking assigns the next stable item identity, stores typed source
+links, and retires each physical source at most once. Enabling item history
+therefore does not rewrite earlier mortality or household outcomes.
+
 Family report determinism covers the full events, people, households, summary,
 and chronicle result. A fixed 100-seed regression cohort additionally checks
 that current membership is bidirectional, dead people retain no current

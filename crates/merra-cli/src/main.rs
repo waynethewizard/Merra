@@ -269,7 +269,7 @@ fn run_villages(
     let report = run_local_history(&world, &regional, config.clone(), seed)?;
     let manifest = LocalHistoryManifestV1 {
         schema_version: LOCAL_HISTORY_SCHEMA_V1,
-        event_schema_version: EVENT_SCHEMA_V3,
+        event_schema_version: EVENT_SCHEMA_V3.max(config.detailed_scenario.event_schema_version()),
         merra_version: env!("CARGO_PKG_VERSION").to_owned(),
         bevy_version: BEVY_VERSION.to_owned(),
         rust_version: RUST_TOOLCHAIN_VERSION.to_owned(),
@@ -293,6 +293,9 @@ fn run_villages(
     write_json(output.join("summary.json"), &report.summary)?;
     write_json(output.join("population.json"), &report.people)?;
     write_json(output.join("households.json"), &report.households)?;
+    if !report.items.is_empty() {
+        write_json(output.join("items.json"), &report.items)?;
+    }
     write_json(
         output.join("household-contexts.json"),
         &report.household_contexts,
@@ -354,6 +357,9 @@ fn run_simulation(
     write_json(output.join("summary.json"), &report.summary)?;
     write_json(output.join("population.json"), &report.people)?;
     write_json(output.join("households.json"), &report.households)?;
+    if !report.items.is_empty() {
+        write_json(output.join("items.json"), &report.items)?;
+    }
     fs::write(output.join("chronicle.md"), &report.chronicle)?;
 
     println!(

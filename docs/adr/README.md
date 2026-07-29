@@ -20,3 +20,4 @@ difficult-to-reverse project policy.
 - [0006: Generate the World Before Historical Populations](0006-world-first-place-graph.md)
 - [0007: Separate Lineage, Culture, Faith, and Polity](0007-lineage-culture-faith.md)
 - [0008: Let Households Own Residence](0008-household-residence-and-local-projection.md)
+- [0009: Separate Item Identity, Provenance, Ownership, and Custody](0009-item-identity-provenance-ownership-and-custody.md)

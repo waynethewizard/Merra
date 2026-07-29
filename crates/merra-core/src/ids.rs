@@ -16,6 +16,7 @@ macro_rules! stable_id {
 stable_id!(EventId, "Stable identifier for a historical event.");
 stable_id!(PersonId, "Stable identifier for a person.");
 stable_id!(HouseholdId, "Stable identifier for a household.");
+stable_id!(ItemId, "Stable identifier for a durable movable item.");
 stable_id!(LocationId, "Stable identifier for a location.");
 stable_id!(RegionId, "Stable identifier for a coarse world region.");
 stable_id!(

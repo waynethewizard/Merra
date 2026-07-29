@@ -1,0 +1,1472 @@
+[
+  {
+    "id": 1,
+    "archetype_id": "harvest_sickle",
+    "name": "Thorn harvest sickle",
+    "introduced_day": 0,
+    "introduction_event_id": 49,
+    "lineage_generation": 0,
+    "condition_per_10_000": 4000,
+    "repairs": 2,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 1
+    },
+    "custody": {
+      "type": "household",
+      "id": 1
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 2,
+    "archetype_id": "harvest_sickle",
+    "name": "Fen harvest sickle",
+    "introduced_day": 0,
+    "introduction_event_id": 50,
+    "lineage_generation": 0,
+    "condition_per_10_000": 4000,
+    "repairs": 2,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 2
+    },
+    "custody": {
+      "type": "household",
+      "id": 2
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 3,
+    "archetype_id": "harvest_sickle",
+    "name": "Reed harvest sickle",
+    "introduced_day": 0,
+    "introduction_event_id": 51,
+    "lineage_generation": 0,
+    "condition_per_10_000": 4000,
+    "repairs": 2,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 3
+    },
+    "custody": {
+      "type": "household",
+      "id": 3
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 4,
+    "archetype_id": "harvest_sickle",
+    "name": "Mere harvest sickle",
+    "introduced_day": 0,
+    "introduction_event_id": 52,
+    "lineage_generation": 0,
+    "condition_per_10_000": 4000,
+    "repairs": 2,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 4
+    },
+    "custody": {
+      "type": "household",
+      "id": 4
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 5,
+    "archetype_id": "harvest_sickle",
+    "name": "Vale harvest sickle",
+    "introduced_day": 0,
+    "introduction_event_id": 53,
+    "lineage_generation": 0,
+    "condition_per_10_000": 4000,
+    "repairs": 2,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 5
+    },
+    "custody": {
+      "type": "household",
+      "id": 5
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 6,
+    "archetype_id": "harvest_sickle",
+    "name": "Oak harvest sickle",
+    "introduced_day": 0,
+    "introduction_event_id": 54,
+    "lineage_generation": 0,
+    "condition_per_10_000": 4000,
+    "repairs": 2,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 6
+    },
+    "custody": {
+      "type": "household",
+      "id": 6
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 7,
+    "archetype_id": "harvest_sickle",
+    "name": "Fen harvest sickle",
+    "introduced_day": 0,
+    "introduction_event_id": 55,
+    "lineage_generation": 0,
+    "condition_per_10_000": 4000,
+    "repairs": 2,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 7
+    },
+    "custody": {
+      "type": "household",
+      "id": 7
+    },
+    "current_location_id": 11
+  },
+  {
+    "id": 8,
+    "archetype_id": "harvest_sickle",
+    "name": "Marsh harvest sickle",
+    "introduced_day": 0,
+    "introduction_event_id": 56,
+    "lineage_generation": 0,
+    "condition_per_10_000": 4000,
+    "repairs": 2,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 8
+    },
+    "custody": {
+      "type": "household",
+      "id": 8
+    },
+    "current_location_id": 11
+  },
+  {
+    "id": 9,
+    "archetype_id": "harvest_sickle",
+    "name": "Hearth harvest sickle",
+    "introduced_day": 0,
+    "introduction_event_id": 57,
+    "lineage_generation": 0,
+    "condition_per_10_000": 4000,
+    "repairs": 2,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 9
+    },
+    "custody": {
+      "type": "household",
+      "id": 9
+    },
+    "current_location_id": 11
+  },
+  {
+    "id": 10,
+    "archetype_id": "harvest_sickle",
+    "name": "Crow harvest sickle",
+    "introduced_day": 0,
+    "introduction_event_id": 58,
+    "lineage_generation": 0,
+    "condition_per_10_000": 4000,
+    "repairs": 2,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 10
+    },
+    "custody": {
+      "type": "household",
+      "id": 10
+    },
+    "current_location_id": 17
+  },
+  {
+    "id": 11,
+    "archetype_id": "harvest_sickle",
+    "name": "Vale harvest sickle",
+    "introduced_day": 0,
+    "introduction_event_id": 59,
+    "lineage_generation": 0,
+    "condition_per_10_000": 4000,
+    "repairs": 2,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 11
+    },
+    "custody": {
+      "type": "household",
+      "id": 11
+    },
+    "current_location_id": 17
+  },
+  {
+    "id": 12,
+    "archetype_id": "harvest_sickle",
+    "name": "Dale harvest sickle",
+    "introduced_day": 0,
+    "introduction_event_id": 60,
+    "lineage_generation": 0,
+    "condition_per_10_000": 4000,
+    "repairs": 2,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 12
+    },
+    "custody": {
+      "type": "household",
+      "id": 12
+    },
+    "current_location_id": 28
+  },
+  {
+    "id": 13,
+    "archetype_id": "harvest_sickle",
+    "name": "Gorse harvest sickle",
+    "introduced_day": 0,
+    "introduction_event_id": 61,
+    "lineage_generation": 0,
+    "condition_per_10_000": 4000,
+    "repairs": 2,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 13
+    },
+    "custody": {
+      "type": "household",
+      "id": 13
+    },
+    "current_location_id": 28
+  },
+  {
+    "id": 14,
+    "archetype_id": "harvest_sickle",
+    "name": "Reed harvest sickle",
+    "introduced_day": 0,
+    "introduction_event_id": 62,
+    "lineage_generation": 0,
+    "condition_per_10_000": 4000,
+    "repairs": 2,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 14
+    },
+    "custody": {
+      "type": "household",
+      "id": 14
+    },
+    "current_location_id": 27
+  },
+  {
+    "id": 15,
+    "archetype_id": "harvest_sickle",
+    "name": "Dale harvest sickle",
+    "introduced_day": 0,
+    "introduction_event_id": 63,
+    "lineage_generation": 0,
+    "condition_per_10_000": 4000,
+    "repairs": 2,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 15
+    },
+    "custody": {
+      "type": "household",
+      "id": 15
+    },
+    "current_location_id": 27
+  },
+  {
+    "id": 16,
+    "archetype_id": "reforged_sickle",
+    "name": "Thorn harvest sickle · reworked G1",
+    "introduced_day": 3960,
+    "introduction_event_id": 513,
+    "sources": [
+      {
+        "item_id": 1,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 1,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 16
+    },
+    "custody": {
+      "type": "household",
+      "id": 16
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 17,
+    "archetype_id": "reforged_sickle",
+    "name": "Fen harvest sickle · reworked G1",
+    "introduced_day": 3960,
+    "introduction_event_id": 514,
+    "sources": [
+      {
+        "item_id": 2,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 1,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 16
+    },
+    "custody": {
+      "type": "household",
+      "id": 16
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 18,
+    "archetype_id": "reforged_sickle",
+    "name": "Reed harvest sickle · reworked G1",
+    "introduced_day": 3960,
+    "introduction_event_id": 515,
+    "sources": [
+      {
+        "item_id": 3,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 1,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 17
+    },
+    "custody": {
+      "type": "household",
+      "id": 17
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 19,
+    "archetype_id": "reforged_sickle",
+    "name": "Mere harvest sickle · reworked G1",
+    "introduced_day": 3960,
+    "introduction_event_id": 516,
+    "sources": [
+      {
+        "item_id": 4,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 1,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 17
+    },
+    "custody": {
+      "type": "household",
+      "id": 17
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 20,
+    "archetype_id": "reforged_sickle",
+    "name": "Vale harvest sickle · reworked G1",
+    "introduced_day": 3960,
+    "introduction_event_id": 517,
+    "sources": [
+      {
+        "item_id": 5,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 1,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 18
+    },
+    "custody": {
+      "type": "household",
+      "id": 18
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 21,
+    "archetype_id": "reforged_sickle",
+    "name": "Oak harvest sickle · reworked G1",
+    "introduced_day": 3960,
+    "introduction_event_id": 518,
+    "sources": [
+      {
+        "item_id": 6,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 1,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 18
+    },
+    "custody": {
+      "type": "household",
+      "id": 18
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 22,
+    "archetype_id": "reforged_sickle",
+    "name": "Fen harvest sickle · reworked G1",
+    "introduced_day": 3960,
+    "introduction_event_id": 519,
+    "sources": [
+      {
+        "item_id": 7,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 1,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 23
+    },
+    "custody": {
+      "type": "household",
+      "id": 23
+    },
+    "current_location_id": 11
+  },
+  {
+    "id": 23,
+    "archetype_id": "reforged_sickle",
+    "name": "Marsh harvest sickle · reworked G1",
+    "introduced_day": 3960,
+    "introduction_event_id": 520,
+    "sources": [
+      {
+        "item_id": 8,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 1,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 23
+    },
+    "custody": {
+      "type": "household",
+      "id": 23
+    },
+    "current_location_id": 11
+  },
+  {
+    "id": 24,
+    "archetype_id": "reforged_sickle",
+    "name": "Hearth harvest sickle · reworked G1",
+    "introduced_day": 3960,
+    "introduction_event_id": 521,
+    "sources": [
+      {
+        "item_id": 9,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 1,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 20
+    },
+    "custody": {
+      "type": "household",
+      "id": 20
+    },
+    "current_location_id": 17
+  },
+  {
+    "id": 25,
+    "archetype_id": "reforged_sickle",
+    "name": "Crow harvest sickle · reworked G1",
+    "introduced_day": 3960,
+    "introduction_event_id": 522,
+    "sources": [
+      {
+        "item_id": 10,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 1,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 20
+    },
+    "custody": {
+      "type": "household",
+      "id": 20
+    },
+    "current_location_id": 17
+  },
+  {
+    "id": 26,
+    "archetype_id": "reforged_sickle",
+    "name": "Vale harvest sickle · reworked G1",
+    "introduced_day": 3960,
+    "introduction_event_id": 523,
+    "sources": [
+      {
+        "item_id": 11,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 1,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 21
+    },
+    "custody": {
+      "type": "household",
+      "id": 21
+    },
+    "current_location_id": 17
+  },
+  {
+    "id": 27,
+    "archetype_id": "reforged_sickle",
+    "name": "Dale harvest sickle · reworked G1",
+    "introduced_day": 3960,
+    "introduction_event_id": 524,
+    "sources": [
+      {
+        "item_id": 12,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 1,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 21
+    },
+    "custody": {
+      "type": "household",
+      "id": 21
+    },
+    "current_location_id": 17
+  },
+  {
+    "id": 28,
+    "archetype_id": "reforged_sickle",
+    "name": "Gorse harvest sickle · reworked G1",
+    "introduced_day": 3960,
+    "introduction_event_id": 525,
+    "sources": [
+      {
+        "item_id": 13,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 1,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 22
+    },
+    "custody": {
+      "type": "household",
+      "id": 22
+    },
+    "current_location_id": 28
+  },
+  {
+    "id": 29,
+    "archetype_id": "reforged_sickle",
+    "name": "Reed harvest sickle · reworked G1",
+    "introduced_day": 3960,
+    "introduction_event_id": 526,
+    "sources": [
+      {
+        "item_id": 14,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 1,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 22
+    },
+    "custody": {
+      "type": "household",
+      "id": 22
+    },
+    "current_location_id": 28
+  },
+  {
+    "id": 30,
+    "archetype_id": "reforged_sickle",
+    "name": "Dale harvest sickle · reworked G1",
+    "introduced_day": 3960,
+    "introduction_event_id": 527,
+    "sources": [
+      {
+        "item_id": 15,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 1,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 23
+    },
+    "custody": {
+      "type": "household",
+      "id": 23
+    },
+    "current_location_id": 11
+  },
+  {
+    "id": 31,
+    "archetype_id": "reforged_sickle",
+    "name": "Thorn harvest sickle · reworked G2",
+    "introduced_day": 11520,
+    "introduction_event_id": 1475,
+    "sources": [
+      {
+        "item_id": 16,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 2,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 33
+    },
+    "custody": {
+      "type": "household",
+      "id": 33
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 32,
+    "archetype_id": "reforged_sickle",
+    "name": "Fen harvest sickle · reworked G2",
+    "introduced_day": 11520,
+    "introduction_event_id": 1476,
+    "sources": [
+      {
+        "item_id": 17,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 2,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 33
+    },
+    "custody": {
+      "type": "household",
+      "id": 33
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 33,
+    "archetype_id": "reforged_sickle",
+    "name": "Reed harvest sickle · reworked G2",
+    "introduced_day": 11520,
+    "introduction_event_id": 1477,
+    "sources": [
+      {
+        "item_id": 18,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 2,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 33
+    },
+    "custody": {
+      "type": "household",
+      "id": 33
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 34,
+    "archetype_id": "reforged_sickle",
+    "name": "Mere harvest sickle · reworked G2",
+    "introduced_day": 11520,
+    "introduction_event_id": 1478,
+    "sources": [
+      {
+        "item_id": 19,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 2,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 33
+    },
+    "custody": {
+      "type": "household",
+      "id": 33
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 35,
+    "archetype_id": "reforged_sickle",
+    "name": "Vale harvest sickle · reworked G2",
+    "introduced_day": 11520,
+    "introduction_event_id": 1479,
+    "sources": [
+      {
+        "item_id": 20,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 2,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 34
+    },
+    "custody": {
+      "type": "household",
+      "id": 34
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 36,
+    "archetype_id": "reforged_sickle",
+    "name": "Oak harvest sickle · reworked G2",
+    "introduced_day": 11520,
+    "introduction_event_id": 1480,
+    "sources": [
+      {
+        "item_id": 21,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 2,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 34
+    },
+    "custody": {
+      "type": "household",
+      "id": 34
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 37,
+    "archetype_id": "reforged_sickle",
+    "name": "Fen harvest sickle · reworked G2",
+    "introduced_day": 11520,
+    "introduction_event_id": 1481,
+    "sources": [
+      {
+        "item_id": 22,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 2,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 35
+    },
+    "custody": {
+      "type": "household",
+      "id": 35
+    },
+    "current_location_id": 28
+  },
+  {
+    "id": 38,
+    "archetype_id": "reforged_sickle",
+    "name": "Marsh harvest sickle · reworked G2",
+    "introduced_day": 11520,
+    "introduction_event_id": 1482,
+    "sources": [
+      {
+        "item_id": 23,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 2,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 35
+    },
+    "custody": {
+      "type": "household",
+      "id": 35
+    },
+    "current_location_id": 28
+  },
+  {
+    "id": 39,
+    "archetype_id": "reforged_sickle",
+    "name": "Hearth harvest sickle · reworked G2",
+    "introduced_day": 11520,
+    "introduction_event_id": 1483,
+    "sources": [
+      {
+        "item_id": 24,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 2,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 38
+    },
+    "custody": {
+      "type": "household",
+      "id": 38
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 40,
+    "archetype_id": "reforged_sickle",
+    "name": "Crow harvest sickle · reworked G2",
+    "introduced_day": 11520,
+    "introduction_event_id": 1484,
+    "sources": [
+      {
+        "item_id": 25,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 2,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 38
+    },
+    "custody": {
+      "type": "household",
+      "id": 38
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 41,
+    "archetype_id": "reforged_sickle",
+    "name": "Vale harvest sickle · reworked G2",
+    "introduced_day": 11520,
+    "introduction_event_id": 1485,
+    "sources": [
+      {
+        "item_id": 26,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 2,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 34
+    },
+    "custody": {
+      "type": "household",
+      "id": 34
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 42,
+    "archetype_id": "reforged_sickle",
+    "name": "Dale harvest sickle · reworked G2",
+    "introduced_day": 11520,
+    "introduction_event_id": 1486,
+    "sources": [
+      {
+        "item_id": 27,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 2,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 34
+    },
+    "custody": {
+      "type": "household",
+      "id": 34
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 43,
+    "archetype_id": "reforged_sickle",
+    "name": "Gorse harvest sickle · reworked G2",
+    "introduced_day": 11520,
+    "introduction_event_id": 1487,
+    "sources": [
+      {
+        "item_id": 28,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 2,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 35
+    },
+    "custody": {
+      "type": "household",
+      "id": 35
+    },
+    "current_location_id": 28
+  },
+  {
+    "id": 44,
+    "archetype_id": "reforged_sickle",
+    "name": "Reed harvest sickle · reworked G2",
+    "introduced_day": 11520,
+    "introduction_event_id": 1488,
+    "sources": [
+      {
+        "item_id": 29,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 2,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 35
+    },
+    "custody": {
+      "type": "household",
+      "id": 35
+    },
+    "current_location_id": 28
+  },
+  {
+    "id": 45,
+    "archetype_id": "reforged_sickle",
+    "name": "Dale harvest sickle · reworked G2",
+    "introduced_day": 11520,
+    "introduction_event_id": 1489,
+    "sources": [
+      {
+        "item_id": 30,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 2,
+    "condition_per_10_000": 2500,
+    "repairs": 3,
+    "status": "transformed",
+    "owner": {
+      "type": "household",
+      "id": 35
+    },
+    "custody": {
+      "type": "household",
+      "id": 35
+    },
+    "current_location_id": 28
+  },
+  {
+    "id": 46,
+    "archetype_id": "reforged_sickle",
+    "name": "Thorn harvest sickle · reworked G3",
+    "introduced_day": 19080,
+    "introduction_event_id": 2459,
+    "sources": [
+      {
+        "item_id": 31,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 3,
+    "condition_per_10_000": 7100,
+    "repairs": 1,
+    "status": "active",
+    "owner": {
+      "type": "household",
+      "id": 52
+    },
+    "custody": {
+      "type": "household",
+      "id": 52
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 47,
+    "archetype_id": "reforged_sickle",
+    "name": "Fen harvest sickle · reworked G3",
+    "introduced_day": 19080,
+    "introduction_event_id": 2460,
+    "sources": [
+      {
+        "item_id": 32,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 3,
+    "condition_per_10_000": 7100,
+    "repairs": 1,
+    "status": "active",
+    "owner": {
+      "type": "household",
+      "id": 52
+    },
+    "custody": {
+      "type": "household",
+      "id": 52
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 48,
+    "archetype_id": "reforged_sickle",
+    "name": "Reed harvest sickle · reworked G3",
+    "introduced_day": 19080,
+    "introduction_event_id": 2461,
+    "sources": [
+      {
+        "item_id": 33,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 3,
+    "condition_per_10_000": 7100,
+    "repairs": 1,
+    "status": "active",
+    "owner": {
+      "type": "household",
+      "id": 52
+    },
+    "custody": {
+      "type": "household",
+      "id": 52
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 49,
+    "archetype_id": "reforged_sickle",
+    "name": "Mere harvest sickle · reworked G3",
+    "introduced_day": 19080,
+    "introduction_event_id": 2462,
+    "sources": [
+      {
+        "item_id": 34,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 3,
+    "condition_per_10_000": 7100,
+    "repairs": 1,
+    "status": "active",
+    "owner": {
+      "type": "household",
+      "id": 52
+    },
+    "custody": {
+      "type": "household",
+      "id": 52
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 50,
+    "archetype_id": "reforged_sickle",
+    "name": "Vale harvest sickle · reworked G3",
+    "introduced_day": 19080,
+    "introduction_event_id": 2463,
+    "sources": [
+      {
+        "item_id": 35,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 3,
+    "condition_per_10_000": 7100,
+    "repairs": 1,
+    "status": "active",
+    "owner": {
+      "type": "household",
+      "id": 52
+    },
+    "custody": {
+      "type": "household",
+      "id": 52
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 51,
+    "archetype_id": "reforged_sickle",
+    "name": "Oak harvest sickle · reworked G3",
+    "introduced_day": 19080,
+    "introduction_event_id": 2464,
+    "sources": [
+      {
+        "item_id": 36,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 3,
+    "condition_per_10_000": 7100,
+    "repairs": 1,
+    "status": "active",
+    "owner": {
+      "type": "household",
+      "id": 52
+    },
+    "custody": {
+      "type": "household",
+      "id": 52
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 52,
+    "archetype_id": "reforged_sickle",
+    "name": "Fen harvest sickle · reworked G3",
+    "introduced_day": 19080,
+    "introduction_event_id": 2465,
+    "sources": [
+      {
+        "item_id": 37,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 3,
+    "condition_per_10_000": 7100,
+    "repairs": 1,
+    "status": "active",
+    "owner": {
+      "type": "household",
+      "id": 35
+    },
+    "custody": {
+      "type": "household",
+      "id": 35
+    },
+    "current_location_id": 28
+  },
+  {
+    "id": 53,
+    "archetype_id": "reforged_sickle",
+    "name": "Marsh harvest sickle · reworked G3",
+    "introduced_day": 19080,
+    "introduction_event_id": 2466,
+    "sources": [
+      {
+        "item_id": 38,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 3,
+    "condition_per_10_000": 7100,
+    "repairs": 1,
+    "status": "active",
+    "owner": {
+      "type": "household",
+      "id": 35
+    },
+    "custody": {
+      "type": "household",
+      "id": 35
+    },
+    "current_location_id": 28
+  },
+  {
+    "id": 54,
+    "archetype_id": "reforged_sickle",
+    "name": "Hearth harvest sickle · reworked G3",
+    "introduced_day": 19080,
+    "introduction_event_id": 2467,
+    "sources": [
+      {
+        "item_id": 39,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 3,
+    "condition_per_10_000": 7100,
+    "repairs": 1,
+    "status": "active",
+    "owner": {
+      "type": "household",
+      "id": 38
+    },
+    "custody": {
+      "type": "household",
+      "id": 38
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 55,
+    "archetype_id": "reforged_sickle",
+    "name": "Crow harvest sickle · reworked G3",
+    "introduced_day": 19080,
+    "introduction_event_id": 2468,
+    "sources": [
+      {
+        "item_id": 40,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 3,
+    "condition_per_10_000": 7100,
+    "repairs": 1,
+    "status": "active",
+    "owner": {
+      "type": "household",
+      "id": 38
+    },
+    "custody": {
+      "type": "household",
+      "id": 38
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 56,
+    "archetype_id": "reforged_sickle",
+    "name": "Vale harvest sickle · reworked G3",
+    "introduced_day": 19080,
+    "introduction_event_id": 2469,
+    "sources": [
+      {
+        "item_id": 41,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 3,
+    "condition_per_10_000": 7100,
+    "repairs": 1,
+    "status": "active",
+    "owner": {
+      "type": "household",
+      "id": 52
+    },
+    "custody": {
+      "type": "household",
+      "id": 52
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 57,
+    "archetype_id": "reforged_sickle",
+    "name": "Dale harvest sickle · reworked G3",
+    "introduced_day": 19080,
+    "introduction_event_id": 2470,
+    "sources": [
+      {
+        "item_id": 42,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 3,
+    "condition_per_10_000": 7100,
+    "repairs": 1,
+    "status": "active",
+    "owner": {
+      "type": "household",
+      "id": 52
+    },
+    "custody": {
+      "type": "household",
+      "id": 52
+    },
+    "current_location_id": 20
+  },
+  {
+    "id": 58,
+    "archetype_id": "reforged_sickle",
+    "name": "Gorse harvest sickle · reworked G3",
+    "introduced_day": 19080,
+    "introduction_event_id": 2471,
+    "sources": [
+      {
+        "item_id": 43,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 3,
+    "condition_per_10_000": 7100,
+    "repairs": 1,
+    "status": "active",
+    "owner": {
+      "type": "household",
+      "id": 35
+    },
+    "custody": {
+      "type": "household",
+      "id": 35
+    },
+    "current_location_id": 28
+  },
+  {
+    "id": 59,
+    "archetype_id": "reforged_sickle",
+    "name": "Reed harvest sickle · reworked G3",
+    "introduced_day": 19080,
+    "introduction_event_id": 2472,
+    "sources": [
+      {
+        "item_id": 44,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 3,
+    "condition_per_10_000": 7100,
+    "repairs": 1,
+    "status": "active",
+    "owner": {
+      "type": "household",
+      "id": 35
+    },
+    "custody": {
+      "type": "household",
+      "id": 35
+    },
+    "current_location_id": 28
+  },
+  {
+    "id": 60,
+    "archetype_id": "reforged_sickle",
+    "name": "Dale harvest sickle · reworked G3",
+    "introduced_day": 19080,
+    "introduction_event_id": 2473,
+    "sources": [
+      {
+        "item_id": 45,
+        "role": "material"
+      }
+    ],
+    "lineage_generation": 3,
+    "condition_per_10_000": 7100,
+    "repairs": 1,
+    "status": "active",
+    "owner": {
+      "type": "household",
+      "id": 35
+    },
+    "custody": {
+      "type": "household",
+      "id": 35
+    },
+    "current_location_id": 28
+  }
+]

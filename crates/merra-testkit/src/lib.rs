@@ -45,6 +45,7 @@ pub fn smoke_scenario() -> ScenarioV1 {
             mortality_bands: Vec::new(),
         },
         family: FamilyConfigV1::default(),
+        items: Default::default(),
     }
 }
 
@@ -68,8 +69,9 @@ mod tests {
 
     use merra_core::{
         EventKindV1, EventPayloadV1, HistoricalEventKindV1, HistoryConfigV1, HouseholdId,
-        LineageId, LocalHistoryConfigV1, LocalHistoryPlaybackV1, LocalPlaybackEventV1, PersonId,
-        ScenarioV1, WorldEventV1, WorldGenesisConfigV1,
+        ItemStatusV1, LineageId, LocalHistoryConfigV1, LocalHistoryPlaybackV1,
+        LocalPlaybackEventV1, PersonId, PropertyOwnerV1, ScenarioV1, WorldEventV1,
+        WorldGenesisConfigV1, WorldSubjectV1,
     };
     use merra_sim::{SimulationReport, regional_history, run_history, run_local_history};
     use merra_worldgen::{generate_world, summarize_world};
@@ -443,6 +445,91 @@ mod tests {
         assert_eq!(
             serde_json::to_string_pretty(&playback)? + "\n",
             fs::read_to_string(local_golden.join("playback.json"))?
+        );
+
+        let item_config: LocalHistoryConfigV1 =
+            ron::de::from_bytes(&fs::read(root.join("scenarios/era-01/item-lineage.ron"))?)?;
+        let item_history = run_local_history(&world, &regional, item_config.clone(), 42)?;
+        let repeated_items = run_local_history(&world, &regional, item_config, 42)?;
+        assert_eq!(item_history, repeated_items);
+        assert!(item_history.summary.maximum_item_lineage >= 2);
+        assert!(item_history.summary.item_repairs > 0);
+        assert!(item_history.summary.item_transformations > 0);
+        assert!(item_history.summary.item_transfers > 0);
+        assert!(item_history.items.iter().any(|item| {
+            item.lineage_generation >= 1
+                && !item.sources.is_empty()
+                && item.status == ItemStatusV1::Active
+        }));
+        assert!(
+            item_history
+                .items
+                .iter()
+                .all(|item| { item.sources.iter().all(|source| source.item_id < item.id) })
+        );
+        let consumed_sources = item_history
+            .events
+            .iter()
+            .filter_map(|event| match &event.payload {
+                EventPayloadV1::ItemTransformed {
+                    source_item_ids, ..
+                } => Some(source_item_ids),
+                _ => None,
+            })
+            .flatten()
+            .copied()
+            .collect::<Vec<_>>();
+        assert_eq!(
+            consumed_sources
+                .iter()
+                .copied()
+                .collect::<BTreeSet<_>>()
+                .len(),
+            consumed_sources.len()
+        );
+        assert!(item_history.events.iter().any(|event| {
+            matches!(
+                event.payload,
+                EventPayloadV1::HouseholdWorkCompleted {
+                    base_labor: 10_000,
+                    effective_labor,
+                    ..
+                } if effective_labor > 10_000
+            )
+        }));
+        assert!(item_history.items.iter().all(|item| {
+            item.status != ItemStatusV1::Active
+                || (item.current_location_id.is_some()
+                    && match item.owner {
+                        PropertyOwnerV1::Household(household_id) => item_history
+                            .households
+                            .iter()
+                            .find(|household| household.id == household_id)
+                            .is_some_and(|household| household.dissolved_day.is_none()),
+                        _ => true,
+                    })
+        }));
+        assert!(item_history.events.iter().all(|event| {
+            event.id.0 > 0
+                && event.causes.iter().all(|cause| cause.0 < event.id.0)
+                && (!event
+                    .subjects
+                    .iter()
+                    .any(|subject| matches!(subject, WorldSubjectV1::Item(_)))
+                    || event.location.is_some())
+        }));
+        let item_golden = root.join("golden/era-01/item-lineage-seed-42");
+        assert_eq!(
+            serde_json::to_string_pretty(&item_history.items)? + "\n",
+            fs::read_to_string(item_golden.join("items.json"))?
+        );
+        assert_eq!(
+            serde_json::to_string_pretty(&item_history.summary)? + "\n",
+            fs::read_to_string(item_golden.join("summary.json"))?
+        );
+        assert_eq!(
+            item_history.chronicle,
+            fs::read_to_string(item_golden.join("chronicle.md"))?
         );
         Ok(())
     }

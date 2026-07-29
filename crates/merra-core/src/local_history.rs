@@ -10,6 +10,14 @@ use crate::{
     SettlementRecordV1, SimulationSummaryV1, SourceVersionV1, StartingRegionV1, WorldEventV1,
 };
 
+const fn usize_is_zero(value: &usize) -> bool {
+    *value == 0
+}
+
+const fn u16_is_zero(value: &u16) -> bool {
+    *value == 0
+}
+
 /// Current local-history schema.
 pub const LOCAL_HISTORY_SCHEMA_V1: u32 = 1;
 
@@ -240,6 +248,24 @@ pub struct LocalHistorySummaryV1 {
     pub household_migrations: u32,
     /// Number of local events with an authoritative location.
     pub located_events: usize,
+    /// Durable identities retained in the item provenance graph.
+    #[serde(default, skip_serializing_if = "usize_is_zero")]
+    pub items: usize,
+    /// Items still usable at the end of the run.
+    #[serde(default, skip_serializing_if = "usize_is_zero")]
+    pub active_items: usize,
+    /// Legal ownership changes.
+    #[serde(default, skip_serializing_if = "usize_is_zero")]
+    pub item_transfers: usize,
+    /// Identity-preserving repairs.
+    #[serde(default, skip_serializing_if = "usize_is_zero")]
+    pub item_repairs: usize,
+    /// Identity-changing transformations.
+    #[serde(default, skip_serializing_if = "usize_is_zero")]
+    pub item_transformations: usize,
+    /// Deepest source generation in the item graph.
+    #[serde(default, skip_serializing_if = "u16_is_zero")]
+    pub maximum_item_lineage: u16,
 }
 
 /// Stable person metadata used by the local-history playback.
@@ -381,6 +407,9 @@ pub struct LocalHistoryReportV1 {
     pub households: Vec<HouseholdRecordV1>,
     /// Original and derived local events in stable causal order.
     pub events: Vec<WorldEventV1>,
+    /// Durable items with final state and immutable provenance.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub items: Vec<crate::ItemRecordV1>,
     /// One exact historical context record per household.
     pub household_contexts: Vec<HouseholdHistoricalContextV1>,
     /// Explainable residence decisions in stable household order.

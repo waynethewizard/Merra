@@ -236,6 +236,27 @@ pub fn run_local_history(
         .map(|person| person.id)
         .collect::<BTreeSet<_>>();
     let mut person_household = BTreeMap::new();
+    let mut item_household = BTreeMap::new();
+    let mut item_escheat_event = BTreeMap::new();
+    let mut item_escheat_location = BTreeMap::new();
+    let mut escheats = BTreeMap::<HouseholdId, Vec<merra_core::ItemId>>::new();
+    for item in base
+        .items
+        .iter()
+        .filter(|item| item.status == merra_core::ItemStatusV1::Active)
+    {
+        let merra_core::PropertyOwnerV1::Household(household_id) = item.owner else {
+            continue;
+        };
+        if base
+            .households
+            .iter()
+            .find(|household| household.id == household_id)
+            .is_some_and(|household| household.dissolved_day.is_some())
+        {
+            escheats.entry(household_id).or_default().push(item.id);
+        }
+    }
     let mut household_residence = BTreeMap::new();
     let mut household_residence_event = BTreeMap::new();
     let mut contexts = BTreeMap::new();
@@ -325,6 +346,7 @@ pub fn run_local_history(
                 time: source.time,
                 kind: EventKindV1::HouseholdSettled,
                 actors: member_ids.clone(),
+                subjects: Vec::new(),
                 location: Some(destination),
                 causes: decision_causes.clone(),
                 tags: vec![
@@ -398,14 +420,28 @@ pub fn run_local_history(
             continue;
         }
 
-        event.location = event_location(source, &person_household, &household_residence);
-        let related_household = event_household(source).or_else(|| {
-            source
-                .actors
-                .iter()
-                .find_map(|person| person_household.get(person))
-                .copied()
-        });
+        event.location = event_location(
+            source,
+            &person_household,
+            &item_household,
+            &household_residence,
+        );
+        let related_household = event_household(source)
+            .or_else(|| {
+                source
+                    .actors
+                    .iter()
+                    .find_map(|person| person_household.get(person))
+                    .copied()
+            })
+            .or_else(|| {
+                source.subjects.iter().find_map(|subject| {
+                    let merra_core::WorldSubjectV1::Item(item_id) = subject else {
+                        return None;
+                    };
+                    item_household.get(item_id).copied()
+                })
+            });
         if let Some(household_id) = related_household
             && let Some(cause) = household_residence_event.get(&household_id)
         {
@@ -413,6 +449,18 @@ pub fn run_local_history(
             event.causes.sort_unstable();
             event.causes.dedup();
         }
+        for item_id in source.subjects.iter().filter_map(|subject| {
+            let merra_core::WorldSubjectV1::Item(item_id) = subject else {
+                return None;
+            };
+            Some(*item_id)
+        }) {
+            if let Some(cause) = item_escheat_event.get(&item_id) {
+                event.causes.push(*cause);
+            }
+        }
+        event.causes.sort_unstable();
+        event.causes.dedup();
         if event.location.is_some() {
             push_tag(&mut event.tags, "place");
         }
@@ -420,7 +468,133 @@ pub fn run_local_history(
         let new_event_id = event.id;
         events.push(event);
 
+        if let EventPayloadV1::ItemCustodyTransferred {
+            item_id,
+            from: merra_core::ItemCustodyV1::Household(from_household),
+            to: merra_core::ItemCustodyV1::Household(to_household),
+        } = &source.payload
+            && let (Some(from), Some(to)) = (
+                household_residence.get(from_household).copied(),
+                household_residence.get(to_household).copied(),
+            )
+            && from != to
+            && let Some((_, route_ids, _)) = graph.shortest_path(from, to)
+        {
+            let relocation_id = EventId(next_event_id);
+            next_event_id = next_event_id.saturating_add(1);
+            events.push(WorldEventV1 {
+                id: relocation_id,
+                time: source.time,
+                kind: EventKindV1::ItemRelocated,
+                actors: Vec::new(),
+                subjects: vec![merra_core::WorldSubjectV1::Item(*item_id)],
+                location: Some(to),
+                causes: vec![new_event_id],
+                tags: vec![
+                    String::from("item"),
+                    String::from("place"),
+                    String::from("migration"),
+                ],
+                payload: EventPayloadV1::ItemRelocated {
+                    item_id: *item_id,
+                    from,
+                    to,
+                    route_ids,
+                },
+            });
+            old_to_new.insert(source.id, relocation_id);
+        }
+
+        if let EventPayloadV1::HouseholdDissolved { household_id, .. } = &source.payload
+            && let Some(location_id) = household_residence.get(household_id).copied()
+            && let Some(item_ids) = escheats.get(household_id)
+        {
+            for item_id in item_ids {
+                let ownership_id = EventId(next_event_id);
+                next_event_id = next_event_id.saturating_add(1);
+                events.push(WorldEventV1 {
+                    id: ownership_id,
+                    time: source.time,
+                    kind: EventKindV1::ItemOwnershipTransferred,
+                    actors: Vec::new(),
+                    subjects: vec![merra_core::WorldSubjectV1::Item(*item_id)],
+                    location: Some(location_id),
+                    causes: vec![new_event_id],
+                    tags: vec![
+                        String::from("item"),
+                        String::from("inheritance"),
+                        String::from("place"),
+                    ],
+                    payload: EventPayloadV1::ItemOwnershipTransferred {
+                        item_id: *item_id,
+                        from: merra_core::PropertyOwnerV1::Household(*household_id),
+                        to: merra_core::PropertyOwnerV1::Settlement(location_id),
+                        reason: merra_core::OwnershipTransferReasonV1::Inheritance,
+                    },
+                });
+                let custody_id = EventId(next_event_id);
+                next_event_id = next_event_id.saturating_add(1);
+                events.push(WorldEventV1 {
+                    id: custody_id,
+                    time: source.time,
+                    kind: EventKindV1::ItemCustodyTransferred,
+                    actors: Vec::new(),
+                    subjects: vec![merra_core::WorldSubjectV1::Item(*item_id)],
+                    location: Some(location_id),
+                    causes: vec![ownership_id],
+                    tags: vec![
+                        String::from("item"),
+                        String::from("custody"),
+                        String::from("place"),
+                    ],
+                    payload: EventPayloadV1::ItemCustodyTransferred {
+                        item_id: *item_id,
+                        from: merra_core::ItemCustodyV1::Household(*household_id),
+                        to: merra_core::ItemCustodyV1::AtLocation(location_id),
+                    },
+                });
+                item_escheat_event.insert(*item_id, custody_id);
+                item_escheat_location.insert(*item_id, location_id);
+            }
+        }
+
         match &source.payload {
+            EventPayloadV1::ItemIntroduced {
+                item_id,
+                custody: merra_core::ItemCustodyV1::Household(household_id),
+                ..
+            } => {
+                item_household.insert(*item_id, *household_id);
+            }
+            EventPayloadV1::ItemCustodyTransferred {
+                item_id,
+                to: merra_core::ItemCustodyV1::Household(household_id),
+                ..
+            }
+            | EventPayloadV1::ItemRecovered {
+                item_id,
+                custody: merra_core::ItemCustodyV1::Household(household_id),
+            } => {
+                item_household.insert(*item_id, *household_id);
+            }
+            EventPayloadV1::ItemLost { item_id, .. } => {
+                item_household.remove(item_id);
+            }
+            EventPayloadV1::ItemTransformed {
+                source_item_ids,
+                output_item_ids,
+                ..
+            } => {
+                if let Some(household_id) = source_item_ids
+                    .iter()
+                    .find_map(|item_id| item_household.get(item_id))
+                    .copied()
+                {
+                    for output_id in output_item_ids {
+                        item_household.insert(*output_id, household_id);
+                    }
+                }
+            }
             EventPayloadV1::PersonBorn {
                 person_id,
                 household_id,
@@ -445,6 +619,32 @@ pub fn run_local_history(
         if household.residence_id.is_none() {
             return Err(LocalHistoryError::MissingHouseholdResidence(household.id.0));
         }
+    }
+    let mut items = base.items.clone();
+    for item in &mut items {
+        if let Some(remapped) = old_to_new.get(&item.introduction_event_id) {
+            item.introduction_event_id = *remapped;
+        }
+        if let Some(location_id) = item_escheat_location.get(&item.id).copied() {
+            item.owner = merra_core::PropertyOwnerV1::Settlement(location_id);
+            item.custody = merra_core::ItemCustodyV1::AtLocation(location_id);
+        }
+        item.current_location_id = match &item.custody {
+            merra_core::ItemCustodyV1::Household(household_id) => {
+                household_residence.get(household_id).copied()
+            }
+            merra_core::ItemCustodyV1::Person(person_id) => person_household
+                .get(person_id)
+                .and_then(|household| household_residence.get(household))
+                .copied(),
+            merra_core::ItemCustodyV1::AtLocation(location_id) => Some(*location_id),
+            merra_core::ItemCustodyV1::Institution(institution_id) => regional
+                .institutions
+                .iter()
+                .find(|institution| institution.id == *institution_id)
+                .map(|institution| institution.location_id),
+            merra_core::ItemCustodyV1::Unknown => None,
+        };
     }
     let settlement_records = build_settlement_records(
         world,
@@ -492,6 +692,28 @@ pub fn run_local_history(
             .iter()
             .filter(|event| event.location.is_some())
             .count(),
+        items: items.len(),
+        active_items: items
+            .iter()
+            .filter(|item| item.status == merra_core::ItemStatusV1::Active)
+            .count(),
+        item_transfers: events
+            .iter()
+            .filter(|event| event.kind == EventKindV1::ItemOwnershipTransferred)
+            .count(),
+        item_repairs: events
+            .iter()
+            .filter(|event| event.kind == EventKindV1::ItemRepaired)
+            .count(),
+        item_transformations: events
+            .iter()
+            .filter(|event| event.kind == EventKindV1::ItemTransformed)
+            .count(),
+        maximum_item_lineage: items
+            .iter()
+            .map(|item| item.lineage_generation)
+            .max()
+            .unwrap_or(0),
     };
     let household_contexts = contexts.into_values().collect::<Vec<_>>();
     let chronicle = render_local_chronicle(
@@ -501,6 +723,8 @@ pub fn run_local_history(
         &settlement_records,
         &decisions,
         &connections,
+        &items,
+        &events,
     );
 
     Ok(LocalHistoryReportV1 {
@@ -510,6 +734,7 @@ pub fn run_local_history(
         people: base.people,
         households,
         events,
+        items,
         household_contexts,
         residence_decisions: decisions,
         connections,
@@ -1011,7 +1236,8 @@ fn event_household(event: &WorldEventV1) -> Option<HouseholdId> {
         | EventPayloadV1::PartnershipFormed { household_id, .. }
         | EventPayloadV1::PersonBorn { household_id, .. }
         | EventPayloadV1::HouseholdDissolved { household_id, .. }
-        | EventPayloadV1::HouseholdSettled { household_id, .. } => Some(*household_id),
+        | EventPayloadV1::HouseholdSettled { household_id, .. }
+        | EventPayloadV1::HouseholdWorkCompleted { household_id, .. } => Some(*household_id),
         _ => None,
     }
 }
@@ -1019,8 +1245,36 @@ fn event_household(event: &WorldEventV1) -> Option<HouseholdId> {
 fn event_location(
     event: &WorldEventV1,
     person_household: &BTreeMap<merra_core::PersonId, HouseholdId>,
+    item_household: &BTreeMap<merra_core::ItemId, HouseholdId>,
     household_residence: &BTreeMap<HouseholdId, LocationId>,
 ) -> Option<LocationId> {
+    let direct_item_household = match &event.payload {
+        EventPayloadV1::ItemIntroduced {
+            custody: merra_core::ItemCustodyV1::Household(household_id),
+            ..
+        }
+        | EventPayloadV1::ItemCustodyTransferred {
+            to: merra_core::ItemCustodyV1::Household(household_id),
+            ..
+        }
+        | EventPayloadV1::ItemRecovered {
+            custody: merra_core::ItemCustodyV1::Household(household_id),
+            ..
+        } => Some(*household_id),
+        EventPayloadV1::ItemTransformed {
+            source_item_ids, ..
+        } => source_item_ids
+            .iter()
+            .find_map(|item_id| item_household.get(item_id))
+            .copied(),
+        _ => None,
+    };
+    if let Some(location) = direct_item_household
+        .and_then(|household| household_residence.get(&household))
+        .copied()
+    {
+        return Some(location);
+    }
     if let Some(household_id) = event_household(event) {
         return household_residence.get(&household_id).copied();
     }
@@ -1030,6 +1284,17 @@ fn event_location(
         .find_map(|person| person_household.get(person))
         .and_then(|household| household_residence.get(household))
         .copied()
+        .or_else(|| {
+            event.subjects.iter().find_map(|subject| {
+                let merra_core::WorldSubjectV1::Item(item_id) = subject else {
+                    return None;
+                };
+                item_household
+                    .get(item_id)
+                    .and_then(|household| household_residence.get(household))
+                    .copied()
+            })
+        })
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -1138,6 +1403,7 @@ fn build_settlement_records(
         .collect()
 }
 
+#[allow(clippy::too_many_arguments)]
 fn render_local_chronicle(
     title: &str,
     regional: &RegionalHistoryV1,
@@ -1145,6 +1411,8 @@ fn render_local_chronicle(
     settlements: &[LocalSettlementRecordV1],
     decisions: &[ResidenceDecisionV1],
     connections: &[LocalConnectionV1],
+    items: &[merra_core::ItemRecordV1],
+    events: &[WorldEventV1],
 ) -> String {
     let mut output = format!(
         "# Chronicle: {title}\n\n\
@@ -1220,6 +1488,38 @@ fn render_local_chronicle(
         output.push_str("\n## Inherited Claims\n\n");
         for claim in &regional.lore {
             output.push_str(&format!("- **{}:** {}\n", claim.title, claim.text));
+        }
+    }
+    if !items.is_empty() {
+        let featured = items.iter().max_by_key(|item| {
+            (
+                item.lineage_generation,
+                events
+                    .iter()
+                    .filter(|event| {
+                        event
+                            .subjects
+                            .contains(&merra_core::WorldSubjectV1::Item(item.id))
+                    })
+                    .count(),
+                std::cmp::Reverse(item.id),
+            )
+        });
+        output.push_str("\n## Working Heirlooms\n\n");
+        output.push_str(&format!(
+            "{} durable items have authoritative ownership, custody, condition, and provenance records.\n",
+            items.len()
+        ));
+        if let Some(item) = featured {
+            output.push_str(&format!(
+                "**{} #{}** is lineage generation {}, is {:?}, has received {} repair(s), and has {} traced source item(s).\n",
+                item.name,
+                item.id.0,
+                item.lineage_generation,
+                item.status,
+                item.repairs,
+                item.sources.len(),
+            ));
         }
     }
     output

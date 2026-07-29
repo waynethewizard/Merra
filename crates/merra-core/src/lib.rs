@@ -3,6 +3,7 @@
 mod calendar;
 mod event;
 mod ids;
+mod item;
 mod local_history;
 mod output;
 mod rng;
@@ -11,10 +12,14 @@ mod world;
 mod world_history;
 
 pub use calendar::{CalendarConfig, CalendarError, SeasonConfigV1, SimDuration, SimTime};
-pub use event::{EventKindV1, EventPayloadV1, WorldEventV1};
+pub use event::{EventKindV1, EventPayloadV1, WorldEventV1, WorldSubjectV1};
 pub use ids::{
-    CultureId, EventId, FaithId, FeatureId, HouseholdId, InstitutionId, LineageId, LocationId,
-    PersonId, PolityId, PopulationId, RegionId, RouteId,
+    CultureId, EventId, FaithId, FeatureId, HouseholdId, InstitutionId, ItemId, LineageId,
+    LocationId, PersonId, PolityId, PopulationId, RegionId, RouteId,
+};
+pub use item::{
+    ItemArchetypeV1, ItemConfigV1, ItemCustodyV1, ItemRecordV1, ItemSourceRoleV1, ItemSourceV1,
+    ItemStatusV1, OwnershipTransferReasonV1, PropertyOwnerV1,
 };
 pub use local_history::{
     HouseholdHistoricalContextV1, LOCAL_HISTORY_SCHEMA_V1, LOCAL_PLAYBACK_SCHEMA_V1,
@@ -53,6 +58,12 @@ pub const EVENT_SCHEMA_V2: u32 = 2;
 
 /// Local-history event schema with household residence and movement evidence.
 pub const EVENT_SCHEMA_V3: u32 = 3;
+
+/// Reserved food-and-work schema used by the harvest cycle.
+pub const EVENT_SCHEMA_V4: u32 = 4;
+
+/// Item provenance, work, repair, transformation, and property transfer schema.
+pub const EVENT_SCHEMA_V5: u32 = 5;
 
 /// Current simulation-summary schema.
 pub const SUMMARY_SCHEMA_V1: u32 = 1;

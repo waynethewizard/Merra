@@ -12,6 +12,15 @@ interfaces stabilize.
 
 ### Added
 
+- Stable durable-item identities with typed provenance graphs, separate legal
+  ownership and physical custody, deterministic work and wear, repair,
+  inheritance, settlement escheat, relocation, and identity-changing
+  reforging.
+- Machine-readable item evidence and a sixth Five Villages terminal view for
+  upstream sources, descendant branches, and complete item biographies.
+- Interactive public Object Lineages reader with selectable four-generation
+  provenance chains, identity rules, ownership and custody facts, condition,
+  place, biography events, and the exact terminal evidence.
 - Rust 2024 Cargo workspace with headless core, simulation, CLI, testkit, and
   repository automation crates.
 - Deterministic smoke scenario with structured events and reproducible reports.

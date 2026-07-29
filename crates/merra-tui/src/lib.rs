@@ -48,6 +48,7 @@ mod tests {
                 mortality_bands: Vec::new(),
             },
             family: FamilyConfigV1::default(),
+            items: Default::default(),
         };
         let report = run_years(scenario, 42, 1)?;
         let screen = snapshot(report.clone(), 100, 30);
@@ -280,6 +281,21 @@ mod tests {
         assert!(!compact.contains('\u{1b}'));
         let tiny = render_local_snapshot(&inspector, 40, 8);
         assert!(tiny.contains("use at least 60×16"));
+
+        let item_config: LocalHistoryConfigV1 = ron::de::from_bytes(&std::fs::read(
+            root.join("scenarios/era-01/item-lineage.ron"),
+        )?)?;
+        let item_history = run_local_history(&world, &regional_history(&history), item_config, 42)?;
+        let mut item_inspector = LocalInspector::new(item_history);
+        item_inspector.set_view(LocalView::Items);
+        let items = render_local_snapshot(&item_inspector, 120, 36);
+        assert!(items.contains("AUTHORITATIVE PROVENANCE"));
+        assert!(items.contains("Sources:"));
+        assert!(items.contains("BIOGRAPHY"));
+        assert_eq!(
+            items,
+            include_str!("../../../golden/era-01/item-lineage-seed-42/tui-items.txt")
+        );
         Ok(())
     }
 

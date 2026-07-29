@@ -20,8 +20,8 @@ use crossterm::{
     },
 };
 use merra_core::{
-    EventId, HistorySummaryV1, HouseholdId, LocalHistoryReportV1, LocationId, PersonId, ScenarioV1,
-    SurfaceWorldV1,
+    EventId, HistorySummaryV1, HouseholdId, ItemId, LocalHistoryReportV1, LocationId, PersonId,
+    ScenarioV1, SurfaceWorldV1,
 };
 use merra_sim::run_years;
 use merra_tui::{
@@ -131,11 +131,14 @@ struct VillageArgs {
     #[arg(long, value_enum, default_value_t = InitialLocalView::Overview)]
     view: InitialLocalView,
     /// Focus a stable settlement identity.
-    #[arg(long, value_name = "ID", conflicts_with = "focus_household")]
+    #[arg(long, value_name = "ID", conflicts_with_all = ["focus_household", "focus_item"])]
     focus_settlement: Option<u64>,
     /// Focus a stable household identity.
-    #[arg(long, value_name = "ID", conflicts_with = "focus_settlement")]
+    #[arg(long, value_name = "ID", conflicts_with_all = ["focus_settlement", "focus_item"])]
     focus_household: Option<u64>,
+    /// Focus a stable durable item identity.
+    #[arg(long, value_name = "ID", conflicts_with_all = ["focus_settlement", "focus_household"])]
+    focus_item: Option<u64>,
 }
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
@@ -154,6 +157,7 @@ enum InitialLocalView {
     Settlements,
     Migrations,
     Households,
+    Items,
 }
 
 impl From<InitialLocalView> for LocalView {
@@ -164,6 +168,7 @@ impl From<InitialLocalView> for LocalView {
             InitialLocalView::Settlements => Self::Settlements,
             InitialLocalView::Migrations => Self::Migrations,
             InitialLocalView::Households => Self::Households,
+            InitialLocalView::Items => Self::Items,
         }
     }
 }
@@ -269,6 +274,11 @@ fn run_villages(args: VillageArgs) -> Result<(), TuiError> {
     {
         return Err(TuiError::LocalFocusNotFound(format!("household #{id}")));
     }
+    if let Some(id) = args.focus_item
+        && !inspector.focus_item(ItemId(id))
+    {
+        return Err(TuiError::LocalFocusNotFound(format!("item #{id}")));
+    }
     if args.snapshot {
         print!(
             "{}",
@@ -313,6 +323,7 @@ fn run_villages_interactive(
                 KeyCode::Char('3') => inspector.set_view(LocalView::Settlements),
                 KeyCode::Char('4') => inspector.set_view(LocalView::Migrations),
                 KeyCode::Char('5') => inspector.set_view(LocalView::Households),
+                KeyCode::Char('6') => inspector.set_view(LocalView::Items),
                 KeyCode::Up | KeyCode::Char('k') => inspector.previous(),
                 KeyCode::Down | KeyCode::Char('j') => inspector.next(),
                 KeyCode::Enter => inspector.activate(),

@@ -738,7 +738,10 @@ Build:
 * money;
 * ownership;
 * inheritance rules;
-* debts.
+* debts;
+* stable durable-item identities;
+* item provenance, condition, ownership, and custody;
+* repair and reforging across item generations.
 
 Deliverable:
 

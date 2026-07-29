@@ -2,7 +2,23 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{EventId, HouseholdId, LocationId, PersonId, ResidenceReasonV1, RouteId, SimTime};
+use crate::{
+    EventId, HouseholdId, InstitutionId, ItemCustodyV1, ItemId, ItemSourceV1, LocationId,
+    OwnershipTransferReasonV1, PersonId, PolityId, PropertyOwnerV1, ResidenceReasonV1, RouteId,
+    SimTime,
+};
+
+/// Anything that can be indexed as a subject of detailed history.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type", content = "id", rename_all = "snake_case")]
+pub enum WorldSubjectV1 {
+    Person(PersonId),
+    Household(HouseholdId),
+    Item(ItemId),
+    Location(LocationId),
+    Institution(InstitutionId),
+    Polity(PolityId),
+}
 
 /// Stable event categories in schema version 1.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -30,6 +46,28 @@ pub enum EventKindV1 {
     HouseholdSettled,
     /// A person died.
     PersonDied,
+    /// A household completed one significant unit of seasonal work.
+    HouseholdWorkCompleted,
+    /// A pre-existing durable object entered detailed history.
+    ItemIntroduced,
+    /// A durable object contributed to meaningful work and incurred wear.
+    ItemUsed,
+    /// Maintenance restored an item's condition without replacing its identity.
+    ItemRepaired,
+    /// One or more source objects became descendant objects.
+    ItemTransformed,
+    /// Legal title to an object changed.
+    ItemOwnershipTransferred,
+    /// Physical custody of an object changed.
+    ItemCustodyTransferred,
+    /// An object moved because its custodian household moved.
+    ItemRelocated,
+    /// An object's physical whereabouts became unknown.
+    ItemLost,
+    /// A lost object returned to known custody.
+    ItemRecovered,
+    /// An object ceased to exist without a descendant.
+    ItemDestroyed,
     /// A requested run completed.
     SimulationCompleted,
 }
@@ -145,6 +183,75 @@ pub enum EventPayloadV1 {
         /// Integer mortality threshold used for the check.
         annual_deaths_per_10_000: u16,
     },
+    /// Inspectable labor consequence from household work and tool condition.
+    HouseholdWorkCompleted {
+        household_id: HouseholdId,
+        item_id: ItemId,
+        work_tag: String,
+        base_labor: u32,
+        effective_labor: u32,
+    },
+    /// A pre-existing item entered the detailed simulation boundary.
+    ItemIntroduced {
+        item_id: ItemId,
+        archetype_id: String,
+        name: String,
+        owner: PropertyOwnerV1,
+        custody: ItemCustodyV1,
+    },
+    /// One significant unit of work used a durable item.
+    ItemUsed {
+        item_id: ItemId,
+        work_tag: String,
+        productivity_per_10_000: u16,
+        condition_before_per_10_000: u16,
+        condition_after_per_10_000: u16,
+    },
+    /// Maintenance restored the same durable identity.
+    ItemRepaired {
+        item_id: ItemId,
+        condition_before_per_10_000: u16,
+        condition_after_per_10_000: u16,
+        repair_number: u16,
+    },
+    /// Physical sources were retired into newly identified descendants.
+    ItemTransformed {
+        source_item_ids: Vec<ItemId>,
+        output_item_ids: Vec<ItemId>,
+        output_sources: Vec<Vec<ItemSourceV1>>,
+    },
+    /// Legal ownership changed without implying physical movement.
+    ItemOwnershipTransferred {
+        item_id: ItemId,
+        from: PropertyOwnerV1,
+        to: PropertyOwnerV1,
+        reason: OwnershipTransferReasonV1,
+    },
+    /// Custody changed independently from legal ownership.
+    ItemCustodyTransferred {
+        item_id: ItemId,
+        from: ItemCustodyV1,
+        to: ItemCustodyV1,
+    },
+    /// Known physical location changed while custody remained stable.
+    ItemRelocated {
+        item_id: ItemId,
+        from: LocationId,
+        to: LocationId,
+        route_ids: Vec<RouteId>,
+    },
+    /// The item no longer had known physical custody.
+    ItemLost {
+        item_id: ItemId,
+        previous_custody: ItemCustodyV1,
+    },
+    /// A lost item returned to known custody.
+    ItemRecovered {
+        item_id: ItemId,
+        custody: ItemCustodyV1,
+    },
+    /// An item was destroyed without producing descendants.
+    ItemDestroyed { item_id: ItemId },
     /// Final run extent.
     SimulationCompleted {
         /// Final absolute day.
@@ -165,6 +272,9 @@ pub struct WorldEventV1 {
     pub kind: EventKindV1,
     /// People directly involved in the event.
     pub actors: Vec<PersonId>,
+    /// Stable non-person identities directly involved in this event.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub subjects: Vec<WorldSubjectV1>,
     /// Optional location of the event.
     pub location: Option<LocationId>,
     /// Earlier events that causally contributed to this event.

@@ -3,9 +3,9 @@
 use std::collections::BTreeMap;
 
 use merra_core::{
-    CultureId, EventId, FaithId, HouseholdHistoricalContextV1, HouseholdId, InstitutionId,
-    LocalHistoryReportV1, LocalSettlementRecordV1, LocationId, PersonId, ResidenceDecisionV1,
-    ResidenceReasonV1, RouteId,
+    CultureId, EventId, EventPayloadV1, FaithId, HouseholdHistoricalContextV1, HouseholdId,
+    InstitutionId, ItemId, LocalHistoryReportV1, LocalSettlementRecordV1, LocationId, PersonId,
+    ResidenceDecisionV1, ResidenceReasonV1, RouteId, WorldSubjectV1,
 };
 
 /// Collections available in the local-history inspector.
@@ -21,6 +21,8 @@ pub enum LocalView {
     Migrations,
     /// Household-level historical inheritance.
     Households,
+    /// Durable item biographies and provenance branches.
+    Items,
 }
 
 impl LocalView {
@@ -32,7 +34,8 @@ impl LocalView {
             Self::Roads => Self::Settlements,
             Self::Settlements => Self::Migrations,
             Self::Migrations => Self::Households,
-            Self::Households => Self::Overview,
+            Self::Households => Self::Items,
+            Self::Items => Self::Overview,
         }
     }
 }
@@ -49,11 +52,24 @@ pub struct LocalInspector {
 impl LocalInspector {
     /// Creates an inspector on the overview.
     #[must_use]
-    pub const fn new(report: LocalHistoryReportV1) -> Self {
+    pub fn new(report: LocalHistoryReportV1) -> Self {
+        let selection = report
+            .items
+            .iter()
+            .enumerate()
+            .max_by_key(|(_, item)| {
+                let history = report
+                    .events
+                    .iter()
+                    .filter(|event| event.subjects.contains(&WorldSubjectV1::Item(item.id)))
+                    .count();
+                (item.lineage_generation, history, std::cmp::Reverse(item.id))
+            })
+            .map_or(0, |(index, _)| index);
         Self {
             report,
             view: LocalView::Overview,
-            selection: 0,
+            selection,
             location_filter: None,
         }
     }
@@ -72,7 +88,14 @@ impl LocalInspector {
 
     /// Cycles the active view.
     pub fn toggle_view(&mut self) {
-        self.set_view(self.view.next());
+        let next = self.view.next();
+        self.set_view(
+            if next == LocalView::Items && self.report.items.is_empty() {
+                LocalView::Overview
+            } else {
+                next
+            },
+        );
     }
 
     /// Moves down one row.
@@ -128,6 +151,16 @@ impl LocalInspector {
         true
     }
 
+    /// Focuses a stable durable item identity.
+    pub fn focus_item(&mut self, item_id: ItemId) -> bool {
+        let Some(index) = self.report.items.iter().position(|item| item.id == item_id) else {
+            return false;
+        };
+        self.view = LocalView::Items;
+        self.selection = index;
+        true
+    }
+
     /// Opens the households resident in the selected settlement.
     pub fn activate(&mut self) {
         if self.view != LocalView::Settlements {
@@ -157,6 +190,7 @@ impl LocalInspector {
                 .filter(|decision| decision_moved(decision))
                 .count(),
             LocalView::Households => self.visible_contexts().len(),
+            LocalView::Items => self.report.items.len(),
         }
     }
 
@@ -197,33 +231,40 @@ pub fn render_local_snapshot(inspector: &LocalInspector, width: u16, height: u16
         LocalView::Settlements => render_settlements(inspector, &mut lines),
         LocalView::Migrations => render_migrations(inspector, &mut lines),
         LocalView::Households => render_households(inspector, &mut lines),
+        LocalView::Items => render_items(inspector, &mut lines),
     }
     lines.push(String::new());
-    lines.push(String::from(
-        "Tab/1–5 view · ↑↓ select · Enter households · x clear filter · q quit",
-    ));
+    lines.push(String::from(if inspector.report.items.is_empty() {
+        "Tab/1–5 view · ↑↓ select · Enter households · x clear filter · q quit"
+    } else {
+        "Tab/1–6 view · ↑↓ select · Enter households · x clear filter · q quit"
+    }));
     fit_screen(lines, width, height)
 }
 
 fn header(inspector: &LocalInspector) -> Vec<String> {
     let report = &inspector.report;
-    let tabs = [
+    let mut tabs = vec![
         (LocalView::Overview, "1 Overview"),
         (LocalView::Roads, "2 Roads"),
         (LocalView::Settlements, "3 Settlements"),
         (LocalView::Migrations, "4 Migrations"),
         (LocalView::Households, "5 Households"),
-    ]
-    .into_iter()
-    .map(|(view, label)| {
-        if view == inspector.view {
-            format!("[{label}]")
-        } else {
-            label.to_owned()
-        }
-    })
-    .collect::<Vec<_>>()
-    .join("  ");
+    ];
+    if !report.items.is_empty() {
+        tabs.push((LocalView::Items, "6 Items"));
+    }
+    let tabs = tabs
+        .into_iter()
+        .map(|(view, label)| {
+            if view == inspector.view {
+                format!("[{label}]")
+            } else {
+                label.to_owned()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("  ");
     vec![
         format!("MERRA // {}", report.title.to_uppercase()),
         format!(
@@ -302,6 +343,24 @@ fn render_overview(inspector: &LocalInspector, lines: &mut Vec<String>) {
         report.institutions.len(),
         report.connections.len(),
     ));
+    if !report.items.is_empty() {
+        let transformed = report
+            .items
+            .iter()
+            .filter(|item| item.status == merra_core::ItemStatusV1::Transformed)
+            .count();
+        lines.push(format!(
+            "{} traced items · {} transformed sources · maximum lineage G{}",
+            report.items.len(),
+            transformed,
+            report
+                .items
+                .iter()
+                .map(|item| item.lineage_generation)
+                .max()
+                .unwrap_or(0)
+        ));
+    }
     if let Some(claim) = report.lore.first() {
         lines.push(format!("Inherited claim: “{}”", claim.title));
     }
@@ -585,6 +644,152 @@ fn render_households(inspector: &LocalInspector, lines: &mut Vec<String>) {
                 &lore_titles
             }
         ));
+    }
+}
+
+fn render_items(inspector: &LocalInspector, lines: &mut Vec<String>) {
+    let report = &inspector.report;
+    lines.push(String::from(
+        "ITEMS // AUTHORITATIVE PROVENANCE, OWNERSHIP, CUSTODY, AND USE",
+    ));
+    lines.push(String::from(
+        "   ITEM                       G  STATUS       COND  REPAIR  OWNER / PLACE",
+    ));
+    let start = inspector.selection.saturating_sub(5);
+    for (index, item) in report.items.iter().enumerate().skip(start).take(12) {
+        lines.push(format!(
+            "{}  #{:<3} {:<23} {:>2}  {:<11} {:>4}%  {:>4}    {:?} / {}",
+            if index == inspector.selection {
+                ">"
+            } else {
+                " "
+            },
+            item.id.0,
+            item.name,
+            item.lineage_generation,
+            format!("{:?}", item.status).to_lowercase(),
+            item.condition_per_10_000 / 100,
+            item.repairs,
+            item.owner,
+            item.current_location_id
+                .map_or_else(|| String::from("unknown"), |id| format!("#{}", id.0)),
+        ));
+    }
+    let Some(item) = report.items.get(inspector.selection) else {
+        lines.push(String::new());
+        lines.push(String::from(
+            "No individually traced items in this history.",
+        ));
+        return;
+    };
+    lines.push(String::new());
+    lines.push(format!(
+        "SELECTED // {} #{} · {} · custody {:?}",
+        item.name, item.id.0, item.archetype_id, item.custody
+    ));
+    if item.sources.is_empty() {
+        lines.push(format!(
+            "Origin: introduced on Day {} by event #{}; no earlier item identity is claimed.",
+            item.introduced_day, item.introduction_event_id.0
+        ));
+    } else {
+        lines.push(format!(
+            "Sources: {}",
+            item.sources
+                .iter()
+                .map(|source| format!("#{} ({:?})", source.item_id.0, source.role))
+                .collect::<Vec<_>>()
+                .join(" · ")
+        ));
+    }
+    let descendants = report
+        .items
+        .iter()
+        .filter(|candidate| {
+            candidate
+                .sources
+                .iter()
+                .any(|source| source.item_id == item.id)
+        })
+        .map(|candidate| format!("{} #{}", candidate.name, candidate.id.0))
+        .collect::<Vec<_>>();
+    lines.push(format!(
+        "Descendants: {}",
+        if descendants.is_empty() {
+            String::from("none")
+        } else {
+            descendants.join(" · ")
+        }
+    ));
+    lines.push(String::from("BIOGRAPHY"));
+    let biography = report
+        .events
+        .iter()
+        .filter(|event| event.subjects.contains(&WorldSubjectV1::Item(item.id)))
+        .collect::<Vec<_>>();
+    for event in biography
+        .into_iter()
+        .rev()
+        .take(8)
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
+    {
+        lines.push(format!(
+            "Y{:>2}  #{:<4} {}",
+            event.time.day() / u64::from(report.simulation_summary.days_per_year),
+            event.id.0,
+            local_item_event_label(&event.payload)
+        ));
+    }
+}
+
+fn local_item_event_label(payload: &EventPayloadV1) -> String {
+    match payload {
+        EventPayloadV1::ItemIntroduced { name, .. } => format!("{name} entered detailed history"),
+        EventPayloadV1::ItemUsed {
+            work_tag,
+            condition_before_per_10_000,
+            condition_after_per_10_000,
+            ..
+        } => format!(
+            "used for {work_tag}; condition {}%→{}%",
+            condition_before_per_10_000 / 100,
+            condition_after_per_10_000 / 100
+        ),
+        EventPayloadV1::ItemRepaired {
+            repair_number,
+            condition_after_per_10_000,
+            ..
+        } => format!(
+            "repair {repair_number}; condition restored to {}%",
+            condition_after_per_10_000 / 100
+        ),
+        EventPayloadV1::ItemTransformed {
+            source_item_ids,
+            output_item_ids,
+            ..
+        } => format!("{source_item_ids:?} transformed into {output_item_ids:?}"),
+        EventPayloadV1::ItemOwnershipTransferred {
+            from, to, reason, ..
+        } => {
+            format!("ownership {from:?}→{to:?} ({reason:?})")
+        }
+        EventPayloadV1::ItemCustodyTransferred { from, to, .. } => {
+            format!("custody {from:?}→{to:?}")
+        }
+        EventPayloadV1::ItemRelocated { from, to, .. } => {
+            format!("moved from #{} to #{}", from.0, to.0)
+        }
+        EventPayloadV1::ItemLost { .. } => String::from("lost"),
+        EventPayloadV1::ItemRecovered { custody, .. } => format!("recovered into {custody:?}"),
+        EventPayloadV1::ItemDestroyed { .. } => String::from("destroyed"),
+        EventPayloadV1::HouseholdWorkCompleted {
+            work_tag,
+            effective_labor,
+            ..
+        } => format!("{work_tag} work produced {effective_labor} effective labor"),
+        _ => String::from("related event"),
     }
 }
 

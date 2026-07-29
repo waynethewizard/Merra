@@ -38,6 +38,12 @@ declare event schema v2 because household, partnership, and birth variants are
 new exhaustive event categories. Five-settlement local history declares event
 schema v3 for `HouseholdSettled`.
 
+Item-enabled detailed histories declare event schema v5. They add typed item
+subjects plus introduction, meaningful use, condition-scaled household work,
+repair, ownership, custody, relocation, loss, recovery, destruction, and
+transformation evidence. Event schema v4 remains reserved for the harvest
+cycle's food-and-work foundation.
+
 The first implemented causal chain is deliberately small:
 
 ```text
@@ -135,3 +141,19 @@ person's household residence when each event occurs. Derived local event IDs
 are renumbered contiguously, and location evidence is added as an earlier
 cause. Macro event IDs remain in separate historical context fields rather
 than being mixed into the local causal namespace.
+
+Durable objects extend the chain without treating possession as ancestry:
+
+```text
+ItemIntroduced
+├→ ItemUsed → HouseholdWorkCompleted
+├→ ItemRepaired → later ItemUsed
+├→ ItemOwnershipTransferred
+├→ ItemCustodyTransferred → ItemRelocated
+└→ ItemTransformed
+    └→ descendant ItemId with typed source links
+```
+
+Repair preserves identity. Physical reworking retires the source and creates a
+descendant. Legal ownership and custody remain separate; custody resolves the
+event's authoritative place.

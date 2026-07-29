@@ -287,6 +287,64 @@ export type HistoryLoreShowcase = {
   localChronicle: string;
 };
 
+export type ItemHolder = {
+  type: "person" | "household" | "institution" | "settlement" | "polity";
+  id: number;
+};
+
+export type ItemSource = {
+  item_id: number;
+  role: "material" | "component" | "pattern";
+};
+
+export type ItemRecord = {
+  id: number;
+  archetype_id: string;
+  name: string;
+  introduced_day: number;
+  introduction_event_id: number;
+  sources?: ItemSource[];
+  lineage_generation: number;
+  condition_per_10_000: number;
+  repairs: number;
+  status: "active" | "lost" | "transformed" | "destroyed" | "consumed";
+  owner: ItemHolder;
+  custody: ItemHolder;
+  current_location_id: number | null;
+};
+
+export type ItemBiographyEntry = {
+  year: number;
+  eventId: number;
+  text: string;
+};
+
+export type ItemLineageShowcase = {
+  title: string;
+  description: string;
+  command: string;
+  seed: number;
+  projectionYear: number;
+  years: number;
+  summary: {
+    items: number;
+    activeItems: number;
+    transfers: number;
+    repairs: number;
+    transformations: number;
+    maximumGeneration: number;
+  };
+  items: ItemRecord[];
+  settlements: {
+    id: number;
+    name: string;
+  }[];
+  featuredItemId: number;
+  biography: ItemBiographyEntry[];
+  terminalScreen: string;
+  chronicle: string;
+};
+
 const snapshot = content as unknown as {
   foundationRun: GoldenRun;
   currentCycle: CycleRecord;
@@ -294,6 +352,7 @@ const snapshot = content as unknown as {
   worldGenesisShowcase: WorldGenesisShowcase;
   localHistoryShowcase: LocalHistoryShowcase;
   historyLoreShowcase: HistoryLoreShowcase;
+  itemLineageShowcase: ItemLineageShowcase;
 };
 
 export function getFoundationRun(): GoldenRun {
@@ -318,4 +377,8 @@ export function getLocalHistoryShowcase(): LocalHistoryShowcase {
 
 export function getHistoryLoreShowcase(): HistoryLoreShowcase {
   return snapshot.historyLoreShowcase;
+}
+
+export function getItemLineageShowcase(): ItemLineageShowcase {
+  return snapshot.itemLineageShowcase;
 }

@@ -20,9 +20,11 @@ use bevy_ecs::{
 };
 use merra_core::{
     CalendarConfig, EventId, EventKindV1, EventPayloadV1, FamilyConfigV1, HouseholdId,
-    HouseholdRecordV1, PersonId, PersonRecordV1, PopulationConfigV1, RngDomain, SUMMARY_SCHEMA_V1,
+    HouseholdRecordV1, ItemArchetypeV1, ItemConfigV1, ItemCustodyV1, ItemId, ItemRecordV1,
+    ItemSourceRoleV1, ItemSourceV1, ItemStatusV1, OwnershipTransferReasonV1, PersonId,
+    PersonRecordV1, PopulationConfigV1, PropertyOwnerV1, RngDomain, SUMMARY_SCHEMA_V1,
     ScenarioError, ScenarioV1, SimDuration, SimTime, SimulationSummaryV1, WorldEventV1,
-    rng_for_domain,
+    WorldSubjectV1, rng_for_domain,
 };
 use rand::RngExt;
 use rand_chacha::ChaCha12Rng;
@@ -39,6 +41,8 @@ pub enum SimulationSet {
     Mortality,
     /// Maintain partnerships and households, then create eligible births.
     Family,
+    /// Maintain, use, transfer, and transform durable items.
+    Items,
 }
 
 #[derive(Clone, Debug, Hash, Eq, PartialEq, ScheduleLabel)]
@@ -64,6 +68,9 @@ struct PopulationRules(PopulationConfigV1);
 struct FamilyRules(FamilyConfigV1);
 
 #[derive(Resource)]
+struct ItemRules(ItemConfigV1);
+
+#[derive(Resource)]
 struct MortalityRng(ChaCha12Rng);
 
 #[derive(Resource, Default)]
@@ -77,6 +84,11 @@ struct FamilyRuntime {
     name_rng: ChaCha12Rng,
     next_person_id: u64,
     next_household_id: u64,
+}
+
+#[derive(Resource)]
+struct ItemRuntime {
+    next_item_id: u64,
 }
 
 #[derive(SystemParam)]
@@ -117,10 +129,28 @@ struct SimHousehold {
     name: String,
     surname: String,
     member_ids: Vec<PersonId>,
+    historical_member_ids: Vec<PersonId>,
     founded_day: u64,
     dissolved_day: Option<u64>,
     children_born: u16,
     last_birth_day: Option<u64>,
+}
+
+#[derive(Component)]
+struct SimItem {
+    id: ItemId,
+    archetype_id: String,
+    name: String,
+    introduced_day: u64,
+    introduction_event_id: EventId,
+    sources: Vec<ItemSourceV1>,
+    lineage_generation: u16,
+    condition_per_10_000: u16,
+    repairs: u16,
+    status: ItemStatusV1,
+    owner: PropertyOwnerV1,
+    custody: ItemCustodyV1,
+    last_event_id: EventId,
 }
 
 #[derive(Clone)]
@@ -159,6 +189,7 @@ impl EventLog {
             time,
             kind,
             actors,
+            subjects: item_subjects(&payload),
             location: None,
             causes,
             tags,
@@ -170,6 +201,32 @@ impl EventLog {
     fn last_id(&self) -> Option<EventId> {
         self.events.last().map(|event| event.id)
     }
+}
+
+fn item_subjects(payload: &EventPayloadV1) -> Vec<WorldSubjectV1> {
+    let item_ids: Vec<ItemId> = match payload {
+        EventPayloadV1::ItemIntroduced { item_id, .. }
+        | EventPayloadV1::ItemUsed { item_id, .. }
+        | EventPayloadV1::ItemRepaired { item_id, .. }
+        | EventPayloadV1::ItemOwnershipTransferred { item_id, .. }
+        | EventPayloadV1::ItemCustodyTransferred { item_id, .. }
+        | EventPayloadV1::ItemRelocated { item_id, .. }
+        | EventPayloadV1::ItemLost { item_id, .. }
+        | EventPayloadV1::ItemRecovered { item_id, .. }
+        | EventPayloadV1::ItemDestroyed { item_id }
+        | EventPayloadV1::HouseholdWorkCompleted { item_id, .. } => vec![*item_id],
+        EventPayloadV1::ItemTransformed {
+            source_item_ids,
+            output_item_ids,
+            ..
+        } => source_item_ids
+            .iter()
+            .chain(output_item_ids)
+            .copied()
+            .collect(),
+        _ => Vec::new(),
+    };
+    item_ids.into_iter().map(WorldSubjectV1::Item).collect()
 }
 
 /// Installs deterministic simulation schedules without rendering or windowing.
@@ -185,6 +242,7 @@ impl Plugin for MerraSimulationPlugin {
                     SimulationSet::SeasonTransition,
                     SimulationSet::Mortality,
                     SimulationSet::Family,
+                    SimulationSet::Items,
                 )
                     .chain(),
             )
@@ -203,7 +261,8 @@ impl Plugin for MerraSimulationPlugin {
             .add_systems(
                 SimulationStep,
                 maintain_families.in_set(SimulationSet::Family),
-            );
+            )
+            .add_systems(SimulationStep, maintain_items.in_set(SimulationSet::Items));
     }
 }
 
@@ -525,6 +584,7 @@ fn maintain_families(
             name: name.clone(),
             surname: surname.clone(),
             member_ids: partners.to_vec(),
+            historical_member_ids: partners.to_vec(),
             founded_day: now.day(),
             dissolved_day: None,
             children_born: 0,
@@ -651,6 +711,7 @@ fn maintain_families(
         let name = format!("{given_name} {surname}");
         let parent_ids = [first.id.min(second.id), first.id.max(second.id)];
         household.member_ids.push(person_id);
+        household.historical_member_ids.push(person_id);
         household.member_ids.sort_unstable();
         household.children_born = household.children_born.saturating_add(1);
         household.last_birth_day = Some(now.day());
@@ -709,6 +770,333 @@ fn maintain_families(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
+fn maintain_items(
+    mut commands: Commands,
+    clock: Res<Clock>,
+    calendar: Res<SimulationCalendar>,
+    rules: Res<ItemRules>,
+    mut runtime: ResMut<ItemRuntime>,
+    people: Query<&SimPerson>,
+    households: Query<&SimHousehold>,
+    mut items: Query<&mut SimItem>,
+    mut log: ResMut<EventLog>,
+) {
+    if !rules.0.enabled
+        || clock.now == SimTime::EPOCH
+        || clock.now.day_of_year(calendar.0.days_per_year) != 0
+    {
+        return;
+    }
+    let now = clock.now;
+    let archetypes: BTreeMap<_, _> = rules
+        .0
+        .archetypes
+        .iter()
+        .map(|archetype| (archetype.id.as_str(), archetype))
+        .collect();
+    let mut ordered: Vec<_> = items.iter().map(|item| item.id).collect();
+    ordered.sort_unstable();
+
+    for item_id in ordered {
+        let Some(mut item) = items.iter_mut().find(|item| item.id == item_id) else {
+            continue;
+        };
+        if item.status != ItemStatusV1::Active {
+            continue;
+        }
+
+        if rules.0.household_formation_contributions
+            && let PropertyOwnerV1::Household(owner_id) = item.owner.clone()
+            && let Some(owner_household) =
+                households.iter().find(|household| household.id == owner_id)
+        {
+            let mut destinations = log
+                .events
+                .iter()
+                .filter_map(|event| {
+                    let EventPayloadV1::HouseholdFormed {
+                        household_id,
+                        member_ids,
+                        ..
+                    } = &event.payload
+                    else {
+                        return None;
+                    };
+                    (event.time == now
+                        && *household_id != owner_id
+                        && member_ids.iter().any(|person_id| {
+                            owner_household.historical_member_ids.contains(person_id)
+                                && !owner_household.member_ids.contains(person_id)
+                        }))
+                    .then_some((*household_id, event.id))
+                })
+                .collect::<Vec<_>>();
+            destinations.sort_unstable();
+            if let Some((destination_id, formation_event)) = destinations.first().copied() {
+                let from = item.owner.clone();
+                let to = PropertyOwnerV1::Household(destination_id);
+                let ownership_event = log.push(
+                    now,
+                    EventKindV1::ItemOwnershipTransferred,
+                    Vec::new(),
+                    vec![formation_event, item.last_event_id],
+                    vec![
+                        String::from("item"),
+                        String::from("household"),
+                        String::from("contribution"),
+                    ],
+                    EventPayloadV1::ItemOwnershipTransferred {
+                        item_id,
+                        from,
+                        to: to.clone(),
+                        reason: OwnershipTransferReasonV1::HouseholdFormation,
+                    },
+                );
+                let previous_custody = item.custody.clone();
+                let new_custody = ItemCustodyV1::Household(destination_id);
+                let custody_event = log.push(
+                    now,
+                    EventKindV1::ItemCustodyTransferred,
+                    Vec::new(),
+                    vec![ownership_event],
+                    vec![String::from("item"), String::from("custody")],
+                    EventPayloadV1::ItemCustodyTransferred {
+                        item_id,
+                        from: previous_custody,
+                        to: new_custody.clone(),
+                    },
+                );
+                item.owner = to;
+                item.custody = new_custody;
+                item.last_event_id = custody_event;
+            }
+        }
+
+        if let PropertyOwnerV1::Household(owner_id) = item.owner.clone()
+            && households
+                .iter()
+                .find(|household| household.id == owner_id)
+                .is_some_and(|household| household.dissolved_day.is_some())
+            && let Some(heir_id) = nearest_living_heir_household(owner_id, &households, &people)
+        {
+            let from = item.owner.clone();
+            let to = PropertyOwnerV1::Household(heir_id);
+            let cause = log
+                .events
+                .iter()
+                .rev()
+                .find(|event| {
+                    matches!(
+                        event.payload,
+                        EventPayloadV1::HouseholdDissolved { household_id, .. }
+                            if household_id == owner_id
+                    )
+                })
+                .map(|event| event.id)
+                .into_iter()
+                .collect();
+            let ownership_event = log.push(
+                now,
+                EventKindV1::ItemOwnershipTransferred,
+                Vec::new(),
+                cause,
+                vec![String::from("item"), String::from("inheritance")],
+                EventPayloadV1::ItemOwnershipTransferred {
+                    item_id,
+                    from,
+                    to: to.clone(),
+                    reason: OwnershipTransferReasonV1::Inheritance,
+                },
+            );
+            let previous_custody = item.custody.clone();
+            let new_custody = ItemCustodyV1::Household(heir_id);
+            let custody_event = log.push(
+                now,
+                EventKindV1::ItemCustodyTransferred,
+                Vec::new(),
+                vec![ownership_event],
+                vec![String::from("item"), String::from("custody")],
+                EventPayloadV1::ItemCustodyTransferred {
+                    item_id,
+                    from: previous_custody,
+                    to: new_custody.clone(),
+                },
+            );
+            item.owner = to;
+            item.custody = new_custody;
+            item.last_event_id = custody_event;
+        }
+
+        let Some(archetype) = archetypes.get(item.archetype_id.as_str()).copied() else {
+            continue;
+        };
+        if item.condition_per_10_000 <= archetype.repair_below {
+            if item.repairs < archetype.maximum_repairs {
+                let before = item.condition_per_10_000;
+                item.condition_per_10_000 = item
+                    .condition_per_10_000
+                    .saturating_add(archetype.repair_amount)
+                    .min(10_000);
+                item.repairs = item.repairs.saturating_add(1);
+                item.last_event_id = log.push(
+                    now,
+                    EventKindV1::ItemRepaired,
+                    Vec::new(),
+                    vec![item.last_event_id],
+                    vec![String::from("item"), String::from("maintenance")],
+                    EventPayloadV1::ItemRepaired {
+                        item_id,
+                        condition_before_per_10_000: before,
+                        condition_after_per_10_000: item.condition_per_10_000,
+                        repair_number: item.repairs,
+                    },
+                );
+            } else if let Some(target_id) = &archetype.rework_into
+                && archetypes.contains_key(target_id.as_str())
+            {
+                let output_id = ItemId(runtime.next_item_id);
+                runtime.next_item_id = runtime.next_item_id.saturating_add(1);
+                let sources = vec![ItemSourceV1 {
+                    item_id,
+                    role: ItemSourceRoleV1::Material,
+                }];
+                let event_id = log.push(
+                    now,
+                    EventKindV1::ItemTransformed,
+                    Vec::new(),
+                    vec![item.last_event_id],
+                    vec![String::from("item"), String::from("provenance")],
+                    EventPayloadV1::ItemTransformed {
+                        source_item_ids: vec![item_id],
+                        output_item_ids: vec![output_id],
+                        output_sources: vec![sources.clone()],
+                    },
+                );
+                item.status = ItemStatusV1::Transformed;
+                item.last_event_id = event_id;
+                let root_name = item
+                    .name
+                    .split(" · reworked G")
+                    .next()
+                    .unwrap_or(item.name.as_str());
+                let lineage_generation = item.lineage_generation.saturating_add(1);
+                commands.spawn(SimItem {
+                    id: output_id,
+                    archetype_id: target_id.clone(),
+                    name: format!("{root_name} · reworked G{lineage_generation}"),
+                    introduced_day: now.day(),
+                    introduction_event_id: event_id,
+                    sources,
+                    lineage_generation,
+                    condition_per_10_000: 10_000,
+                    repairs: 0,
+                    status: ItemStatusV1::Active,
+                    owner: item.owner.clone(),
+                    custody: item.custody.clone(),
+                    last_event_id: event_id,
+                });
+                continue;
+            }
+        }
+
+        let before = item.condition_per_10_000;
+        let productivity =
+            u32::from(archetype.productivity_per_10_000).saturating_mul(u32::from(before)) / 10_000;
+        item.condition_per_10_000 = before.saturating_sub(archetype.wear_per_use);
+        item.last_event_id = log.push(
+            now,
+            EventKindV1::ItemUsed,
+            Vec::new(),
+            vec![item.last_event_id],
+            vec![
+                String::from("item"),
+                String::from("work"),
+                archetype.work_tag.clone(),
+            ],
+            EventPayloadV1::ItemUsed {
+                item_id,
+                work_tag: archetype.work_tag.clone(),
+                productivity_per_10_000: productivity as u16,
+                condition_before_per_10_000: before,
+                condition_after_per_10_000: item.condition_per_10_000,
+            },
+        );
+        if let ItemCustodyV1::Household(household_id) = &item.custody {
+            log.push(
+                now,
+                EventKindV1::HouseholdWorkCompleted,
+                Vec::new(),
+                vec![item.last_event_id],
+                vec![
+                    String::from("household"),
+                    String::from("work"),
+                    archetype.work_tag.clone(),
+                ],
+                EventPayloadV1::HouseholdWorkCompleted {
+                    household_id: *household_id,
+                    item_id,
+                    work_tag: archetype.work_tag.clone(),
+                    base_labor: 10_000,
+                    effective_labor: 10_000_u32.saturating_add(productivity),
+                },
+            );
+        }
+    }
+}
+
+fn nearest_living_heir_household(
+    owner_id: HouseholdId,
+    households: &Query<&SimHousehold>,
+    people: &Query<&SimPerson>,
+) -> Option<HouseholdId> {
+    let owner = households
+        .iter()
+        .find(|household| household.id == owner_id)?;
+    let ancestors: BTreeSet<_> = owner.historical_member_ids.iter().copied().collect();
+    let mut distance = BTreeMap::<PersonId, u16>::new();
+    for ancestor in &ancestors {
+        distance.insert(*ancestor, 0);
+    }
+    for generation in 1..=32_u16 {
+        let parents: BTreeSet<_> = distance
+            .iter()
+            .filter(|(_, value)| **value < generation)
+            .map(|(id, _)| *id)
+            .collect();
+        let mut added = false;
+        for person in people.iter() {
+            if distance.contains_key(&person.id)
+                || !person
+                    .parent_ids
+                    .iter()
+                    .any(|parent| parents.contains(parent))
+            {
+                continue;
+            }
+            distance.insert(person.id, generation);
+            added = true;
+        }
+        if !added {
+            break;
+        }
+    }
+    let mut candidates: Vec<_> = people
+        .iter()
+        .filter(|person| person.alive && person.household_id != Some(owner_id))
+        .filter_map(|person| {
+            Some((
+                *distance.get(&person.id)?,
+                person.birth_day.unwrap_or(0),
+                person.id,
+                person.household_id?,
+            ))
+        })
+        .collect();
+    candidates.sort_unstable();
+    candidates.first().map(|candidate| candidate.3)
+}
+
 fn snapshot_people(
     people: &Query<(Entity, &mut SimPerson)>,
     days_per_year: u64,
@@ -753,6 +1141,8 @@ pub struct SimulationReport {
     pub people: Vec<PersonRecordV1>,
     /// Final inspectable state for every household formed during the run.
     pub households: Vec<HouseholdRecordV1>,
+    /// Final inspectable state and immutable provenance for durable items.
+    pub items: Vec<ItemRecordV1>,
     /// Human-readable chronicle.
     pub chronicle: String,
 }
@@ -826,6 +1216,7 @@ impl Simulation {
         .insert_resource(SimulationCalendar(scenario.calendar.clone()))
         .insert_resource(PopulationRules(scenario.population.clone()))
         .insert_resource(FamilyRules(scenario.family.clone()))
+        .insert_resource(ItemRules(scenario.items.clone()))
         .insert_resource(MortalityRng(rng_for_domain(seed, RngDomain::Mortality)))
         .insert_resource(AnnualMortalityClock::default())
         .insert_resource(event_log)
@@ -834,12 +1225,14 @@ impl Simulation {
         spawn_initial_population(&mut app, &scenario, seed, &mut name_rng);
         let mut household_rng = rng_for_domain(seed, RngDomain::Households);
         let next_household_id = initialize_families(&mut app, &scenario, &mut household_rng);
+        let next_item_id = initialize_items(&mut app, &scenario);
         app.insert_resource(FamilyRuntime {
             household_rng,
             name_rng,
             next_person_id: u64::from(scenario.population.initial_people).saturating_add(1),
             next_household_id,
-        });
+        })
+        .insert_resource(ItemRuntime { next_item_id });
 
         Ok(Self {
             app,
@@ -950,6 +1343,30 @@ impl Simulation {
             })
             .collect();
         households.sort_unstable_by_key(|household| household.id);
+        let mut items: Vec<ItemRecordV1> = self
+            .app
+            .world()
+            .iter_entities()
+            .filter_map(|entity| {
+                let item = entity.get::<SimItem>()?;
+                Some(ItemRecordV1 {
+                    id: item.id,
+                    archetype_id: item.archetype_id.clone(),
+                    name: item.name.clone(),
+                    introduced_day: item.introduced_day,
+                    introduction_event_id: item.introduction_event_id,
+                    sources: item.sources.clone(),
+                    lineage_generation: item.lineage_generation,
+                    condition_per_10_000: item.condition_per_10_000,
+                    repairs: item.repairs,
+                    status: item.status,
+                    owner: item.owner.clone(),
+                    custody: item.custody.clone(),
+                    current_location_id: None,
+                })
+            })
+            .collect();
+        items.sort_unstable_by_key(|item| item.id);
         let living_population = people.iter().filter(|person| person.alive).count() as u32;
         let initial_population = self.scenario.population.initial_people;
         let deaths = people.iter().filter(|person| !person.alive).count() as u32;
@@ -981,6 +1398,7 @@ impl Simulation {
             summary,
             people,
             households,
+            items,
             chronicle,
         }
     }
@@ -1208,6 +1626,7 @@ fn initialize_families(
             name: name.clone(),
             surname: surname.clone(),
             member_ids: member_ids.clone(),
+            historical_member_ids: member_ids.clone(),
             founded_day: 0,
             dissolved_day: None,
             children_born: 0,
@@ -1253,6 +1672,97 @@ fn initialize_families(
         }
     }
     next_household_id
+}
+
+fn initialize_items(app: &mut App, scenario: &ScenarioV1) -> u64 {
+    if !scenario.items.enabled {
+        return 1;
+    }
+    let mut households: Vec<_> = app
+        .world()
+        .iter_entities()
+        .filter_map(|entity| {
+            let household = entity.get::<SimHousehold>()?;
+            Some((household.id, household.surname.clone()))
+        })
+        .collect();
+    households.sort_unstable_by_key(|(id, _)| *id);
+    let mut archetypes: Vec<&ItemArchetypeV1> = scenario
+        .items
+        .archetypes
+        .iter()
+        .filter(|archetype| archetype.initially_distributed)
+        .collect();
+    archetypes.sort_unstable_by_key(|archetype| archetype.id.as_str());
+    let mut next_item_id = 1_u64;
+    for (household_id, surname) in households {
+        for archetype in &archetypes {
+            for ordinal in 0..scenario.items.initial_items_per_household {
+                let item_id = ItemId(next_item_id);
+                next_item_id = next_item_id.saturating_add(1);
+                let owner = PropertyOwnerV1::Household(household_id);
+                let custody = ItemCustodyV1::Household(household_id);
+                let name = if scenario.items.initial_items_per_household == 1 {
+                    format!("{surname} {}", archetype.name)
+                } else {
+                    format!("{surname} {} {}", archetype.name, ordinal + 1)
+                };
+                let event_id = {
+                    let mut log = app.world_mut().resource_mut::<EventLog>();
+                    let causes = log
+                        .events
+                        .iter()
+                        .rev()
+                        .find(|event| {
+                            matches!(
+                                event.payload,
+                                EventPayloadV1::HouseholdFormed {
+                                    household_id: formed_id,
+                                    ..
+                                } if formed_id == household_id
+                            )
+                        })
+                        .map(|event| event.id)
+                        .into_iter()
+                        .collect();
+                    log.push(
+                        SimTime::EPOCH,
+                        EventKindV1::ItemIntroduced,
+                        Vec::new(),
+                        causes,
+                        vec![
+                            String::from("item"),
+                            String::from("provenance"),
+                            archetype.work_tag.clone(),
+                        ],
+                        EventPayloadV1::ItemIntroduced {
+                            item_id,
+                            archetype_id: archetype.id.clone(),
+                            name: name.clone(),
+                            owner: owner.clone(),
+                            custody: custody.clone(),
+                        },
+                    )
+                };
+                app.world_mut().spawn(SimItem {
+                    id: item_id,
+                    archetype_id: archetype.id.clone(),
+                    name,
+                    introduced_day: 0,
+                    introduction_event_id: event_id,
+                    sources: Vec::new(),
+                    lineage_generation: 0,
+                    condition_per_10_000: 10_000,
+                    repairs: 0,
+                    status: ItemStatusV1::Active,
+                    owner,
+                    custody,
+                    last_event_id: event_id,
+                });
+            }
+        }
+    }
+    next_item_id
 }
 
 const GIVEN_NAMES: &[&str] = &[
@@ -1332,6 +1842,7 @@ mod tests {
                 mortality_bands: Vec::new(),
             },
             family: FamilyConfigV1::default(),
+            items: Default::default(),
         }
     }
 
@@ -1368,6 +1879,7 @@ mod tests {
                 }],
             },
             family: FamilyConfigV1::default(),
+            items: Default::default(),
         };
         let report = super::run_years(populated, 42, 1)?;
         let deaths: Vec<_> = report
@@ -1435,6 +1947,7 @@ mod tests {
                 }],
             },
             family: FamilyConfigV1::default(),
+            items: Default::default(),
         };
         let mut whole_year = Simulation::from_scenario(populated.clone(), 42)?;
         let mut uneven_steps = Simulation::from_scenario(populated, 42)?;
@@ -1494,6 +2007,7 @@ mod tests {
                 maximum_children_per_household: 2,
                 maximum_generation: 3,
             },
+            items: Default::default(),
         };
         let report = super::run_years(families, 42, 45)?;
 
@@ -1565,6 +2079,7 @@ mod tests {
                 mortality_bands: mortality_bands(0),
             },
             family: family.clone(),
+            items: Default::default(),
         };
         let moved = super::run_years(moving_founders, 42, 1)?;
 
@@ -1605,6 +2120,7 @@ mod tests {
                 mortality_bands: mortality_bands(10_000),
             },
             family,
+            items: Default::default(),
         };
         let died = super::run_years(dying_founders, 42, 1)?;
 

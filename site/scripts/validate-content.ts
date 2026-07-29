@@ -28,6 +28,30 @@ type HistoricalEvidenceEvent = {
   };
 };
 
+type ItemHolder = {
+  type: "person" | "household" | "institution" | "settlement" | "polity";
+  id: number;
+};
+
+type ItemRecord = {
+  id: number;
+  archetype_id: string;
+  name: string;
+  introduced_day: number;
+  introduction_event_id: number;
+  sources?: {
+    item_id: number;
+    role: "material" | "component" | "pattern";
+  }[];
+  lineage_generation: number;
+  condition_per_10_000: number;
+  repairs: number;
+  status: "active" | "lost" | "transformed" | "destroyed" | "consumed";
+  owner: ItemHolder;
+  custody: ItemHolder;
+  current_location_id: number | null;
+};
+
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) errors.push(message);
 }
@@ -558,6 +582,80 @@ const localHistoryShowcase = {
   views: localTerminalViews
 };
 
+const itemLineageDirectory = path.join(
+  repoRoot,
+  "golden",
+  "era-01",
+  "item-lineage-seed-42"
+);
+const itemLineageSummary = readJson<{
+  seed: number;
+  projection_year: number;
+  elapsed_years: number;
+  items: number;
+  active_items: number;
+  item_transfers: number;
+  item_repairs: number;
+  item_transformations: number;
+  maximum_item_lineage: number;
+}>(path.join(itemLineageDirectory, "summary.json"));
+const itemRecords = readJson<ItemRecord[]>(
+  path.join(itemLineageDirectory, "items.json")
+);
+const itemTerminalScreen = fs.readFileSync(
+  path.join(itemLineageDirectory, "tui-items.txt"),
+  "utf8"
+);
+const itemChronicle = fs.readFileSync(
+  path.join(itemLineageDirectory, "chronicle.md"),
+  "utf8"
+);
+const biographyStart = itemTerminalScreen
+  .split("\n")
+  .findIndex((line) => line === "BIOGRAPHY");
+const itemBiography = itemTerminalScreen
+  .split("\n")
+  .slice(biographyStart + 1)
+  .map((line) => line.match(/^Y(\d+)\s+#(\d+)\s+(.+)$/))
+  .filter((match): match is RegExpMatchArray => match !== null)
+  .map((match) => ({
+    year: Number(match[1]),
+    eventId: Number(match[2]),
+    text: match[3]
+      .replaceAll(
+        /Household\(HouseholdId\((\d+)\)\)/g,
+        "Household #$1"
+      )
+      .replaceAll("(HouseholdFormation)", "(household formation)")
+  }));
+const itemLineageShowcase = {
+  title: "The Working Heirlooms of Five Villages",
+  description:
+    "Fifteen working tools pass through households, accumulate wear, survive repairs, and become descendants with provenance of their own.",
+  command:
+    "cargo tui villages --input runs/item-lineage-42 --view items --focus-item 46",
+  seed: itemLineageSummary.seed,
+  projectionYear: itemLineageSummary.projection_year,
+  years: itemLineageSummary.elapsed_years,
+  summary: {
+    items: itemLineageSummary.items,
+    activeItems: itemLineageSummary.active_items,
+    transfers: itemLineageSummary.item_transfers,
+    repairs: itemLineageSummary.item_repairs,
+    transformations: itemLineageSummary.item_transformations,
+    maximumGeneration: itemLineageSummary.maximum_item_lineage
+  },
+  items: itemRecords,
+  settlements: localSettlements.map((settlement) => ({
+    id: settlement.location_id,
+    name: settlement.name
+  })),
+  featuredItemId: 46,
+  biography: itemBiography,
+  terminalScreen: itemTerminalScreen,
+  chronicle: itemChronicle
+};
+
 const historicalEventsById = new Map(
   historicalEvents.map((event) => [event.id, event])
 );
@@ -986,6 +1084,92 @@ for (const view of localTerminalViews) {
   );
 }
 
+assert(
+  itemLineageSummary.seed === localHistorySummary.seed &&
+    itemLineageSummary.projection_year === localHistorySummary.projection_year &&
+    itemLineageSummary.elapsed_years === localHistorySummary.elapsed_years,
+  "item lineage must share the canonical five-village time and seed"
+);
+assert(
+  itemRecords.length === itemLineageSummary.items &&
+    itemLineageSummary.items === 60 &&
+    itemLineageSummary.active_items === 15 &&
+    itemLineageSummary.item_repairs === 135 &&
+    itemLineageSummary.item_transformations === 45 &&
+    itemLineageSummary.item_transfers === 40 &&
+    itemLineageSummary.maximum_item_lineage === 3,
+  "item lineage totals must match the canonical working-heirloom evidence"
+);
+const itemRecordsById = new Map(itemRecords.map((item) => [item.id, item]));
+assert(
+  itemRecordsById.size === itemRecords.length,
+  "item lineage requires unique stable item IDs"
+);
+for (const item of itemRecords) {
+  assert(
+    item.condition_per_10_000 >= 0 &&
+      item.condition_per_10_000 <= 10_000 &&
+      item.repairs >= 0 &&
+      item.lineage_generation >= 0,
+    `item ${item.id} has invalid condition, repair, or generation data`
+  );
+  for (const source of item.sources ?? []) {
+    const sourceItem = itemRecordsById.get(source.item_id);
+    assert(
+      sourceItem !== undefined &&
+        sourceItem.id < item.id &&
+        sourceItem.lineage_generation < item.lineage_generation,
+      `item ${item.id} references an invalid or future source`
+    );
+  }
+}
+const itemDescendants = new Map<number, ItemRecord[]>();
+for (const item of itemRecords) {
+  for (const source of item.sources ?? []) {
+    const descendants = itemDescendants.get(source.item_id) ?? [];
+    descendants.push(item);
+    itemDescendants.set(source.item_id, descendants);
+  }
+}
+assert(
+  itemRecords.filter((item) => item.status === "active").length ===
+    itemLineageSummary.active_items &&
+    itemRecords
+      .filter((item) => item.status === "transformed")
+      .every((item) => (itemDescendants.get(item.id)?.length ?? 0) > 0),
+  "active and transformed item states must agree with the provenance graph"
+);
+for (const activeItem of itemRecords.filter(
+  (item) => item.status === "active"
+)) {
+  const chain: ItemRecord[] = [];
+  let cursor: ItemRecord | undefined = activeItem;
+  while (cursor) {
+    chain.unshift(cursor);
+    const sourceId: number | undefined = cursor.sources?.[0]?.item_id;
+    cursor = sourceId === undefined ? undefined : itemRecordsById.get(sourceId);
+  }
+  assert(
+    chain.length === itemLineageSummary.maximum_item_lineage + 1 &&
+      chain[0]?.lineage_generation === 0 &&
+      chain.at(-1)?.lineage_generation ===
+        itemLineageSummary.maximum_item_lineage,
+    `active item ${activeItem.id} does not preserve the canonical four-generation chain`
+  );
+}
+assert(
+  biographyStart >= 0 &&
+    itemBiography.length === 8 &&
+    itemBiography.at(-1)?.eventId === 2739 &&
+    itemBiography.at(-1)?.text.includes("12490 effective labor"),
+  "featured item biography must retain its latest transfer, repair, use, and work evidence"
+);
+assert(
+  !itemTerminalScreen.includes("\u001b") &&
+    itemTerminalScreen.trimEnd().split("\n").length <= 36,
+  "item terminal snapshot must be ANSI-free and fit the canonical 120x36 screen"
+);
+
 let previousId = 0;
 const knownIds = new Set<number>();
 for (const event of run.events) {
@@ -1026,10 +1210,11 @@ fs.writeFileSync(
     terminalShowcase,
     worldGenesisShowcase,
     localHistoryShowcase,
-    historyLoreShowcase
+    historyLoreShowcase,
+    itemLineageShowcase
   })}\n`
 );
 
 console.log(
-  `Validated ${run.events.length} foundation events, ${terminalViews.length + localTerminalViews.length} terminal views, the ${worldSummary.regions.toLocaleString("en-US")}-region world atlas, ${localPlayback.people.length} replayable village lives, and ${historyLoreShowcase.milestones.length} historical milestones.`
+  `Validated ${run.events.length} foundation events, ${terminalViews.length + localTerminalViews.length + 1} terminal views, the ${worldSummary.regions.toLocaleString("en-US")}-region world atlas, ${localPlayback.people.length} replayable village lives, ${historyLoreShowcase.milestones.length} historical milestones, and ${itemRecords.length} item identities.`
 );

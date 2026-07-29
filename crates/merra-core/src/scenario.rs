@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::{CalendarConfig, CalendarError};
+use crate::{CalendarConfig, CalendarError, ItemConfigV1};
 
 /// Current supported scenario schema.
 pub const SCENARIO_SCHEMA_V1: u32 = 1;
@@ -24,6 +24,9 @@ pub struct ScenarioV1 {
     /// Optional family and household rules.
     #[serde(default)]
     pub family: FamilyConfigV1,
+    /// Optional durable item and provenance rules.
+    #[serde(default)]
+    pub items: ItemConfigV1,
 }
 
 impl ScenarioV1 {
@@ -44,17 +47,62 @@ impl ScenarioV1 {
         self.calendar.validate()?;
         self.population.validate()?;
         self.family.validate()?;
+        self.items.validate()?;
         Ok(())
     }
 
     /// Returns the event schema required by this scenario's enabled systems.
     #[must_use]
     pub const fn event_schema_version(&self) -> u32 {
-        if self.family.enabled {
+        if self.items.enabled {
+            crate::EVENT_SCHEMA_V5
+        } else if self.family.enabled {
             crate::EVENT_SCHEMA_V2
         } else {
             crate::EVENT_SCHEMA_V1
         }
+    }
+}
+
+impl ItemConfigV1 {
+    fn validate(&self) -> Result<(), ScenarioError> {
+        if !self.enabled {
+            return Ok(());
+        }
+        if self.initial_items_per_household == 0 || self.archetypes.is_empty() {
+            return Err(ScenarioError::MissingItemRules);
+        }
+        if !self
+            .archetypes
+            .iter()
+            .any(|archetype| archetype.initially_distributed)
+        {
+            return Err(ScenarioError::MissingItemRules);
+        }
+        let mut ids = std::collections::BTreeSet::new();
+        for archetype in &self.archetypes {
+            if archetype.id.trim().is_empty()
+                || archetype.name.trim().is_empty()
+                || archetype.work_tag.trim().is_empty()
+                || !ids.insert(archetype.id.as_str())
+                || archetype.productivity_per_10_000 > 10_000
+                || archetype.wear_per_use == 0
+                || archetype.wear_per_use > 10_000
+                || archetype.repair_below > 10_000
+                || archetype.repair_amount == 0
+            {
+                return Err(ScenarioError::InvalidItemArchetype(archetype.id.clone()));
+            }
+        }
+        if let Some(missing) = self
+            .archetypes
+            .iter()
+            .filter_map(|archetype| archetype.rework_into.as_ref())
+            .find(|target| !ids.contains(target.as_str()))
+        {
+            return Err(ScenarioError::UnknownReworkTarget(missing.clone()));
+        }
+        Ok(())
     }
 }
 
@@ -180,6 +228,15 @@ pub enum ScenarioError {
     /// The display title is blank.
     #[error("scenario title must not be empty")]
     EmptyTitle,
+    /// Item history was enabled without an initial distribution and archetypes.
+    #[error("enabled item history requires archetypes and initial items")]
+    MissingItemRules,
+    /// One item archetype has an invalid identity or integer rule.
+    #[error("invalid item archetype `{0}`")]
+    InvalidItemArchetype(String),
+    /// A rework target does not identify another configured archetype.
+    #[error("unknown item rework target `{0}`")]
+    UnknownReworkTarget(String),
     /// The calendar is internally inconsistent.
     #[error(transparent)]
     Calendar(#[from] CalendarError),
@@ -225,7 +282,7 @@ mod tests {
         FamilyConfigV1, MortalityBandV1, PopulationConfigV1, SCENARIO_SCHEMA_V1, ScenarioError,
         ScenarioV1,
     };
-    use crate::{CalendarConfig, SeasonConfigV1};
+    use crate::{CalendarConfig, ItemArchetypeV1, ItemConfigV1, SeasonConfigV1};
 
     fn calendar() -> CalendarConfig {
         CalendarConfig {
@@ -252,6 +309,7 @@ mod tests {
                 mortality_bands: Vec::new(),
             },
             family: FamilyConfigV1::default(),
+            items: Default::default(),
         };
 
         assert!(matches!(
@@ -274,6 +332,7 @@ mod tests {
                 mortality_bands,
             },
             family: FamilyConfigV1::default(),
+            items: Default::default(),
         };
 
         let invalid_rate = populated(vec![MortalityBandV1 {
@@ -335,6 +394,7 @@ mod tests {
                 maximum_children_per_household: 0,
                 maximum_generation: 0,
             },
+            items: Default::default(),
         };
 
         assert_eq!(scenario.validate(), Err(ScenarioError::InvalidFamilyAges));
@@ -354,6 +414,7 @@ mod tests {
                 mortality_bands: Vec::new(),
             },
             family: FamilyConfigV1::default(),
+            items: Default::default(),
         };
 
         assert_eq!(scenario.event_schema_version(), crate::EVENT_SCHEMA_V1);
@@ -367,5 +428,57 @@ mod tests {
             maximum_generation: 3,
         };
         assert_eq!(scenario.event_schema_version(), crate::EVENT_SCHEMA_V2);
+    }
+
+    #[test]
+    fn item_rules_validate_rework_graph_and_require_schema_v5() {
+        let mut scenario = ScenarioV1 {
+            schema_version: SCENARIO_SCHEMA_V1,
+            id: String::from("items"),
+            title: String::from("Items"),
+            calendar: calendar(),
+            population: PopulationConfigV1 {
+                initial_people: 2,
+                minimum_starting_age: 18,
+                maximum_starting_age: 18,
+                mortality_bands: vec![MortalityBandV1 {
+                    through_age: u16::MAX,
+                    annual_deaths_per_10_000: 0,
+                }],
+            },
+            family: FamilyConfigV1 {
+                enabled: true,
+                minimum_partnership_age: 18,
+                minimum_parent_age: 20,
+                maximum_parent_age: 40,
+                birth_interval_years: 4,
+                maximum_children_per_household: 2,
+                maximum_generation: 1,
+            },
+            items: ItemConfigV1 {
+                enabled: true,
+                initial_items_per_household: 1,
+                household_formation_contributions: true,
+                archetypes: vec![ItemArchetypeV1 {
+                    id: String::from("tool"),
+                    name: String::from("tool"),
+                    initially_distributed: true,
+                    work_tag: String::from("work"),
+                    productivity_per_10_000: 2_000,
+                    wear_per_use: 1_000,
+                    repair_below: 4_000,
+                    repair_amount: 5_000,
+                    maximum_repairs: 2,
+                    rework_into: Some(String::from("tool")),
+                }],
+            },
+        };
+        assert_eq!(scenario.validate(), Ok(()));
+        assert_eq!(scenario.event_schema_version(), crate::EVENT_SCHEMA_V5);
+        scenario.items.archetypes[0].rework_into = Some(String::from("missing"));
+        assert_eq!(
+            scenario.validate(),
+            Err(ScenarioError::UnknownReworkTarget(String::from("missing")))
+        );
     }
 }
