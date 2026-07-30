@@ -4,6 +4,12 @@
   title: "One Hundred Lives",
   calendar: (
     days_per_year: 360,
+    seasons: [
+      (id: "thaw", name: "Thaw", days: 90),
+      (id: "bloom", name: "Bloom", days: 90),
+      (id: "highsun", name: "Highsun", days: 90),
+      (id: "emberfall", name: "Emberfall", days: 90),
+    ],
   ),
   population: (
     initial_people: 100,

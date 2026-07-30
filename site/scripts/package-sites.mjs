@@ -2,8 +2,17 @@ import fs from "node:fs";
 import path from "node:path";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../..");
-const source = path.join(repositoryRoot, "site", "dist");
+const openNextSource = path.join(repositoryRoot, "site", ".open-next");
+const workerSource = path.join(
+  repositoryRoot,
+  "site",
+  ".worker-dist",
+  "worker.js"
+);
+const assetsSource = path.join(openNextSource, "assets");
 const destination = path.join(repositoryRoot, "dist");
+const serverDestination = path.join(destination, "server");
+const assetsDestination = path.join(destination, "assets");
 const hostingSource = path.join(
   repositoryRoot,
   ".openai",
@@ -14,27 +23,33 @@ const hostingDestination = path.join(
   ".openai",
   "hosting.json"
 );
-const serverSource = ["index.js", "index.mjs"]
-  .map((fileName) => path.join(source, "server", fileName))
-  .find((filePath) => fs.existsSync(filePath));
-const serverDestination = path.join(destination, "server", "index.js");
 
-if (!serverSource) {
-  throw new Error("Vinext server bundle is missing from site/dist/.");
+if (!fs.existsSync(workerSource)) {
+  throw new Error("The final Workers bundle is missing.");
 }
 if (!fs.existsSync(hostingSource)) {
   throw new Error("The connected site descriptor is missing.");
 }
 
 fs.rmSync(destination, { recursive: true, force: true });
-fs.cpSync(source, destination, { recursive: true });
-if (!fs.existsSync(serverDestination)) {
-  fs.copyFileSync(
-    path.join(destination, "server", path.basename(serverSource)),
-    serverDestination
-  );
-}
+fs.mkdirSync(serverDestination, { recursive: true });
+fs.cpSync(assetsSource, assetsDestination, { recursive: true });
+const bundledWorker = fs
+  .readFileSync(workerSource, "utf8")
+  .replace(/\n\/\/# sourceMappingURL=worker\.js\.map\s*$/, "\n");
+fs.writeFileSync(
+  path.join(serverDestination, "index.js"),
+  bundledWorker
+);
+fs.writeFileSync(
+  path.join(destination, "package.json"),
+  `${JSON.stringify({ type: "module" }, null, 2)}\n`
+);
+fs.writeFileSync(
+  path.join(serverDestination, "package.json"),
+  `${JSON.stringify({ type: "module" }, null, 2)}\n`
+);
 fs.mkdirSync(path.dirname(hostingDestination), { recursive: true });
 fs.copyFileSync(hostingSource, hostingDestination);
 
-console.log("Packaged the Vinext site bundle in dist/.");
+console.log("Packaged the OpenNext worker bundle in dist/.");

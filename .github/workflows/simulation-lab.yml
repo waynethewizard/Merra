@@ -34,7 +34,7 @@ jobs:
         run: rustup toolchain install 1.97.1 --profile minimal
 
       - name: Verify golden simulations
-        run: cargo test --locked -p merra-testkit
+        run: cargo test --locked -p merra-testkit -p merra-tui
 
       - name: Generate the canonical century
         run: >-
@@ -51,7 +51,13 @@ jobs:
             --seed 42 \
             --years 100 \
             --snapshot \
-            --view events > runs/actions-century/tui-events.txt
+            --view overview > runs/actions-century/tui-overview.txt
+          cargo run --locked -p merra-tui -- \
+            --scenario scenarios/era-01/century.ron \
+            --seed 42 \
+            --years 100 \
+            --snapshot \
+            --view history > runs/actions-century/tui-history.txt
           cargo run --locked -p merra-tui -- \
             --scenario scenarios/era-01/century.ron \
             --seed 42 \
@@ -64,15 +70,181 @@ jobs:
           {
             cat runs/actions-century/chronicle.md
             printf '\n## Terminal Snapshot\n\n```\n'
-            sed -n '1,28p' runs/actions-century/tui-events.txt
+            sed -n '1,36p' runs/actions-century/tui-overview.txt
             printf '```\n'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Attach complete run evidence
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: canonical-century-${{ github.sha }}
           path: runs/actions-century/
+          if-no-files-found: error
+          retention-days: 14
+
+  canonical-dynasty:
+    name: Four-generation historical showcase
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.1 --profile minimal
+
+      - name: Generate the canonical dynasty
+        run: >-
+          cargo run --locked -p merra-cli -- run
+          --scenario scenarios/era-01/dynasty.ron
+          --seed 42
+          --years 60
+          --output runs/actions-dynasty
+
+      - name: Render historical showcase
+        run: |
+          cargo run --locked -p merra-tui -- \
+            --scenario scenarios/era-01/dynasty.ron \
+            --seed 42 \
+            --years 60 \
+            --snapshot \
+            --view overview > runs/actions-dynasty/tui-overview.txt
+          cargo run --locked -p merra-tui -- \
+            --scenario scenarios/era-01/dynasty.ron \
+            --seed 42 \
+            --years 60 \
+            --snapshot \
+            --view history > runs/actions-dynasty/tui-history.txt
+          cargo run --locked -p merra-tui -- \
+            --scenario scenarios/era-01/dynasty.ron \
+            --seed 42 \
+            --years 60 \
+            --snapshot \
+            --view lineage \
+            --focus-person 1 > runs/actions-dynasty/tui-lineage.txt
+          cargo run --locked -p merra-tui -- \
+            --scenario scenarios/era-01/dynasty.ron \
+            --seed 42 \
+            --years 60 \
+            --snapshot \
+            --view households \
+            --focus-household 1 > runs/actions-dynasty/tui-households.txt
+
+      - name: Publish showcase to the job summary
+        run: |
+          {
+            cat runs/actions-dynasty/chronicle.md
+            printf '\n## Terminal Overview\n\n```\n'
+            sed -n '1,36p' runs/actions-dynasty/tui-overview.txt
+            printf '```\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attach complete dynasty evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: canonical-dynasty-${{ github.sha }}
+          path: runs/actions-dynasty/
+          if-no-files-found: error
+          retention-days: 14
+
+  canonical-world-history:
+    name: World, first histories, and five villages
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.1 --profile minimal
+
+      - name: Verify exact and structural world evidence
+        run: cargo test --locked -p merra-worldgen -p merra-sim -p merra-testkit
+
+      - name: Generate the canonical world
+        run: >-
+          cargo run --locked -p merra-cli -- worldgen
+          --template scenarios/era-01/before-memory.ron
+          --seed 42
+          --output runs/actions-before-memory
+
+      - name: Run six centuries of macro history
+        run: >-
+          cargo run --locked -p merra-cli -- history
+          --world runs/actions-before-memory
+          --scenario scenarios/era-01/first-histories.ron
+          --seed 42
+          --years 600
+          --output runs/actions-first-histories
+
+      - name: Project the five-village local history
+        run: >-
+          cargo run --locked -p merra-cli -- villages
+          --history runs/actions-first-histories
+          --scenario scenarios/era-01/five-villages.ron
+          --seed 42
+          --output runs/actions-five-villages
+
+      - name: Render the inspectable world
+        run: >-
+          cargo run --locked -p merra-tui -- world
+          --input runs/actions-first-histories
+          --snapshot
+          --layer biome
+          > runs/actions-first-histories/tui-biome.txt
+
+      - name: Render the five-village field report
+        run: |
+          cargo run --locked -p merra-tui -- villages \
+            --input runs/actions-five-villages \
+            --snapshot \
+            --view overview > runs/actions-five-villages/tui-overview.txt
+          cargo run --locked -p merra-tui -- villages \
+            --input runs/actions-five-villages \
+            --snapshot \
+            --view roads > runs/actions-five-villages/tui-roads.txt
+          cargo run --locked -p merra-tui -- villages \
+            --input runs/actions-five-villages \
+            --snapshot \
+            --view settlements \
+            --focus-settlement 27 > runs/actions-five-villages/tui-settlements.txt
+          cargo run --locked -p merra-tui -- villages \
+            --input runs/actions-five-villages \
+            --snapshot \
+            --view migrations > runs/actions-five-villages/tui-migrations.txt
+          cargo run --locked -p merra-tui -- villages \
+            --input runs/actions-five-villages \
+            --snapshot \
+            --view households \
+            --focus-household 1 > runs/actions-five-villages/tui-households.txt
+
+      - name: Publish the historical field report
+        run: |
+          {
+            cat runs/actions-first-histories/chronicle.md
+            printf '\n## World measurements\n\n```json\n'
+            cat runs/actions-before-memory/summary.json
+            printf '```\n\n## World TUI / biome layer\n\n```\n'
+            sed -n '1,46p' runs/actions-first-histories/tui-biome.txt
+            printf '```\n\n## Five Villages / local consequence\n\n```\n'
+            sed -n '1,36p' runs/actions-five-villages/tui-overview.txt
+            printf '```\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attach world, atlas, events, and history
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: canonical-world-history-${{ github.sha }}
+          path: |
+            runs/actions-before-memory/
+            runs/actions-first-histories/
+            runs/actions-five-villages/
           if-no-files-found: error
           retention-days: 14
 
@@ -103,9 +275,78 @@ jobs:
         run: cat runs/actions-seed-lab/summary.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Attach cohort evidence
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: seed-lab-${{ github.sha }}
           path: runs/actions-seed-lab/
+          if-no-files-found: error
+          retention-days: 30
+
+  dynasty-cohort:
+    name: One hundred-seed dynasty cohort
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.1 --profile minimal
+
+      - name: Run deterministic dynasty laboratory
+        run: >-
+          cargo xtask seed-lab
+          --scenario scenarios/era-01/dynasty.ron
+          --first-seed 1
+          --count 100
+          --years 60
+          --output runs/actions-dynasty-lab
+
+      - name: Publish dynasty cohort summary
+        run: cat runs/actions-dynasty-lab/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attach dynasty cohort evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dynasty-lab-${{ github.sha }}
+          path: runs/actions-dynasty-lab/
+          if-no-files-found: error
+          retention-days: 30
+
+  world-history-cohort:
+    name: One hundred generated histories
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.97.1 --profile minimal
+
+      - name: Generate one hundred complete world histories
+        run: >-
+          cargo xtask world-lab
+          --world scenarios/era-01/before-memory.ron
+          --history scenarios/era-01/first-histories.ron
+          --first-seed 1
+          --count 100
+          --years 600
+          --output runs/actions-world-lab
+
+      - name: Publish world cohort summary
+        run: cat runs/actions-world-lab/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attach world cohort evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: world-lab-${{ github.sha }}
+          path: runs/actions-world-lab/
           if-no-files-found: error
           retention-days: 30

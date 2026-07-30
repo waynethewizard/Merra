@@ -16,6 +16,42 @@ type WorldEvent = {
   payload: { type: string };
 };
 
+type HistoricalEvidenceEvent = {
+  id: number;
+  time: { day: number };
+  kind: string;
+  location: number | null;
+  causes: number[];
+  payload: {
+    type: string;
+    name?: string;
+  };
+};
+
+type ItemHolder = {
+  type: "person" | "household" | "institution" | "settlement" | "polity";
+  id: number;
+};
+
+type ItemRecord = {
+  id: number;
+  archetype_id: string;
+  name: string;
+  introduced_day: number;
+  introduction_event_id: number;
+  sources?: {
+    item_id: number;
+    role: "material" | "component" | "pattern";
+  }[];
+  lineage_generation: number;
+  condition_per_10_000: number;
+  repairs: number;
+  status: "active" | "lost" | "transformed" | "destroyed" | "consumed";
+  owner: ItemHolder;
+  custody: ItemHolder;
+  current_location_id: number | null;
+};
+
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) errors.push(message);
 }
@@ -116,7 +152,7 @@ const cycleSource = fs.readFileSync(
     "devlog",
     "era-01",
     "cycles",
-    "01-time-and-death.md"
+    "05-five-villages.md"
   ),
   "utf8"
 );
@@ -129,9 +165,624 @@ const currentCycle = {
   title: String(cycleData.title),
   status: String(cycleData.status),
   started: String(cycleData.started),
+  completed: String(cycleData.completed ?? ""),
+  codeTag: String(cycleData.code_tag ?? ""),
   scenario: String(cycleData.scenario),
   seeds: Array.isArray(cycleData.seeds) ? cycleData.seeds : [],
   body: cycleBody
+};
+const dynastyDirectory = path.join(
+  repoRoot,
+  "golden",
+  "era-01",
+  "dynasty-seed-42"
+);
+const dynastySummary = readJson<{
+  scenario_id: string;
+  seed: number;
+  elapsed_years: number;
+  event_count: number;
+  initial_population: number;
+  living_population: number;
+  deaths: number;
+}>(path.join(dynastyDirectory, "summary.json"));
+const terminalViews = [
+  {
+    slug: "overview",
+    title: "Overview",
+    description:
+      "Population, generations, surname survival, and one featured life at a glance.",
+    file: "tui-overview.txt"
+  },
+  {
+    slug: "history",
+    title: "History",
+    description:
+      "Story events first, with resolved names, households, payloads, and causes.",
+    file: "tui-history.txt"
+  },
+  {
+    slug: "people",
+    title: "People",
+    description:
+      "Searchable biographies that distinguish current state from recorded history.",
+    file: "tui-people.txt"
+  },
+  {
+    slug: "lineage",
+    title: "Lineage",
+    description:
+      "Children remain grouped under the partnership that actually produced them.",
+    file: "tui-lineage.txt"
+  },
+  {
+    slug: "households",
+    title: "Households",
+    description:
+      "Current membership and reconstructed moves, births, deaths, and dissolution.",
+    file: "tui-households.txt"
+  }
+].map(({ file, ...view }) => ({
+  ...view,
+  screen: fs.readFileSync(path.join(dynastyDirectory, file), "utf8")
+}));
+const dynastyChronicle = fs.readFileSync(
+  path.join(dynastyDirectory, "chronicle.md"),
+  "utf8"
+);
+const householdCount = Number(
+  dynastyChronicle.match(/Families: (\d+) households formed/)?.[1]
+);
+const terminalShowcase = {
+  title: "Four Generations of Thorn and Fen",
+  description:
+    "A story-first terminal field report over the complete authoritative record for Cycle 2.",
+  command: "cargo tui",
+  scenarioId: dynastySummary.scenario_id,
+  seed: dynastySummary.seed,
+  years: dynastySummary.elapsed_years,
+  eventCount: dynastySummary.event_count,
+  initialPopulation: dynastySummary.initial_population,
+  births:
+    dynastySummary.living_population +
+    dynastySummary.deaths -
+    dynastySummary.initial_population,
+  livingPopulation: dynastySummary.living_population,
+  deaths: dynastySummary.deaths,
+  householdCount,
+  views: terminalViews
+};
+
+const worldGenesisDirectory = path.join(
+  repoRoot,
+  "golden",
+  "era-01",
+  "first-histories-seed-42"
+);
+const historicalEvents = fs
+  .readFileSync(path.join(worldGenesisDirectory, "events.jsonl"), "utf8")
+  .trim()
+  .split("\n")
+  .filter(Boolean)
+  .map((line) => JSON.parse(line) as HistoricalEvidenceEvent);
+const worldSummary = readJson<{
+  seed: number;
+  regions: number;
+  land_regions: number;
+  island_regions: number;
+  river_regions: number;
+  biome_count: number;
+  feature_count: number;
+  location_count: number;
+  route_count: number;
+  locked_sea_routes: number;
+}>(path.join(worldGenesisDirectory, "world-summary.json"));
+const historySummary = readJson<{
+  seed: number;
+  elapsed_years: number;
+  total_population: number;
+  population_cohorts: number;
+  settlements: number;
+  cultures: number;
+  faiths: number;
+  institutions: number;
+  mixed_lineage_populations: number;
+  first_contact_year: number;
+  event_count: number;
+}>(path.join(worldGenesisDirectory, "history-summary.json"));
+const cultures = readJson<
+  {
+    id: number;
+    name: string;
+    founded_year: number;
+    ritual_days_per_year: number;
+  }[]
+>(path.join(worldGenesisDirectory, "cultures.json"));
+const faiths = readJson<
+  {
+    id: number;
+    name: string;
+    founded_year: number;
+  }[]
+>(path.join(worldGenesisDirectory, "faiths.json"));
+const lore = readJson<
+  {
+    id: number;
+    title: string;
+    text: string;
+    source_culture_id: number;
+    source_faith_id: number | null;
+    about_events: number[];
+    confidence_per_10_000: number;
+  }[]
+>(path.join(worldGenesisDirectory, "lore.json"));
+const startingRegion = readJson<{
+  settlement_ids: number[];
+  event_ids: number[];
+  summary: string;
+}>(path.join(worldGenesisDirectory, "starting-region.json"));
+const atlasSvg = fs.readFileSync(
+  path.join(worldGenesisDirectory, "history-atlas.svg"),
+  "utf8"
+);
+const worldTuiScreen = fs.readFileSync(
+  path.join(worldGenesisDirectory, "tui-world.txt"),
+  "utf8"
+);
+const worldGenesisShowcase = {
+  title: "Before Memory / The First Histories",
+  description:
+    "One deterministic world generated before its peoples: terrain, climate, water, resources, mythic traces, places, then six centuries of migration and cultural history.",
+  command:
+    "cargo merra worldgen --template scenarios/era-01/before-memory.ron --seed 42 --output runs/before-memory-42",
+  seed: worldSummary.seed,
+  years: historySummary.elapsed_years,
+  world: {
+    regions: worldSummary.regions,
+    landRegions: worldSummary.land_regions,
+    islandRegions: worldSummary.island_regions,
+    riverRegions: worldSummary.river_regions,
+    biomes: worldSummary.biome_count,
+    features: worldSummary.feature_count,
+    places: worldSummary.location_count,
+    routes: worldSummary.route_count
+  },
+  history: {
+    totalPopulation: historySummary.total_population,
+    populationCohorts: historySummary.population_cohorts,
+    settlements: historySummary.settlements,
+    cultures: historySummary.cultures,
+    faiths: historySummary.faiths,
+    institutions: historySummary.institutions,
+    mixedLineagePopulations: historySummary.mixed_lineage_populations,
+    firstContactYear: historySummary.first_contact_year,
+    eventCount: historySummary.event_count
+  },
+  atlasSvg,
+  tuiScreen: worldTuiScreen,
+  stages: [
+    {
+      name: "Deep structure",
+      result: "Tectonic plates and integer elevation establish a reproducible landmass."
+    },
+    {
+      name: "Living surface",
+      result: "Climate, drainage, rivers, biomes, and resources constrain habitation."
+    },
+    {
+      name: "Meaning",
+      result: "Mythic traces and affordances make places culturally legible."
+    },
+    {
+      name: "Peoples",
+      result: "Three human cohorts and one orc cohort begin in separate homelands."
+    },
+    {
+      name: "History",
+      result: "Migration, settlement, institutions, navigation, and belief run for 600 years."
+    },
+    {
+      name: "Playable region",
+      result: "Five connected settlements preserve local evidence of world-scale history."
+    }
+  ],
+  lineages: [
+    {
+      name: "Humans",
+      homeland: "Continental watersheds",
+      mortality: 1,
+      power: 1,
+      speed: 1,
+      sustenance: 1
+    },
+    {
+      name: "Orcs",
+      homeland: "Remote island valley",
+      mortality: 0.75,
+      power: 1.25,
+      speed: 1,
+      sustenance: 1.125
+    }
+  ],
+  cultures: cultures.map((culture) => ({
+    name: culture.name,
+    foundedYear: culture.founded_year,
+    ritualDays: culture.ritual_days_per_year
+  })),
+  faiths: faiths.map((faith) => ({
+    name: faith.name,
+    foundedYear: faith.founded_year
+  })),
+  lore: lore.map((claim) => ({
+    title: claim.title,
+    text: claim.text,
+    confidence: claim.confidence_per_10_000 / 100
+  })),
+  startingRegion: {
+    settlementCount: startingRegion.settlement_ids.length,
+    eventCount: startingRegion.event_ids.length,
+    summary: startingRegion.summary
+  }
+};
+
+const localHistoryDirectory = path.join(
+  repoRoot,
+  "golden",
+  "era-01",
+  "five-villages-seed-42"
+);
+const localHistorySummary = readJson<{
+  seed: number;
+  projection_year: number;
+  elapsed_years: number;
+  settlements: number;
+  macro_population: number;
+  represented_population: number;
+  living_sample_people: number;
+  births: number;
+  deaths: number;
+  residence_decisions: number;
+  household_migrations: number;
+  located_events: number;
+}>(path.join(localHistoryDirectory, "summary.json"));
+const localSettlements = readJson<
+  {
+    location_id: number;
+    name: string;
+    macro_population: number;
+    represented_population: number;
+    initial_sample_people: number;
+    final_living_people: number;
+    births: number;
+    deaths: number;
+    arrivals: number;
+    departures: number;
+    active_households: number;
+  }[]
+>(path.join(localHistoryDirectory, "settlements.json"));
+const localConnections = readJson<
+  {
+    from: number;
+    to: number;
+    travel_cost: number;
+    travel_days: number;
+    route_ids: number[];
+    path: number[];
+  }[]
+>(path.join(localHistoryDirectory, "connections.json"));
+type LocalPlaybackPerson = {
+  id: number;
+  name: string;
+  generation: number;
+  starting_age_years: number;
+  birth_day: number | null;
+  death_day: number | null;
+  parent_ids: number[];
+};
+type LocalPlaybackEvent =
+  | {
+      type: "household_settled";
+      event_id: number;
+      day: number;
+      household_id: number;
+      origin_location_ids: number[];
+      destination_location_id: number;
+      traveler_ids: number[];
+      route_ids: number[];
+      travel_cost: number;
+      travel_days: number;
+      living_kin_support: number;
+      reason: string;
+    }
+  | {
+      type: "person_born";
+      event_id: number;
+      day: number;
+      person_id: number;
+      household_id: number;
+      location_id: number;
+    }
+  | {
+      type: "person_died";
+      event_id: number;
+      day: number;
+      person_id: number;
+      age_years: number;
+      location_id: number;
+    };
+const localPlayback = readJson<{
+  schema_version: number;
+  seed: number;
+  projection_year: number;
+  elapsed_years: number;
+  days_per_year: number;
+  people: LocalPlaybackPerson[];
+  events: LocalPlaybackEvent[];
+}>(path.join(localHistoryDirectory, "playback.json"));
+const localTerminalViews = [
+  {
+    slug: "overview",
+    title: "Overview",
+    description:
+      "The comparative consequence first: one village grows while another empties.",
+    file: "tui-overview.txt"
+  },
+  {
+    slug: "roads",
+    title: "Roads",
+    description:
+      "Exact shortest paths and pairwise costs without invented map geometry.",
+    file: "tui-roads.txt"
+  },
+  {
+    slug: "settlements",
+    title: "Settlements",
+    description:
+      "Macro reconciliation, local vital events, migration, and surviving homes.",
+    file: "tui-settlements.txt"
+  },
+  {
+    slug: "migrations",
+    title: "Migrations",
+    description:
+      "Origins, destination, kin support, road cost, route, and causal evidence.",
+    file: "tui-migrations.txt"
+  },
+  {
+    slug: "households",
+    title: "Households",
+    description:
+      "Residence, represented cohorts, institutions, faiths, and inherited claims.",
+    file: "tui-households.txt"
+  }
+].map(({ file, ...view }) => ({
+  ...view,
+  screen: fs.readFileSync(path.join(localHistoryDirectory, file), "utf8")
+}));
+const localHistoryShowcase = {
+  title: "Five Villages After First Contact",
+  description:
+    "A Year 600 aggregate region becomes 60 years of located household history, with every macro person reconciled and every move explainable.",
+  command:
+    "cargo tui villages --input runs/five-villages-42 --snapshot --view overview",
+  seed: localHistorySummary.seed,
+  projectionYear: localHistorySummary.projection_year,
+  years: localHistorySummary.elapsed_years,
+  macroPopulation: localHistorySummary.macro_population,
+  representedPopulation: localHistorySummary.represented_population,
+  livingPeople: localHistorySummary.living_sample_people,
+  births: localHistorySummary.births,
+  deaths: localHistorySummary.deaths,
+  residenceDecisions: localHistorySummary.residence_decisions,
+  migrations: localHistorySummary.household_migrations,
+  locatedEvents: localHistorySummary.located_events,
+  settlements: localSettlements,
+  connections: localConnections,
+  playback: localPlayback,
+  views: localTerminalViews
+};
+
+const itemLineageDirectory = path.join(
+  repoRoot,
+  "golden",
+  "era-01",
+  "item-lineage-seed-42"
+);
+const itemLineageSummary = readJson<{
+  seed: number;
+  projection_year: number;
+  elapsed_years: number;
+  items: number;
+  active_items: number;
+  item_transfers: number;
+  item_repairs: number;
+  item_transformations: number;
+  maximum_item_lineage: number;
+}>(path.join(itemLineageDirectory, "summary.json"));
+const itemRecords = readJson<ItemRecord[]>(
+  path.join(itemLineageDirectory, "items.json")
+);
+const itemTerminalScreen = fs.readFileSync(
+  path.join(itemLineageDirectory, "tui-items.txt"),
+  "utf8"
+);
+const itemChronicle = fs.readFileSync(
+  path.join(itemLineageDirectory, "chronicle.md"),
+  "utf8"
+);
+const biographyStart = itemTerminalScreen
+  .split("\n")
+  .findIndex((line) => line === "BIOGRAPHY");
+const itemBiography = itemTerminalScreen
+  .split("\n")
+  .slice(biographyStart + 1)
+  .map((line) => line.match(/^Y(\d+)\s+#(\d+)\s+(.+)$/))
+  .filter((match): match is RegExpMatchArray => match !== null)
+  .map((match) => ({
+    year: Number(match[1]),
+    eventId: Number(match[2]),
+    text: match[3]
+      .replaceAll(
+        /Household\(HouseholdId\((\d+)\)\)/g,
+        "Household #$1"
+      )
+      .replaceAll("(HouseholdFormation)", "(household formation)")
+  }));
+const itemLineageShowcase = {
+  title: "The Working Heirlooms of Five Villages",
+  description:
+    "Fifteen working tools pass through households, accumulate wear, survive repairs, and become descendants with provenance of their own.",
+  command:
+    "cargo tui villages --input runs/item-lineage-42 --view items --focus-item 46",
+  seed: itemLineageSummary.seed,
+  projectionYear: itemLineageSummary.projection_year,
+  years: itemLineageSummary.elapsed_years,
+  summary: {
+    items: itemLineageSummary.items,
+    activeItems: itemLineageSummary.active_items,
+    transfers: itemLineageSummary.item_transfers,
+    repairs: itemLineageSummary.item_repairs,
+    transformations: itemLineageSummary.item_transformations,
+    maximumGeneration: itemLineageSummary.maximum_item_lineage
+  },
+  items: itemRecords,
+  settlements: localSettlements.map((settlement) => ({
+    id: settlement.location_id,
+    name: settlement.name
+  })),
+  featuredItemId: 46,
+  biography: itemBiography,
+  terminalScreen: itemTerminalScreen,
+  chronicle: itemChronicle
+};
+
+const historicalEventsById = new Map(
+  historicalEvents.map((event) => [event.id, event])
+);
+const culturesById = new Map(cultures.map((culture) => [culture.id, culture]));
+const faithsById = new Map(faiths.map((faith) => [faith.id, faith]));
+const historyLoreShowcase = {
+  seed: historySummary.seed,
+  startYear: 0,
+  projectionYear: localHistorySummary.projection_year,
+  endYear:
+    localHistorySummary.projection_year + localHistorySummary.elapsed_years,
+  recordedEvents: historySummary.event_count,
+  localLocatedEvents: localHistorySummary.located_events,
+  firstContact: {
+    year: historySummary.first_contact_year,
+    eventId: 37,
+    routeEventId: 36,
+    locationId: 20,
+    record:
+      "A learned sea route opened between the separated homelands. Populations #2 and #4 then met at Fenstead, creating Tidebound culture, a mixed community, and the spread of the Ring Witness."
+  },
+  milestones: [
+    {
+      years: "Year 0",
+      phase: "Origins",
+      title: "Four cultures begin apart",
+      description:
+        "River Folk, Upland Kin, Western Marches, and Keepers of the Ring enter history in separated homelands. The Ring Witness faith forms around an unexplained prehuman trace.",
+      evidenceScope: "Macro events",
+      eventIds: [2, 3, 4, 5, 14]
+    },
+    {
+      years: "Year 120",
+      phase: "Expansion",
+      title: "River life becomes belief",
+      description:
+        "Migration founds Valeford, and the River Folk establish the River Witness as a learned faith rather than an inherited physical trait.",
+      evidenceScope: "Macro events",
+      eventIds: [21, 22, 23]
+    },
+    {
+      years: "Year 270",
+      phase: "Settlement",
+      title: "Fenholm is founded",
+      description:
+        "A migration from Hallowgate establishes Fenholm three centuries before its final sampled household disappears.",
+      evidenceScope: "Macro events",
+      eventIds: [34, 35]
+    },
+    {
+      years: "Year 293",
+      phase: "First contact",
+      title: "The sea opens; history crosses it",
+      description:
+        "Navigation unlocks the route before contact can occur. The meeting produces Tidebound culture, a mixed-lineage population, and a new path for faith.",
+      evidenceScope: "Macro events",
+      eventIds: [36, 37, 38, 39, 40]
+    },
+    {
+      years: "Year 373",
+      phase: "Schism",
+      title: "The Ring Witness divides",
+      description:
+        "First contact remains causally present eighty years later when the Open Hand separates from the Ring Witness at Fenstead.",
+      evidenceScope: "Macro event",
+      eventIds: [48]
+    },
+    {
+      years: "Years 480–540",
+      phase: "The five villages",
+      title: "The contact region takes shape",
+      description:
+        "Alderholm, Junipercross, and Yarrowmere are founded through migration around Fenstead and older Fenholm.",
+      evidenceScope: "Macro events",
+      eventIds: [57, 58, 60, 61, 62, 63]
+    },
+    {
+      years: "Year 600",
+      phase: "Local handoff",
+      title: "Forty thousand lives become thirty detailed witnesses",
+      description:
+        "The five-settlement region closes with 40,751 aggregate people. A weighted sample of 30 named founders preserves that population exactly before detailed household history begins.",
+      evidenceScope: "Macro event",
+      eventIds: [69]
+    },
+    {
+      years: "Years 602–642",
+      phase: "Generations",
+      title: "Three new generations arrive",
+      description:
+        "Generation 1 begins with Elian Thorn, Generation 2 with Leof Fen, and Generation 3 with Frida Fen. Their births are separated by twenty-year intervals.",
+      evidenceScope: "Local events",
+      eventIds: [65, 285, 523]
+    },
+    {
+      years: "Year 660",
+      phase: "Consequence",
+      title: "One village grows; another empties",
+      description:
+        "After 78 births, 34 deaths, and 22 household migrations, 74 sampled people remain. Fenstead holds 37; Fenholm holds none, but its events and inherited memory remain.",
+      evidenceScope: "Canonical summary",
+      eventIds: []
+    }
+  ],
+  claims: lore.map((claim) => ({
+    id: claim.id,
+    title: claim.title,
+    text: claim.text,
+    sourceCulture:
+      culturesById.get(claim.source_culture_id)?.name ??
+      `Culture #${claim.source_culture_id}`,
+    sourceFaith:
+      claim.source_faith_id === null
+        ? null
+        : faithsById.get(claim.source_faith_id)?.name ??
+          `Faith #${claim.source_faith_id}`,
+    confidence: claim.confidence_per_10_000 / 100,
+    aboutEventIds: claim.about_events
+  })),
+  macroChronicle: fs.readFileSync(
+    path.join(worldGenesisDirectory, "chronicle.md"),
+    "utf8"
+  ),
+  localChronicle: fs.readFileSync(
+    path.join(localHistoryDirectory, "chronicle.md"),
+    "utf8"
+  )
 };
 
 const run = foundationRun;
@@ -159,7 +810,365 @@ assert(
 assert(cycle.era > 0 && cycle.cycle > 0, "cycle era and number are required");
 assert(Boolean(cycle.slug && cycle.title), "cycle slug and title are required");
 assert(Boolean(cycle.status && cycle.started), "cycle status and date are required");
-assert(cycle.seeds.includes(run.manifest.seed), "golden seed must appear in cycle");
+assert(
+  ["planned", "in_progress", "complete"].includes(cycle.status),
+  "cycle status must be planned, in_progress, or complete"
+);
+if (cycle.status === "complete") {
+  assert(Boolean(cycle.completed), "a complete cycle requires a completion date");
+  assert(Boolean(cycle.codeTag), "a complete cycle requires a code tag");
+  assert(
+    cycle.codeTag ===
+      `era-${String(cycle.era).padStart(2, "0")}-cycle-${String(cycle.cycle).padStart(2, "0")}`,
+    "cycle code tag must match its era and cycle number"
+  );
+}
+assert(cycle.seeds.length > 0, "cycle requires at least one reproducible seed");
+assert(
+  fs.existsSync(path.join(repoRoot, cycle.scenario)),
+  `missing cycle scenario: ${cycle.scenario}`
+);
+assert(
+  terminalShowcase.scenarioId === "era-01-dynasty" &&
+    terminalShowcase.seed === 42 &&
+    terminalShowcase.years === 60,
+  "terminal showcase must use the canonical Cycle 2 run"
+);
+assert(
+  terminalShowcase.eventCount === 644 &&
+    terminalShowcase.births === 49 &&
+    terminalShowcase.livingPopulation === 45 &&
+    terminalShowcase.deaths === 20,
+  "terminal showcase outcomes must match canonical evidence"
+);
+assert(terminalViews.length === 5, "terminal showcase requires all five views");
+for (const view of terminalViews) {
+  assert(!view.screen.includes("\u001b"), `${view.slug} snapshot contains ANSI`);
+  assert(
+    view.screen.trimEnd().split("\n").length === 36,
+    `${view.slug} snapshot must be the canonical 120x36 screen`
+  );
+}
+assert(
+  terminalViews[0]?.screen.includes("Gorse       2 people · EXTINCT") &&
+    terminalViews[3]?.screen.includes("Garin Fen #14  [CURRENT PARTNER]"),
+  "terminal showcase must retain surname and union-aware story evidence"
+);
+assert(
+  worldSummary.regions === 12_288 &&
+    worldSummary.land_regions > 4_800 &&
+    worldSummary.island_regions > 0 &&
+    worldSummary.river_regions > 0,
+  "world genesis must retain the canonical continent, island, and rivers"
+);
+assert(
+  worldSummary.locked_sea_routes === 1,
+  "world genesis must begin with one inaccessible sea route"
+);
+assert(
+  historySummary.first_contact_year === 293 &&
+    historySummary.mixed_lineage_populations === 4 &&
+    historySummary.settlements === 24,
+  "history showcase must retain canonical first-contact evidence"
+);
+assert(
+  startingRegion.settlement_ids.length === 5,
+  "the starting region must contain exactly five settlements"
+);
+assert(
+  cultures.some((culture) => culture.name === "Keepers of the Ring") &&
+    cultures.some((culture) => culture.name === "Tidebound"),
+  "the showcase must contain both isolated and contact cultures"
+);
+assert(lore.length >= 2, "first contact requires competing lore claims");
+assert(
+  historicalEvents.length === historySummary.event_count &&
+    historicalEventsById.get(36)?.kind === "sea_route_opened" &&
+    historicalEventsById.get(37)?.kind === "first_contact" &&
+    historicalEventsById.get(37)?.causes.includes(36),
+  "history reader requires the canonical route-to-contact causal chain"
+);
+for (const claim of lore) {
+  assert(
+    culturesById.has(claim.source_culture_id) &&
+      (claim.source_faith_id === null ||
+        faithsById.has(claim.source_faith_id)) &&
+      claim.about_events.every(
+        (eventId) => historicalEventsById.get(eventId)?.kind === "first_contact"
+      ),
+    `lore claim ${claim.id} must resolve its source and first-contact evidence`
+  );
+}
+for (const milestone of historyLoreShowcase.milestones) {
+  const sourceEvents =
+    milestone.evidenceScope === "Local events"
+      ? localPlayback.events
+      : historicalEvents;
+  assert(
+    milestone.eventIds.every((eventId) =>
+      sourceEvents.some((event) =>
+        "event_id" in event ? event.event_id === eventId : event.id === eventId
+      )
+    ),
+    `${milestone.title} references missing ${milestone.evidenceScope.toLowerCase()}`
+  );
+}
+assert(
+  atlasSvg.trimStart().startsWith("<svg") &&
+    !atlasSvg.toLowerCase().includes("<script"),
+  "the generated atlas must be a script-free SVG"
+);
+assert(!worldTuiScreen.includes("\u001b"), "world TUI snapshot contains ANSI");
+assert(
+  localHistorySummary.settlements === 5 &&
+    localSettlements.length === 5 &&
+    localConnections.length === 10,
+  "local history must preserve five settlements and ten pairwise connections"
+);
+assert(
+  localHistorySummary.macro_population ===
+    localHistorySummary.represented_population &&
+    localSettlements.every(
+      (settlement) =>
+        settlement.macro_population === settlement.represented_population
+    ),
+  "local household allocations must exactly reconcile aggregate populations"
+);
+assert(
+  localSettlements.some(
+    (settlement) =>
+      settlement.name === "Fenstead" &&
+      settlement.final_living_people > settlement.initial_sample_people
+  ) &&
+    localSettlements.some(
+      (settlement) =>
+        settlement.name === "Fenholm" &&
+        settlement.initial_sample_people > 0 &&
+        settlement.final_living_people === 0
+    ),
+  "local showcase must retain the growing and empty village contrast"
+);
+assert(
+  localPlayback.schema_version === 1 &&
+    localPlayback.seed === localHistorySummary.seed &&
+    localPlayback.projection_year === localHistorySummary.projection_year &&
+    localPlayback.elapsed_years === localHistorySummary.elapsed_years &&
+    localPlayback.days_per_year === 360,
+  "local playback metadata must match the canonical local history"
+);
+const playbackPeople = new Map(
+  localPlayback.people.map((person) => [person.id, person])
+);
+assert(
+  playbackPeople.size === 108 &&
+    localPlayback.people.length === playbackPeople.size,
+  "local playback requires 108 uniquely identified sampled people"
+);
+const generationCounts = [0, 1, 2, 3].map(
+  (generation) =>
+    localPlayback.people.filter((person) => person.generation === generation)
+      .length
+);
+assert(
+  generationCounts.join(",") === "30,30,26,22",
+  "local playback must retain the canonical four generations"
+);
+
+const selectedLocationIds = new Set(
+  localSettlements.map((settlement) => settlement.location_id)
+);
+const livingPlaybackPeople = new Set<number>();
+const seenPlaybackPeople = new Set<number>();
+const playbackLocations = new Map<number, number>();
+let previousPlaybackEventId = 0;
+let previousPlaybackDay = 0;
+let playbackBirths = 0;
+let playbackDeaths = 0;
+let playbackSettlements = 0;
+let playbackMigrations = 0;
+for (const event of localPlayback.events) {
+  assert(
+    event.event_id > previousPlaybackEventId && event.day >= previousPlaybackDay,
+    `playback event ${event.event_id} is not in stable causal order`
+  );
+  previousPlaybackEventId = event.event_id;
+  previousPlaybackDay = event.day;
+  if (event.type === "household_settled") {
+    playbackSettlements += 1;
+    assert(
+      selectedLocationIds.has(event.destination_location_id),
+      `playback household ${event.household_id} settled outside the five villages`
+    );
+    if (
+      event.origin_location_ids.some(
+        (origin) => origin !== event.destination_location_id
+      )
+    ) {
+      playbackMigrations += 1;
+    }
+    for (const personId of event.traveler_ids) {
+      assert(
+        playbackPeople.has(personId),
+        `playback settlement references unknown person ${personId}`
+      );
+      livingPlaybackPeople.add(personId);
+      seenPlaybackPeople.add(personId);
+      playbackLocations.set(personId, event.destination_location_id);
+    }
+  } else if (event.type === "person_born") {
+    playbackBirths += 1;
+    const person = playbackPeople.get(event.person_id);
+    assert(
+      person?.birth_day === event.day,
+      `playback birth for person ${event.person_id} disagrees with person metadata`
+    );
+    livingPlaybackPeople.add(event.person_id);
+    seenPlaybackPeople.add(event.person_id);
+    playbackLocations.set(event.person_id, event.location_id);
+  } else {
+    playbackDeaths += 1;
+    const person = playbackPeople.get(event.person_id);
+    assert(
+      person?.death_day === event.day &&
+        playbackLocations.get(event.person_id) === event.location_id,
+      `playback death for person ${event.person_id} disagrees with lived location`
+    );
+    livingPlaybackPeople.delete(event.person_id);
+  }
+}
+assert(
+  localPlayback.events.length === 164 &&
+    playbackSettlements === 52 &&
+    playbackBirths === localHistorySummary.births &&
+    playbackDeaths === localHistorySummary.deaths &&
+    playbackMigrations === localHistorySummary.household_migrations,
+  "local playback event totals must match the canonical local summary"
+);
+assert(
+  seenPlaybackPeople.size === playbackPeople.size &&
+    livingPlaybackPeople.size === localHistorySummary.living_sample_people,
+  "local playback must place every sampled life and reconcile final survivors"
+);
+for (const settlement of localSettlements) {
+  const livingHere = [...livingPlaybackPeople].filter(
+    (personId) => playbackLocations.get(personId) === settlement.location_id
+  ).length;
+  assert(
+    livingHere === settlement.final_living_people,
+    `playback final population disagrees with ${settlement.name}`
+  );
+}
+const generationStarts = [1, 2, 3].map((generation) => {
+  const firstBirth = localPlayback.people
+    .filter((person) => person.generation === generation)
+    .map((person) => person.birth_day)
+    .filter((day): day is number => day !== null)
+    .sort((first, second) => first - second)[0];
+  return firstBirth === undefined
+    ? -1
+    : Math.floor(firstBirth / localPlayback.days_per_year);
+});
+assert(
+  generationStarts.join(",") === "2,22,42",
+  "local playback generation milestones must remain Year +2, +22, and +42"
+);
+assert(
+  localTerminalViews.length === 5,
+  "local history showcase requires all five terminal views"
+);
+for (const view of localTerminalViews) {
+  assert(!view.screen.includes("\u001b"), `${view.slug} local snapshot contains ANSI`);
+  assert(
+    view.screen.trimEnd().split("\n").length <= 36,
+    `${view.slug} local snapshot exceeds the canonical 120x36 screen`
+  );
+}
+
+assert(
+  itemLineageSummary.seed === localHistorySummary.seed &&
+    itemLineageSummary.projection_year === localHistorySummary.projection_year &&
+    itemLineageSummary.elapsed_years === localHistorySummary.elapsed_years,
+  "item lineage must share the canonical five-village time and seed"
+);
+assert(
+  itemRecords.length === itemLineageSummary.items &&
+    itemLineageSummary.items === 60 &&
+    itemLineageSummary.active_items === 15 &&
+    itemLineageSummary.item_repairs === 135 &&
+    itemLineageSummary.item_transformations === 45 &&
+    itemLineageSummary.item_transfers === 40 &&
+    itemLineageSummary.maximum_item_lineage === 3,
+  "item lineage totals must match the canonical working-heirloom evidence"
+);
+const itemRecordsById = new Map(itemRecords.map((item) => [item.id, item]));
+assert(
+  itemRecordsById.size === itemRecords.length,
+  "item lineage requires unique stable item IDs"
+);
+for (const item of itemRecords) {
+  assert(
+    item.condition_per_10_000 >= 0 &&
+      item.condition_per_10_000 <= 10_000 &&
+      item.repairs >= 0 &&
+      item.lineage_generation >= 0,
+    `item ${item.id} has invalid condition, repair, or generation data`
+  );
+  for (const source of item.sources ?? []) {
+    const sourceItem = itemRecordsById.get(source.item_id);
+    assert(
+      sourceItem !== undefined &&
+        sourceItem.id < item.id &&
+        sourceItem.lineage_generation < item.lineage_generation,
+      `item ${item.id} references an invalid or future source`
+    );
+  }
+}
+const itemDescendants = new Map<number, ItemRecord[]>();
+for (const item of itemRecords) {
+  for (const source of item.sources ?? []) {
+    const descendants = itemDescendants.get(source.item_id) ?? [];
+    descendants.push(item);
+    itemDescendants.set(source.item_id, descendants);
+  }
+}
+assert(
+  itemRecords.filter((item) => item.status === "active").length ===
+    itemLineageSummary.active_items &&
+    itemRecords
+      .filter((item) => item.status === "transformed")
+      .every((item) => (itemDescendants.get(item.id)?.length ?? 0) > 0),
+  "active and transformed item states must agree with the provenance graph"
+);
+for (const activeItem of itemRecords.filter(
+  (item) => item.status === "active"
+)) {
+  const chain: ItemRecord[] = [];
+  let cursor: ItemRecord | undefined = activeItem;
+  while (cursor) {
+    chain.unshift(cursor);
+    const sourceId: number | undefined = cursor.sources?.[0]?.item_id;
+    cursor = sourceId === undefined ? undefined : itemRecordsById.get(sourceId);
+  }
+  assert(
+    chain.length === itemLineageSummary.maximum_item_lineage + 1 &&
+      chain[0]?.lineage_generation === 0 &&
+      chain.at(-1)?.lineage_generation ===
+        itemLineageSummary.maximum_item_lineage,
+    `active item ${activeItem.id} does not preserve the canonical four-generation chain`
+  );
+}
+assert(
+  biographyStart >= 0 &&
+    itemBiography.length === 8 &&
+    itemBiography.at(-1)?.eventId === 2739 &&
+    itemBiography.at(-1)?.text.includes("12490 effective labor"),
+  "featured item biography must retain its latest transfer, repair, use, and work evidence"
+);
+assert(
+  !itemTerminalScreen.includes("\u001b") &&
+    itemTerminalScreen.trimEnd().split("\n").length <= 36,
+  "item terminal snapshot must be ANSI-free and fit the canonical 120x36 screen"
+);
 
 let previousId = 0;
 const knownIds = new Set<number>();
@@ -195,9 +1204,17 @@ const generatedDirectory = path.join(siteRoot, "src", "generated");
 fs.mkdirSync(generatedDirectory, { recursive: true });
 fs.writeFileSync(
   path.join(generatedDirectory, "content.json"),
-  `${JSON.stringify({ foundationRun, currentCycle })}\n`
+  `${JSON.stringify({
+    foundationRun,
+    currentCycle,
+    terminalShowcase,
+    worldGenesisShowcase,
+    localHistoryShowcase,
+    historyLoreShowcase,
+    itemLineageShowcase
+  })}\n`
 );
 
 console.log(
-  `Validated and embedded ${run.events.length} events, seed ${run.manifest.seed}, and ${cycle.title}.`
+  `Validated ${run.events.length} foundation events, ${terminalViews.length + localTerminalViews.length + 1} terminal views, the ${worldSummary.regions.toLocaleString("en-US")}-region world atlas, ${localPlayback.people.length} replayable village lives, ${historyLoreShowcase.milestones.length} historical milestones, and ${itemRecords.length} item identities.`
 );

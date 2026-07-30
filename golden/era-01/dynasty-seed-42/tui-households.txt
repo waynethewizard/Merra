@@ -1,0 +1,36 @@
+┌ Chronicle Lab ───────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│MERRA // FOUR GENERATIONS OF THORN AND FEN   seed 42                                                                  │
+│Scenario era-01-dynasty · Year 60 · 644 authoritative events                                                          │
+│Population 16 + 49 born → 45 living · 20 deaths · Households 31 formed / 18 active                                    │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Overview  │  History  │  People  │  Lineage  │  [Households]                                                         │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ Households · sort status · 31 shown ─────────────┐┌ Household History ───────────────────────────────────────────────┐
+│   20  Oak household     4 now ·  2 born · active ││Thorn household  #1  [dissolved Year 46 · Day 16560]              │
+│   21  Fen household     4 now ·  2 born · active ││Surname Thorn · founded Year 0 · 2 children born                  │
+│   22  Vale household    4 now ·  2 born · active ││Current members: none                                             │
+│   26  Marsh household   4 now ·  2 born · active ││All recorded members: Garin Thorn #1, Garin Gorse #2, Mara Thorn  │
+│   18  Fen household     3 now ·  2 born · active ││#17, Garin Thorn #25                                              │
+│   19  Fen household     3 now ·  2 born · active ││                                                                  │
+│   30  Fen household     3 now ·  1 born · active ││HOUSEHOLD HISTORY                                                 │
+│   10  Mere household    2 now ·  2 born · active ││Y 0  Formed with Garin Thorn #1 + Garin Gorse #2                  │
+│   13  Fen household     2 now ·  2 born · active ││Y 2  Mara Thorn #17 was born into the household                   │
+│   14  Mere household    2 now ·  2 born · active ││Y 6  Garin Thorn #25 was born into the household                  │
+│   16  Marsh household   2 now ·  2 born · active ││Y20  Mara Thorn #17 left for Fen household #9                     │
+│   23  Thorn household   2 now ·  0 born · active ││Y24  Garin Thorn #25 left for Fen household #13                   │
+│   25  Mere household    2 now ·  2 born · active ││Y45  Garin Gorse #2 died while resident                           │
+│   27  Vale household    2 now ·  0 born · active ││Y46  Garin Thorn #1 left for Oak household #24                    │
+│   28  Thorn household   2 now ·  0 born · active ││Y46  Household dissolved                                          │
+│   31  Fen household     2 now ·  0 born · active ││                                                                  │
+│   11  Oak household     1 now ·  2 born · active ││                                                                  │
+│   29  Marsh household   1 now ·  0 born · active ││                                                                  │
+│▶   1  Thorn household   0 now ·  2 born · ended  ││                                                                  │
+│    2  Fen household     0 now ·  2 born · ended  ││                                                                  │
+│    3  Reed household    0 now ·  2 born · ended  ││                                                                  │
+│    4  Mere household    0 now ·  2 born · ended  ││                                                                  │
+│    5  Vale household    0 now ·  2 born · ended  ││                                                                  │
+│    6  Oak household     0 now ·  2 born · ended  ││                                                                  │
+│    7  Fen household     0 now ·  2 born · ended  ││                                                                  │
+└──────────────────────────────────────────────────┘└──────────────────────────────────────────────────────────────────┘
+q quit · ↑↓ move · Enter member lineage · e events · s sort (status) · / search

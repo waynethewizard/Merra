@@ -8,6 +8,8 @@
       "/docs/devlog/**",
       "/docs/newsletter/**",
       "/golden/**",
+      "/package.json",
+      "/package-lock.json",
       "/scenarios/**",
       "/railway.json"
     ]

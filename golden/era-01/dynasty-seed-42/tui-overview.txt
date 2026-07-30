@@ -1,0 +1,36 @@
+┌ Chronicle Lab ───────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│MERRA // FOUR GENERATIONS OF THORN AND FEN   seed 42                                                                  │
+│Scenario era-01-dynasty · Year 60 · 644 authoritative events                                                          │
+│Population 16 + 49 born → 45 living · 20 deaths · Households 31 formed / 18 active                                    │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ [Overview]  │  History  │  People  │  Lineage  │  Households                                                         │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ World at Year 60 ────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│65 people recorded · 16 founders · 49 births · 45 living · 20 dead                                                    │
+│31 households formed · 18 active · 13 ended · peak population 52 in Year 50                                           │
+│Population: ▄▄▅▅▅▅▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▇▇▇████▇████████▇████████████  45 at Year 60                                       │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ Generations ────────────────────────────────────────┐┌ Surname Survival ─────────────────────────────────────────────┐
+│G0  █████·············   5/16 living · 16 total      ││Fen        22 people · 16 living  · G0–3                       │
+│G1  ███████████·······  11/16 living · 16 total      ││Mere        9 people · 7 living   · G0–3                       │
+│G2  ██████████████····  14/18 living · 18 total      ││Marsh       7 people · 4 living   · G0–3                       │
+│G3  ███████████████···  15/15 living · 15 total      ││Oak         7 people · 4 living   · G0–3                       │
+│                                                     ││Vale        7 people · 7 living   · G0–3                       │
+│161 historical events · 483 clock/season/debug events││Thorn       5 people · 3 living   · G0–1                       │
+│                                                     ││Reed        4 people · 3 living   · G0–1                       │
+│                                                     ││Crow        2 people · 1 living   · G0 only                    │
+│                                                     ││Gorse       2 people · EXTINCT    · G0 only                    │
+│                                                     ││                                                               │
+│                                                     ││                                                               │
+│                                                     ││                                                               │
+└─────────────────────────────────────────────────────┘└───────────────────────────────────────────────────────────────┘
+┌ Featured Life ───────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│Garin Thorn  #1 · G0 · age 78 · living · 3 partnerships · 2 children · 3 households                                   │
+│Y0–Y45  Garin Gorse · Thorn household · 2 children                                                                    │
+│Y46–Y55  Runa Oak · Oak household · 0 children                                                                        │
+│Y55–present  Garin Fen · Thorn household · 0 children · CURRENT                                                       │
+│Enter opens the union-aware lineage; parentage remains attached to each partnership.                                  │
+│                                                                                                                      │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+q quit · Tab/1–5 views · Enter featured lineage

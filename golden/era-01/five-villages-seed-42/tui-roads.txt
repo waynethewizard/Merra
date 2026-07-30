@@ -1,0 +1,36 @@
+MERRA // FIVE VILLAGES AFTER FIRST CONTACT
+YEAR 600 + 60 · seed 42 · 40751 macro people represented exactly
+1 Overview  [2 Roads]  3 Settlements  4 Migrations  5 Households
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ROADS // SHORTEST PATHS FROM Fenstead #20
+Costs come from the historically available world graph; paths may cross intermediate places.
+├─   8 cost /  16d / 1 segment(s) ─ Alderholm #11
+├─   8 cost /  16d / 1 segment(s) ─ Junipercross #17
+├─  68 cost / 136d / 1 segment(s) ─ Yarrowmere #28
+├─  74 cost / 148d / 2 segment(s) ─ Fenholm #27
+
+PAIRWISE TRAVEL COST
+            Fenstead Alderhol Juniperc Yarrowme  Fenholm
+Fenstead           —        8        8       68       74
+Alderhol           8        —        6       76       82
+Juniperc           8        6        —       76       82
+Yarrowme          68       76       76        —        6
+Fenholm           74       82       82        6        —
+
+Longest: Junipercross → Fenstead → Yarrowmere → Fenholm · 82 cost · 164 days
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tab/1–5 view · ↑↓ select · Enter households · x clear filter · q quit

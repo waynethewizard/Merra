@@ -1,0 +1,325 @@
+[
+  {
+    "location_id": 20,
+    "score": 26514,
+    "reasons": [
+      "19514 people at the close of history",
+      "contains an unexplained prehuman trace",
+      "became a mixed-lineage contact settlement",
+      "site of first cross-homeland contact"
+    ],
+    "event_ids": [
+      37,
+      39,
+      40,
+      48
+    ]
+  },
+  {
+    "location_id": 1,
+    "score": 25980,
+    "reasons": [
+      "24480 people at the close of history"
+    ],
+    "event_ids": [
+      6,
+      7,
+      29,
+      52,
+      59,
+      68
+    ]
+  },
+  {
+    "location_id": 24,
+    "score": 25730,
+    "reasons": [
+      "24480 people at the close of history"
+    ],
+    "event_ids": [
+      8,
+      9,
+      28,
+      43,
+      51
+    ]
+  },
+  {
+    "location_id": 10,
+    "score": 25230,
+    "reasons": [
+      "24480 people at the close of history"
+    ],
+    "event_ids": [
+      10,
+      11,
+      20
+    ]
+  },
+  {
+    "location_id": 5,
+    "score": 24884,
+    "reasons": [
+      "24384 people at the close of history"
+    ],
+    "event_ids": [
+      21,
+      22
+    ]
+  },
+  {
+    "location_id": 21,
+    "score": 24850,
+    "reasons": [
+      "24350 people at the close of history"
+    ],
+    "event_ids": [
+      18,
+      19
+    ]
+  },
+  {
+    "location_id": 13,
+    "score": 24736,
+    "reasons": [
+      "24236 people at the close of history"
+    ],
+    "event_ids": [
+      30,
+      31
+    ]
+  },
+  {
+    "location_id": 6,
+    "score": 24721,
+    "reasons": [
+      "24221 people at the close of history"
+    ],
+    "event_ids": [
+      26,
+      27
+    ]
+  },
+  {
+    "location_id": 12,
+    "score": 24693,
+    "reasons": [
+      "24193 people at the close of history"
+    ],
+    "event_ids": [
+      24,
+      25
+    ]
+  },
+  {
+    "location_id": 2,
+    "score": 24486,
+    "reasons": [
+      "23986 people at the close of history"
+    ],
+    "event_ids": [
+      16,
+      17
+    ]
+  },
+  {
+    "location_id": 11,
+    "score": 14039,
+    "reasons": [
+      "7539 people at the close of history",
+      "contains an unexplained prehuman trace",
+      "became a mixed-lineage contact settlement"
+    ],
+    "event_ids": [
+      57,
+      58
+    ]
+  },
+  {
+    "location_id": 17,
+    "score": 12548,
+    "reasons": [
+      "6048 people at the close of history",
+      "contains an unexplained prehuman trace",
+      "became a mixed-lineage contact settlement"
+    ],
+    "event_ids": [
+      60,
+      61
+    ]
+  },
+  {
+    "location_id": 4,
+    "score": 10892,
+    "reasons": [
+      "10392 people at the close of history"
+    ],
+    "event_ids": [
+      41,
+      42
+    ]
+  },
+  {
+    "location_id": 19,
+    "score": 10602,
+    "reasons": [
+      "9102 people at the close of history",
+      "contains an unexplained prehuman trace"
+    ],
+    "event_ids": [
+      49,
+      50
+    ]
+  },
+  {
+    "location_id": 18,
+    "score": 9574,
+    "reasons": [
+      "8074 people at the close of history",
+      "contains an unexplained prehuman trace"
+    ],
+    "event_ids": [
+      44,
+      45
+    ]
+  },
+  {
+    "location_id": 9,
+    "score": 9466,
+    "reasons": [
+      "8966 people at the close of history"
+    ],
+    "event_ids": [
+      53,
+      54
+    ]
+  },
+  {
+    "location_id": 28,
+    "score": 8691,
+    "reasons": [
+      "3191 people at the close of history",
+      "became a mixed-lineage contact settlement"
+    ],
+    "event_ids": [
+      62,
+      63
+    ]
+  },
+  {
+    "location_id": 14,
+    "score": 8578,
+    "reasons": [
+      "8078 people at the close of history"
+    ],
+    "event_ids": [
+      55,
+      56
+    ]
+  },
+  {
+    "location_id": 3,
+    "score": 8373,
+    "reasons": [
+      "7873 people at the close of history"
+    ],
+    "event_ids": [
+      46,
+      47
+    ]
+  },
+  {
+    "location_id": 25,
+    "score": 6782,
+    "reasons": [
+      "6032 people at the close of history"
+    ],
+    "event_ids": [
+      12,
+      13,
+      15
+    ]
+  },
+  {
+    "location_id": 26,
+    "score": 5998,
+    "reasons": [
+      "5498 people at the close of history"
+    ],
+    "event_ids": [
+      32,
+      33
+    ]
+  },
+  {
+    "location_id": 27,
+    "score": 4959,
+    "reasons": [
+      "4459 people at the close of history"
+    ],
+    "event_ids": [
+      34,
+      35
+    ]
+  },
+  {
+    "location_id": 16,
+    "score": 2505,
+    "reasons": [
+      "2005 people at the close of history"
+    ],
+    "event_ids": [
+      64,
+      65
+    ]
+  },
+  {
+    "location_id": 7,
+    "score": 2468,
+    "reasons": [
+      "1968 people at the close of history"
+    ],
+    "event_ids": [
+      66,
+      67
+    ]
+  },
+  {
+    "location_id": 15,
+    "score": 1000,
+    "reasons": [
+      "contains an unexplained prehuman trace"
+    ],
+    "event_ids": []
+  },
+  {
+    "location_id": 8,
+    "score": 0,
+    "reasons": [],
+    "event_ids": []
+  },
+  {
+    "location_id": 22,
+    "score": 0,
+    "reasons": [],
+    "event_ids": []
+  },
+  {
+    "location_id": 23,
+    "score": 0,
+    "reasons": [],
+    "event_ids": []
+  },
+  {
+    "location_id": 29,
+    "score": 0,
+    "reasons": [],
+    "event_ids": []
+  },
+  {
+    "location_id": 30,
+    "score": 0,
+    "reasons": [],
+    "event_ids": []
+  }
+]

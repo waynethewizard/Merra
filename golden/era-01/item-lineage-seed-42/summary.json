@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "local_history_id": "era-01-item-lineage",
+  "seed": 42,
+  "projection_year": 600,
+  "elapsed_years": 60,
+  "settlements": 5,
+  "macro_population": 40751,
+  "represented_population": 40751,
+  "living_sample_people": 74,
+  "births": 78,
+  "deaths": 34,
+  "residence_decisions": 37,
+  "household_migrations": 22,
+  "located_events": 2312,
+  "items": 60,
+  "active_items": 15,
+  "item_transfers": 40,
+  "item_repairs": 135,
+  "item_transformations": 45,
+  "maximum_item_lineage": 3
+}

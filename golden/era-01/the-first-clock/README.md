@@ -1,7 +1,8 @@
 # The First Clock
 
 The foundation golden run proves deterministic calendar advancement and the
-versioned event/output contracts.
+versioned event/output contracts. Its four named seasons demonstrate that a
+whole-year request still records every exact calendar boundary.
 
 ```sh
 cargo merra run \

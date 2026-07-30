@@ -1,9 +1,16 @@
 import Link from "next/link";
-import { getFoundationRun } from "@/lib/content";
+import {
+  getCurrentCycle,
+  getFoundationRun,
+  getItemLineageShowcase,
+  type ItemRecord
+} from "@/lib/content";
 
 const cycles = [
   "Time & death",
   "The household",
+  "Before memory",
+  "The first histories",
   "Five villages",
   "The harvest",
   "What the dead leave",
@@ -13,6 +20,23 @@ const cycles = [
 
 export default function HomePage() {
   const run = getFoundationRun();
+  const cycle = getCurrentCycle();
+  const itemShowcase = getItemLineageShowcase();
+  const itemRecordsById = new Map(
+    itemShowcase.items.map((item) => [item.id, item])
+  );
+  const itemLineage: ItemRecord[] = [];
+  let itemCursor: ItemRecord | undefined = itemRecordsById.get(
+    itemShowcase.featuredItemId
+  );
+  while (itemCursor) {
+    itemLineage.unshift(itemCursor);
+    const sourceId: number | undefined = itemCursor.sources?.[0]?.item_id;
+    itemCursor =
+      sourceId === undefined ? undefined : itemRecordsById.get(sourceId);
+  }
+  const cycleLabel =
+    cycle.status === "complete" ? "Latest milestone" : "Now building";
 
   return (
     <>
@@ -22,7 +46,8 @@ export default function HomePage() {
           <div className="hero-copy">
             <div className="status-pill">
               <span />
-              Now building · Era I, Cycle 01
+              {cycleLabel} · Era {cycle.era}, Cycle{" "}
+              {String(cycle.cycle).padStart(2, "0")}
             </div>
             <p className="kicker">An open-source historical simulation</p>
             <h1>
@@ -36,8 +61,8 @@ export default function HomePage() {
               record, rumor, and legend.
             </p>
             <div className="button-row">
-              <Link className="button button-primary" href="/explore/">
-                Explore the first run
+              <Link className="button button-primary" href="/terminal/">
+                Explore the dynasty
                 <span aria-hidden="true">→</span>
               </Link>
               <a
@@ -211,10 +236,68 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="home-object-feature section">
+        <div className="shell home-object-grid">
+          <div className="home-object-copy">
+            <p className="section-number light">03 / New evidence</p>
+            <h2>
+              People are not the only things
+              <br />
+              with ancestors.
+            </h2>
+            <p>
+              A Thorn household sickle is used, damaged, repaired, inherited,
+              and reworked across sixty years. Repairs keep one identity alive;
+              rework creates a descendant with a material source.
+            </p>
+            <div className="home-object-facts">
+              <div>
+                <strong>{itemShowcase.summary.repairs}</strong>
+                <span>repairs</span>
+              </div>
+              <div>
+                <strong>{itemShowcase.summary.transfers}</strong>
+                <span>owner transfers</span>
+              </div>
+              <div>
+                <strong>{itemShowcase.summary.activeItems}</strong>
+                <span>working heirlooms</span>
+              </div>
+            </div>
+            <Link className="button button-paper" href="/objects/">
+              Trace the working heirloom
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+          <div className="home-object-lineage" aria-label="Four item generations">
+            <div className="home-object-seal" aria-hidden="true">
+              Provenance
+              <span>verified</span>
+            </div>
+            {itemLineage.map((item, index) => (
+              <div className="home-object-node" key={item.id}>
+                <span>G{item.lineage_generation}</span>
+                <div>
+                  <strong>Item #{item.id}</strong>
+                  <small>
+                    {item.status === "active"
+                      ? `${Math.round(item.condition_per_10_000 / 100)}% condition · active`
+                      : `${item.repairs} repairs · transformed`}
+                  </small>
+                </div>
+                {index < itemLineage.length - 1 ? (
+                  <i aria-hidden="true">↓</i>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="era section">
         <div className="shell era-grid">
           <div className="era-title">
-            <p className="section-number">03 / The work ahead</p>
+            <p className="section-number">04 / The work ahead</p>
             <span>Era I</span>
             <h2>
               The First
@@ -222,20 +305,25 @@ export default function HomePage() {
               Hundred Years
             </h2>
             <p>
-              Seven causal slices. One readable century. Each cycle ends with
+              Nine causal slices. One readable century. Each cycle ends with
               working software, tests, reproducible evidence, and an honest
               public record.
             </p>
             <Link href="/chronicle/">Read the development chronicle →</Link>
           </div>
           <ol className="cycle-list">
-            {cycles.map((cycle, index) => (
-              <li className={index === 0 ? "current" : ""} key={cycle}>
+            {cycles.map((cycleTitle, index) => (
+              <li
+                className={index === cycle.cycle - 1 ? "current" : ""}
+                key={cycleTitle}
+              >
                 <span>{String(index + 1).padStart(2, "0")}</span>
-                <strong>{cycle}</strong>
+                <strong>{cycleTitle}</strong>
                 <small>
-                  {index === 0
-                    ? "Foundation in progress"
+                  {index < cycle.cycle - 1
+                    ? "Complete"
+                    : index === cycle.cycle - 1
+                      ? "Latest milestone"
                     : index === cycles.length - 1
                       ? "Era finale"
                       : "Planned"}

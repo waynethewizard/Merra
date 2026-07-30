@@ -1,36 +1,36 @@
 ┌ Chronicle Lab ───────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│MERRA // FIRST HUNDRED YEARS   seed 42                                                                                │
-│Scenario era-01-century  |  Year 100  |  Events 203                                                                   │
-│Population 100 → 0 living  |  100 deaths                                                                              │
+│MERRA // ONE HUNDRED LIVES   seed 42                                                                                  │
+│Scenario era-01-century · Year 100 · 904 authoritative events                                                         │
+│Population 100 → 0 living · 100 deaths                                                                                │
 └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│ Events │ People                                                                                                      │
+│ Overview  │  History  │  [People]  │  Lineage  │  Households                                                         │
 └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-┌ People ────────────────────────────────────────────┐┌ Life Record ───────────────────────────────────────────────────┐
-│▶   1  Garin Thorn            age  79  dead         ││Garin Thorn                                                     │
-│    2  Garin Gorse            age  43  dead         ││                                                                │
-│    3  Bera Reed              age  80  dead         ││Person ID: 1                                                    │
-│    4  Ansel Fen              age  76  dead         ││Starting age: 8                                                 │
-│    5  Willa Thorn            age  64  dead         ││Final age: 79                                                   │
-│    6  Mara Reed              age  80  dead         ││Died on absolute day 25560                                      │
-│    7  Leof Mere              age  78  dead         ││                                                                │
-│    8  Mara Crow              age  67  dead         ││This record is stable simulation state, not a Bevy entity       │
-│    9  Ivo Gorse              age  67  dead         ││identifier.                                                     │
-│   10  Toma Vale              age  90  dead         ││                                                                │
-│   11  Runa Oak               age  77  dead         ││                                                                │
-│   12  Runa Crow              age  75  dead         ││                                                                │
-│   13  Ivo Thorn              age  78  dead         ││                                                                │
-│   14  Garin Fen              age  59  dead         ││                                                                │
-│   15  Leof Marsh             age   4  dead         ││                                                                │
-│   16  Bera Fen               age  71  dead         ││                                                                │
-│   17  Mara Hearth            age  79  dead         ││                                                                │
-│   18  Odel Reed              age  79  dead         ││                                                                │
-│   19  Garin Crow             age  62  dead         ││                                                                │
-│   20  Alda Mere              age  44  dead         ││                                                                │
-│   21  Garin Vale             age  77  dead         ││                                                                │
-│   22  Dunstan Dale           age  55  dead         ││                                                                │
-│   23  Elian Oak              age  60  dead         ││                                                                │
-│   24  Garin Dale             age  58  dead         ││                                                                │
-│   25  Frida Gorse            age  89  dead         ││                                                                │
-└────────────────────────────────────────────────────┘└────────────────────────────────────────────────────────────────┘
-q quit  Tab view  ↑/k ↓/j move  PgUp/PgDn page  Home/End jump
+┌ People · sort story · 100 shown ─────────────────┐┌ Life Record ─────────────────────────────────────────────────────┐
+│▶  97  G0  Alda Vale            age  92  dead     ││Alda Vale                                                         │
+│   10  G0  Toma Vale            age  90  dead     ││                                                                  │
+│  100  G0  Cerdic Dale          age  90  dead     ││Person #97 · Generation 0 · surname Vale                          │
+│   25  G0  Frida Gorse          age  89  dead     ││Scenario founder · Died Year 27 · Day 9720 · final age 92         │
+│   58  G0  Garin Reed           age  86  dead     ││Parents: scenario founder                                         │
+│   35  G0  Bera Bell            age  85  dead     ││Current partner: none                                             │
+│   72  G0  Sella Marsh          age  84  dead     ││Current household: none                                           │
+│   99  G0  Bera Vale            age  84  dead     ││Recorded family: 0 partnerships · 0 children                      │
+│   75  G0  Edith Barrow         age  83  dead     ││                                                                  │
+│   43  G0  Ansel Fen            age  82  dead     ││Life events                                                       │
+│   86  G0  Runa Crow            age  82  dead     ││Y27  Alda Vale died at age 92                                     │
+│   65  G0  Mara Reed            age  81  dead     ││                                                                  │
+│   71  G0  Willa Dale           age  81  dead     ││                                                                  │
+│   85  G0  Frida Vale           age  81  dead     ││                                                                  │
+│   89  G0  Leof Stone           age  81  dead     ││                                                                  │
+│    3  G0  Bera Reed            age  80  dead     ││                                                                  │
+│    6  G0  Mara Reed            age  80  dead     ││                                                                  │
+│   30  G0  Willa Dale           age  80  dead     ││                                                                  │
+│   34  G0  Sella Marsh          age  80  dead     ││                                                                  │
+│    1  G0  Garin Thorn          age  79  dead     ││                                                                  │
+│   17  G0  Mara Hearth          age  79  dead     ││                                                                  │
+│   18  G0  Odel Reed            age  79  dead     ││                                                                  │
+│   31  G0  Elian Thorn          age  79  dead     ││                                                                  │
+│   42  G0  Dunstan Marsh        age  79  dead     ││                                                                  │
+│   48  G0  Odel Wold            age  79  dead     ││                                                                  │
+└──────────────────────────────────────────────────┘└──────────────────────────────────────────────────────────────────┘
+q quit · ↑↓ move · Enter lineage · h household · e events · s sort (story) · / search

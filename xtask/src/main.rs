@@ -1,6 +1,7 @@
 //! Cross-platform repository automation.
 
 use std::{
+    collections::BTreeSet,
     ffi::OsString,
     fs::{self, OpenOptions},
     io::Write,
@@ -10,8 +11,11 @@ use std::{
 };
 
 use clap::{Parser, Subcommand};
-use merra_core::ScenarioV1;
-use merra_sim::run_years;
+use merra_core::{
+    HistoryConfigV1, LocalHistoryPlaybackV1, LocalHistoryReportV1, ScenarioV1, WorldGenesisConfigV1,
+};
+use merra_sim::{run_history, run_years};
+use merra_worldgen::{generate_world, summarize_world};
 use serde::Serialize;
 use thiserror::Error;
 
@@ -42,6 +46,15 @@ enum Commands {
     Preflight,
     /// Validate documentation structure and active cycle records.
     VerifyDocs,
+    /// Refresh a compact website playback artifact from a complete local report.
+    RefreshLocalPlayback {
+        /// Complete `local-history.json` produced by `cargo merra villages`.
+        #[arg(long)]
+        input: PathBuf,
+        /// Playback JSON artifact to create or replace.
+        #[arg(long)]
+        output: PathBuf,
+    },
     /// Create a cycle record from the standard template.
     NewCycle {
         /// Zero-padded or numeric era number.
@@ -75,6 +88,27 @@ enum Commands {
         #[arg(long, default_value = "runs/seed-lab")]
         output: PathBuf,
     },
+    /// Generate many complete worlds and publish structural history evidence.
+    WorldLab {
+        /// RON world-generation template evaluated for every seed.
+        #[arg(long, default_value = "scenarios/era-01/before-memory.ron")]
+        world: PathBuf,
+        /// RON macro-history scenario evaluated for every seed.
+        #[arg(long, default_value = "scenarios/era-01/first-histories.ron")]
+        history: PathBuf,
+        /// First inclusive root seed.
+        #[arg(long, default_value_t = 1)]
+        first_seed: u64,
+        /// Number of consecutive worlds.
+        #[arg(long, default_value = "20")]
+        count: NonZeroU32,
+        /// Complete historical years per world.
+        #[arg(long, default_value = "600")]
+        years: NonZeroU32,
+        /// New directory for Markdown, JSON, and CSV evidence.
+        #[arg(long, default_value = "runs/world-lab")]
+        output: PathBuf,
+    },
 }
 
 fn main() -> ExitCode {
@@ -91,6 +125,7 @@ fn execute(cli: Cli) -> Result<(), XtaskError> {
     match cli.command {
         Commands::Preflight => preflight(),
         Commands::VerifyDocs => verify_docs(),
+        Commands::RefreshLocalPlayback { input, output } => refresh_local_playback(&input, &output),
         Commands::NewCycle {
             era,
             cycle,
@@ -104,7 +139,31 @@ fn execute(cli: Cli) -> Result<(), XtaskError> {
             years,
             output,
         } => seed_lab(&scenario, first_seed, count, years, &output),
+        Commands::WorldLab {
+            world,
+            history,
+            first_seed,
+            count,
+            years,
+            output,
+        } => world_lab(&world, &history, first_seed, count, years, &output),
     }
+}
+
+fn refresh_local_playback(input: &Path, output: &Path) -> Result<(), XtaskError> {
+    let report: LocalHistoryReportV1 = serde_json::from_slice(&fs::read(input)?)?;
+    let playback = LocalHistoryPlaybackV1::from_report(&report);
+    if let Some(parent) = output.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    fs::write(output, serde_json::to_string_pretty(&playback)? + "\n")?;
+    println!(
+        "wrote {} people and {} playback events to {}",
+        playback.people.len(),
+        playback.events.len(),
+        output.display()
+    );
+    Ok(())
 }
 
 fn preflight() -> Result<(), XtaskError> {
@@ -255,6 +314,10 @@ struct SeedLabRun {
     last_death_year: Option<u64>,
     mean_age_at_death_times_100: u64,
     maximum_age_at_death: u64,
+    births: usize,
+    households_formed: usize,
+    generations: u16,
+    distinct_surnames: usize,
 }
 
 #[derive(Debug, Serialize)]
@@ -272,6 +335,15 @@ struct SeedLabReport {
     latest_extinction_year: Option<u64>,
     minimum_mean_age_at_death_times_100: u64,
     maximum_mean_age_at_death_times_100: u64,
+    minimum_births: usize,
+    maximum_births: usize,
+    minimum_households_formed: usize,
+    maximum_households_formed: usize,
+    minimum_generations: u16,
+    maximum_generations: u16,
+    four_generation_runs: usize,
+    minimum_distinct_surnames: usize,
+    maximum_distinct_surnames: usize,
     runs: Vec<SeedLabRun>,
 }
 
@@ -304,6 +376,23 @@ fn seed_lab(
         } else {
             total_age.saturating_mul(100) / dead.len() as u64
         };
+        let births = simulation
+            .people
+            .iter()
+            .filter(|person| person.birth_day.is_some())
+            .count();
+        let generations = simulation
+            .people
+            .iter()
+            .map(|person| person.generation)
+            .max()
+            .map_or(0, |generation| generation.saturating_add(1));
+        let distinct_surnames = simulation
+            .people
+            .iter()
+            .map(|person| person.surname.as_str())
+            .collect::<BTreeSet<_>>()
+            .len();
         runs.push(SeedLabRun {
             seed,
             living_population: simulation.summary.living_population,
@@ -320,6 +409,10 @@ fn seed_lab(
                 .map(|person| person.final_age_years)
                 .max()
                 .unwrap_or(0),
+            births,
+            households_formed: simulation.households.len(),
+            generations,
+            distinct_surnames,
         });
     }
 
@@ -361,6 +454,47 @@ fn seed_lab(
         .map(|run| run.mean_age_at_death_times_100)
         .max()
         .ok_or(XtaskError::EmptySeedLab)?;
+    let minimum_births = runs
+        .iter()
+        .map(|run| run.births)
+        .min()
+        .ok_or(XtaskError::EmptySeedLab)?;
+    let maximum_births = runs
+        .iter()
+        .map(|run| run.births)
+        .max()
+        .ok_or(XtaskError::EmptySeedLab)?;
+    let minimum_households_formed = runs
+        .iter()
+        .map(|run| run.households_formed)
+        .min()
+        .ok_or(XtaskError::EmptySeedLab)?;
+    let maximum_households_formed = runs
+        .iter()
+        .map(|run| run.households_formed)
+        .max()
+        .ok_or(XtaskError::EmptySeedLab)?;
+    let minimum_generations = runs
+        .iter()
+        .map(|run| run.generations)
+        .min()
+        .ok_or(XtaskError::EmptySeedLab)?;
+    let maximum_generations = runs
+        .iter()
+        .map(|run| run.generations)
+        .max()
+        .ok_or(XtaskError::EmptySeedLab)?;
+    let four_generation_runs = runs.iter().filter(|run| run.generations >= 4).count();
+    let minimum_distinct_surnames = runs
+        .iter()
+        .map(|run| run.distinct_surnames)
+        .min()
+        .ok_or(XtaskError::EmptySeedLab)?;
+    let maximum_distinct_surnames = runs
+        .iter()
+        .map(|run| run.distinct_surnames)
+        .max()
+        .ok_or(XtaskError::EmptySeedLab)?;
     let report = SeedLabReport {
         schema_version: 1,
         scenario_id: scenario.id,
@@ -375,6 +509,15 @@ fn seed_lab(
         latest_extinction_year,
         minimum_mean_age_at_death_times_100,
         maximum_mean_age_at_death_times_100,
+        minimum_births,
+        maximum_births,
+        minimum_households_formed,
+        maximum_households_formed,
+        minimum_generations,
+        maximum_generations,
+        four_generation_runs,
+        minimum_distinct_surnames,
+        maximum_distinct_surnames,
         runs,
     };
 
@@ -384,6 +527,28 @@ fn seed_lab(
         serde_json::to_string_pretty(&report)? + "\n",
     )?;
     fs::write(output.join("results.csv"), seed_lab_csv(&report))?;
+    let family_section = if report.maximum_births == 0 {
+        String::new()
+    } else {
+        format!(
+            "## Family Variation\n\n\
+             - Birth range: {} to {}\n\
+             - Households formed range: {} to {}\n\
+             - Generation range: {} to {}\n\
+             - Runs reaching four generations: {} of {}\n\
+             - Distinct surname range: {} to {}\n\n",
+            report.minimum_births,
+            report.maximum_births,
+            report.minimum_households_formed,
+            report.maximum_households_formed,
+            report.minimum_generations,
+            report.maximum_generations,
+            report.four_generation_runs,
+            report.count,
+            report.minimum_distinct_surnames,
+            report.maximum_distinct_surnames,
+        )
+    };
     fs::write(
         output.join("summary.md"),
         format!(
@@ -398,6 +563,7 @@ fn seed_lab(
              ## Lifespan Variation\n\n\
              - Extinction year range: {} to {}\n\
              - Mean age-at-death range: {:.2} to {:.2}\n\n\
+             {family_section}\
              These results are deterministic for the tagged source, lockfile, scenario, and seed cohort.\n",
             report.scenario_id,
             report.first_seed,
@@ -428,11 +594,11 @@ fn seed_lab(
 
 fn seed_lab_csv(report: &SeedLabReport) -> String {
     let mut csv = String::from(
-        "seed,living_population,deaths,event_count,last_death_year,mean_age_at_death_times_100,maximum_age_at_death\n",
+        "seed,living_population,deaths,event_count,last_death_year,mean_age_at_death_times_100,maximum_age_at_death,births,households_formed,generations,distinct_surnames\n",
     );
     for run in &report.runs {
         csv.push_str(&format!(
-            "{},{},{},{},{},{},{}\n",
+            "{},{},{},{},{},{},{},{},{},{},{}\n",
             run.seed,
             run.living_population,
             run.deaths,
@@ -441,6 +607,224 @@ fn seed_lab_csv(report: &SeedLabReport) -> String {
                 .map_or_else(String::new, |year| year.to_string()),
             run.mean_age_at_death_times_100,
             run.maximum_age_at_death,
+            run.births,
+            run.households_formed,
+            run.generations,
+            run.distinct_surnames,
+        ));
+    }
+    csv
+}
+
+#[derive(Debug, Serialize)]
+struct WorldLabRun {
+    seed: u64,
+    land_regions: usize,
+    island_regions: usize,
+    river_regions: usize,
+    places: usize,
+    routes: usize,
+    total_population: u64,
+    settlements: usize,
+    cultures: usize,
+    faiths: usize,
+    institutions: usize,
+    mixed_lineage_populations: usize,
+    first_contact_year: Option<u32>,
+    event_count: usize,
+}
+
+#[derive(Debug, Serialize)]
+struct WorldLabReport {
+    schema_version: u32,
+    world_template_id: String,
+    history_id: String,
+    first_seed: u64,
+    count: u32,
+    years: u32,
+    contact_runs: usize,
+    minimum_contact_year: Option<u32>,
+    maximum_contact_year: Option<u32>,
+    minimum_population: u64,
+    maximum_population: u64,
+    minimum_settlements: usize,
+    maximum_settlements: usize,
+    minimum_mixed_populations: usize,
+    maximum_mixed_populations: usize,
+    runs: Vec<WorldLabRun>,
+}
+
+fn world_lab(
+    world_path: &Path,
+    history_path: &Path,
+    first_seed: u64,
+    count: NonZeroU32,
+    years: NonZeroU32,
+    output: &Path,
+) -> Result<(), XtaskError> {
+    if output.exists() {
+        return Err(XtaskError::OutputExists(output.to_path_buf()));
+    }
+    let world_bytes = fs::read(world_path)?;
+    let world_config: WorldGenesisConfigV1 = ron::de::from_bytes(&world_bytes)?;
+    world_config.validate()?;
+    let history_bytes = fs::read(history_path)?;
+    let mut history_config: HistoryConfigV1 = ron::de::from_bytes(&history_bytes)?;
+    history_config.years = years.get();
+    history_config.validate()?;
+
+    let mut runs = Vec::with_capacity(count.get() as usize);
+    for offset in 0..u64::from(count.get()) {
+        let seed = first_seed.saturating_add(offset);
+        let world = generate_world(&world_config, seed)?;
+        let world_summary = summarize_world(&world);
+        let history = run_history(&world, history_config.clone(), seed)?;
+        runs.push(WorldLabRun {
+            seed,
+            land_regions: world_summary.land_regions,
+            island_regions: world_summary.island_regions,
+            river_regions: world_summary.river_regions,
+            places: world_summary.location_count,
+            routes: world_summary.route_count,
+            total_population: history.summary.total_population,
+            settlements: history.summary.settlements,
+            cultures: history.summary.cultures,
+            faiths: history.summary.faiths,
+            institutions: history.summary.institutions,
+            mixed_lineage_populations: history.summary.mixed_lineage_populations,
+            first_contact_year: history.summary.first_contact_year,
+            event_count: history.summary.event_count,
+        });
+    }
+
+    let minimum_population = runs
+        .iter()
+        .map(|run| run.total_population)
+        .min()
+        .ok_or(XtaskError::EmptyWorldLab)?;
+    let maximum_population = runs
+        .iter()
+        .map(|run| run.total_population)
+        .max()
+        .ok_or(XtaskError::EmptyWorldLab)?;
+    let minimum_settlements = runs
+        .iter()
+        .map(|run| run.settlements)
+        .min()
+        .ok_or(XtaskError::EmptyWorldLab)?;
+    let maximum_settlements = runs
+        .iter()
+        .map(|run| run.settlements)
+        .max()
+        .ok_or(XtaskError::EmptyWorldLab)?;
+    let minimum_mixed_populations = runs
+        .iter()
+        .map(|run| run.mixed_lineage_populations)
+        .min()
+        .ok_or(XtaskError::EmptyWorldLab)?;
+    let maximum_mixed_populations = runs
+        .iter()
+        .map(|run| run.mixed_lineage_populations)
+        .max()
+        .ok_or(XtaskError::EmptyWorldLab)?;
+    let contact_runs = runs
+        .iter()
+        .filter(|run| run.first_contact_year.is_some())
+        .count();
+    let minimum_contact_year = runs.iter().filter_map(|run| run.first_contact_year).min();
+    let maximum_contact_year = runs.iter().filter_map(|run| run.first_contact_year).max();
+    let report = WorldLabReport {
+        schema_version: 1,
+        world_template_id: world_config.id,
+        history_id: history_config.id,
+        first_seed,
+        count: count.get(),
+        years: years.get(),
+        contact_runs,
+        minimum_contact_year,
+        maximum_contact_year,
+        minimum_population,
+        maximum_population,
+        minimum_settlements,
+        maximum_settlements,
+        minimum_mixed_populations,
+        maximum_mixed_populations,
+        runs,
+    };
+
+    fs::create_dir_all(output)?;
+    fs::write(
+        output.join("summary.json"),
+        serde_json::to_string_pretty(&report)? + "\n",
+    )?;
+    fs::write(output.join("results.csv"), world_lab_csv(&report))?;
+    fs::write(
+        output.join("summary.md"),
+        format!(
+            "# Merra World Laboratory\n\n\
+             ## Cohort\n\n\
+             - World template: `{}`\n\
+             - History: `{}`\n\
+             - Seeds: {} through {}\n\
+             - Duration: {} years each\n\n\
+             ## Geography and Contact\n\n\
+             - Every run generated a continent, remote island, rivers, places, and a locked route.\n\
+             - Runs reaching first contact: {} of {}\n\
+             - First-contact year range: {} to {}\n\n\
+             ## Historical Outcomes\n\n\
+             - Final population range: {} to {}\n\
+             - Settlement range: {} to {}\n\
+             - Mixed-lineage population range: {} to {}\n\n\
+             These results are deterministic structural evidence, not demographic or historical truth.\n",
+            report.world_template_id,
+            report.history_id,
+            report.first_seed,
+            report
+                .first_seed
+                .saturating_add(u64::from(report.count).saturating_sub(1)),
+            report.years,
+            report.contact_runs,
+            report.count,
+            report
+                .minimum_contact_year
+                .map_or_else(|| String::from("n/a"), |year| year.to_string()),
+            report
+                .maximum_contact_year
+                .map_or_else(|| String::from("n/a"), |year| year.to_string()),
+            report.minimum_population,
+            report.maximum_population,
+            report.minimum_settlements,
+            report.maximum_settlements,
+            report.minimum_mixed_populations,
+            report.maximum_mixed_populations,
+        ),
+    )?;
+    println!("world laboratory evidence: {}", output.display());
+    Ok(())
+}
+
+fn world_lab_csv(report: &WorldLabReport) -> String {
+    let mut csv = String::from(
+        "seed,land_regions,island_regions,river_regions,places,routes,total_population,settlements,cultures,faiths,institutions,mixed_lineage_populations,first_contact_year,event_count\n",
+    );
+    for run in &report.runs {
+        csv.push_str(&format!(
+            "{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
+            run.seed,
+            run.land_regions,
+            run.island_regions,
+            run.river_regions,
+            run.places,
+            run.routes,
+            run.total_population,
+            run.settlements,
+            run.cultures,
+            run.faiths,
+            run.institutions,
+            run.mixed_lineage_populations,
+            run.first_contact_year
+                .map_or_else(String::new, |year| year.to_string()),
+            run.event_count,
         ));
     }
     csv
@@ -504,12 +888,22 @@ enum XtaskError {
     OutputExists(PathBuf),
     #[error("seed laboratory unexpectedly had no runs")]
     EmptySeedLab,
+    #[error("world laboratory unexpectedly had no runs")]
+    EmptyWorldLab,
     #[error("invalid RON scenario: {0}")]
     Ron(#[from] ron::error::SpannedError),
     #[error(transparent)]
     Scenario(#[from] merra_core::ScenarioError),
     #[error(transparent)]
     Simulation(#[from] merra_sim::SimulationError),
+    #[error(transparent)]
+    WorldGenesis(#[from] merra_core::WorldGenesisError),
+    #[error(transparent)]
+    Worldgen(#[from] merra_worldgen::GenerationError),
+    #[error(transparent)]
+    HistoryConfig(#[from] merra_core::HistoryError),
+    #[error(transparent)]
+    History(#[from] merra_sim::HistorySimulationError),
     #[error("could not encode seed laboratory JSON: {0}")]
     Json(#[from] serde_json::Error),
     #[error("required tool `{program}` is unavailable: {source}")]

@@ -1,0 +1,36 @@
+MERRA // FIVE VILLAGES AFTER FIRST CONTACT
+YEAR 600 + 60 · seed 42 · 40751 macro people represented exactly
+1 Overview  2 Roads  [3 Settlements]  4 Migrations  5 Households
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+SETTLEMENTS // MACRO PROVENANCE AND LOCAL CONSEQUENCES
+   PLACE             MACRO=REP   START→LIVE   BIRTH DEATH   IN OUT   HOMES
+   Fenstead #20       19514=19514   12→37        36    14    5   2    15
+   Alderholm #11       7539=7539     6→2          8     5    1   8     1
+   Junipercross #17    6048=6048     4→18        16     6   11   7     7
+   Yarrowmere #28      3191=3191     4→17        14     6    8   3     6
+>  Fenholm #27         4459=4459     4→0          4     3    0   5     0
+
+SELECTED // Fenholm #27
+2 historical households · 0 local institution(s) · macro events #34,#35
+Population equation: 4459 represented = 4459 aggregate
+No sampled household remains: births and departures are still preserved as place history.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tab/1–5 view · ↑↓ select · Enter households · x clear filter · q quit

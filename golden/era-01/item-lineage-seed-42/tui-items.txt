@@ -1,0 +1,36 @@
+MERRA // THE WORKING HEIRLOOMS OF FIVE VILLAGES
+YEAR 600 + 60 · seed 42 · 40751 macro people represented exactly
+1 Overview  2 Roads  3 Settlements  4 Migrations  5 Households  [6 Items]
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+ITEMS // AUTHORITATIVE PROVENANCE, OWNERSHIP, CUSTODY, AND USE
+   ITEM                       G  STATUS       COND  REPAIR  OWNER / PLACE
+   #41  Vale harvest sickle · reworked G2  2  transformed   25%     3    Household(HouseholdId(34)) / #20
+   #42  Dale harvest sickle · reworked G2  2  transformed   25%     3    Household(HouseholdId(34)) / #20
+   #43  Gorse harvest sickle · reworked G2  2  transformed   25%     3    Household(HouseholdId(35)) / #28
+   #44  Reed harvest sickle · reworked G2  2  transformed   25%     3    Household(HouseholdId(35)) / #28
+   #45  Dale harvest sickle · reworked G2  2  transformed   25%     3    Household(HouseholdId(35)) / #28
+>  #46  Thorn harvest sickle · reworked G3  3  active        71%     1    Household(HouseholdId(52)) / #20
+   #47  Fen harvest sickle · reworked G3  3  active        71%     1    Household(HouseholdId(52)) / #20
+   #48  Reed harvest sickle · reworked G3  3  active        71%     1    Household(HouseholdId(52)) / #20
+   #49  Mere harvest sickle · reworked G3  3  active        71%     1    Household(HouseholdId(52)) / #20
+   #50  Vale harvest sickle · reworked G3  3  active        71%     1    Household(HouseholdId(52)) / #20
+   #51  Oak harvest sickle · reworked G3  3  active        71%     1    Household(HouseholdId(52)) / #20
+   #52  Fen harvest sickle · reworked G3  3  active        71%     1    Household(HouseholdId(35)) / #28
+
+SELECTED // Thorn harvest sickle · reworked G3 #46 · reforged_sickle · custody Household(HouseholdId(52))
+Sources: #31 (Material)
+Descendants: none
+BIOGRAPHY
+Y58  #2648 harvest work produced 11560 effective labor
+Y59  #2685 used for harvest; condition 40%→28%
+Y59  #2686 harvest work produced 11200 effective labor
+Y60  #2735 ownership Household(HouseholdId(33))→Household(HouseholdId(52)) (HouseholdFormation)
+Y60  #2736 custody Household(HouseholdId(33))→Household(HouseholdId(52))
+Y60  #2737 repair 1; condition restored to 83%
+Y60  #2738 used for harvest; condition 83%→71%
+Y60  #2739 harvest work produced 12490 effective labor
+
+
+
+
+Tab/1–6 view · ↑↓ select · Enter households · x clear filter · q quit

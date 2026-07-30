@@ -1,0 +1,94 @@
+[
+  {
+    "location_id": 20,
+    "name": "Fenstead",
+    "macro_population": 19514,
+    "represented_population": 19514,
+    "initial_sample_people": 12,
+    "final_living_people": 37,
+    "births": 36,
+    "deaths": 14,
+    "arrivals": 5,
+    "departures": 2,
+    "active_households": 15,
+    "institution_ids": [],
+    "historical_event_ids": [
+      37,
+      39,
+      40,
+      48
+    ]
+  },
+  {
+    "location_id": 11,
+    "name": "Alderholm",
+    "macro_population": 7539,
+    "represented_population": 7539,
+    "initial_sample_people": 6,
+    "final_living_people": 2,
+    "births": 8,
+    "deaths": 5,
+    "arrivals": 1,
+    "departures": 8,
+    "active_households": 1,
+    "institution_ids": [],
+    "historical_event_ids": [
+      57,
+      58
+    ]
+  },
+  {
+    "location_id": 17,
+    "name": "Junipercross",
+    "macro_population": 6048,
+    "represented_population": 6048,
+    "initial_sample_people": 4,
+    "final_living_people": 18,
+    "births": 16,
+    "deaths": 6,
+    "arrivals": 11,
+    "departures": 7,
+    "active_households": 7,
+    "institution_ids": [],
+    "historical_event_ids": [
+      60,
+      61
+    ]
+  },
+  {
+    "location_id": 28,
+    "name": "Yarrowmere",
+    "macro_population": 3191,
+    "represented_population": 3191,
+    "initial_sample_people": 4,
+    "final_living_people": 17,
+    "births": 14,
+    "deaths": 6,
+    "arrivals": 8,
+    "departures": 3,
+    "active_households": 6,
+    "institution_ids": [],
+    "historical_event_ids": [
+      62,
+      63
+    ]
+  },
+  {
+    "location_id": 27,
+    "name": "Fenholm",
+    "macro_population": 4459,
+    "represented_population": 4459,
+    "initial_sample_people": 4,
+    "final_living_people": 0,
+    "births": 4,
+    "deaths": 3,
+    "arrivals": 0,
+    "departures": 5,
+    "active_households": 0,
+    "institution_ids": [],
+    "historical_event_ids": [
+      34,
+      35
+    ]
+  }
+]

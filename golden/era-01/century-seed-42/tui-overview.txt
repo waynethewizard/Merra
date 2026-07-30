@@ -1,0 +1,36 @@
+┌ Chronicle Lab ───────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│MERRA // ONE HUNDRED LIVES   seed 42                                                                                  │
+│Scenario era-01-century · Year 100 · 904 authoritative events                                                         │
+│Population 100 → 0 living · 100 deaths                                                                                │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ [Overview]  │  History  │  People  │  Lineage  │  Households                                                         │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ World at Year 100 ───────────────────────────────────────────────────────────────────────────────────────────────────┐
+│100 people recorded · 100 founders · 0 births · 0 living · 100 dead                                                   │
+│0 households formed · 0 active · 0 ended · peak population 100 in Year 0                                              │
+│Population: ██████▇▇▇▆▆▆▆▆▅▅▅▅▅▄▄▄▄▄▄▄▃▃▃▃▃▃▃▃▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁  0 at Year 100                                       │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ Generations ────────────────────────────────────────┐┌ Surname Survival ─────────────────────────────────────────────┐
+│G0  ··················   0/100 living · 100 total    ││Marsh      11 people · EXTINCT    · G0 only                    │
+│                                                     ││Gorse       9 people · EXTINCT    · G0 only                    │
+│101 historical events · 803 clock/season/debug events││Crow        8 people · EXTINCT    · G0 only                    │
+│                                                     ││Reed        8 people · EXTINCT    · G0 only                    │
+│                                                     ││Bell        7 people · EXTINCT    · G0 only                    │
+│                                                     ││Fen         7 people · EXTINCT    · G0 only                    │
+│                                                     ││Vale        7 people · EXTINCT    · G0 only                    │
+│                                                     ││Barrow      6 people · EXTINCT    · G0 only                    │
+│                                                     ││Dale        6 people · EXTINCT    · G0 only                    │
+│                                                     ││Hearth      6 people · EXTINCT    · G0 only                    │
+│                                                     ││Thorn       6 people · EXTINCT    · G0 only                    │
+│                                                     ││Mere        5 people · EXTINCT    · G0 only                    │
+└─────────────────────────────────────────────────────┘└───────────────────────────────────────────────────────────────┘
+┌ Featured Life ───────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│Alda Vale  #97 · G0 · age 92 · dead · 0 partnerships · 0 children · 0 households                                      │
+│No partnerships were recorded.                                                                                        │
+│Enter opens the union-aware lineage; parentage remains attached to each partnership.                                  │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+q quit · Tab/1–5 views · Enter featured lineage

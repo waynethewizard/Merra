@@ -1,0 +1,32 @@
+{
+  "anchor_location_id": 20,
+  "settlement_ids": [
+    20,
+    11,
+    17,
+    28,
+    27
+  ],
+  "population_ids": [
+    12,
+    13,
+    20,
+    21,
+    22
+  ],
+  "event_ids": [
+    34,
+    35,
+    37,
+    39,
+    40,
+    48,
+    57,
+    58,
+    60,
+    61,
+    62,
+    63
+  ],
+  "summary": "A five-settlement contact region shaped by cross-homeland first contact in Year 293."
+}

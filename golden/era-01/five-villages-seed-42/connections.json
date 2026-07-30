@@ -1,0 +1,146 @@
+[
+  {
+    "from": 11,
+    "to": 17,
+    "travel_cost": 6,
+    "travel_days": 12,
+    "route_ids": [
+      16
+    ],
+    "path": [
+      11,
+      17
+    ]
+  },
+  {
+    "from": 11,
+    "to": 20,
+    "travel_cost": 8,
+    "travel_days": 16,
+    "route_ids": [
+      26
+    ],
+    "path": [
+      11,
+      20
+    ]
+  },
+  {
+    "from": 11,
+    "to": 27,
+    "travel_cost": 82,
+    "travel_days": 164,
+    "route_ids": [
+      26,
+      43,
+      38
+    ],
+    "path": [
+      11,
+      20,
+      28,
+      27
+    ]
+  },
+  {
+    "from": 11,
+    "to": 28,
+    "travel_cost": 76,
+    "travel_days": 152,
+    "route_ids": [
+      26,
+      43
+    ],
+    "path": [
+      11,
+      20,
+      28
+    ]
+  },
+  {
+    "from": 17,
+    "to": 20,
+    "travel_cost": 8,
+    "travel_days": 16,
+    "route_ids": [
+      27
+    ],
+    "path": [
+      17,
+      20
+    ]
+  },
+  {
+    "from": 17,
+    "to": 27,
+    "travel_cost": 82,
+    "travel_days": 164,
+    "route_ids": [
+      27,
+      43,
+      38
+    ],
+    "path": [
+      17,
+      20,
+      28,
+      27
+    ]
+  },
+  {
+    "from": 17,
+    "to": 28,
+    "travel_cost": 76,
+    "travel_days": 152,
+    "route_ids": [
+      27,
+      43
+    ],
+    "path": [
+      17,
+      20,
+      28
+    ]
+  },
+  {
+    "from": 20,
+    "to": 27,
+    "travel_cost": 74,
+    "travel_days": 148,
+    "route_ids": [
+      43,
+      38
+    ],
+    "path": [
+      20,
+      28,
+      27
+    ]
+  },
+  {
+    "from": 20,
+    "to": 28,
+    "travel_cost": 68,
+    "travel_days": 136,
+    "route_ids": [
+      43
+    ],
+    "path": [
+      20,
+      28
+    ]
+  },
+  {
+    "from": 27,
+    "to": 28,
+    "travel_cost": 6,
+    "travel_days": 12,
+    "route_ids": [
+      38
+    ],
+    "path": [
+      27,
+      28
+    ]
+  }
+]

@@ -1,0 +1,3148 @@
+{
+  "schema_version": 1,
+  "seed": 42,
+  "projection_year": 600,
+  "elapsed_years": 60,
+  "days_per_year": 360,
+  "people": [
+    {
+      "id": 1,
+      "name": "Garin Thorn",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": null,
+      "parent_ids": []
+    },
+    {
+      "id": 2,
+      "name": "Garin Gorse",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": null,
+      "parent_ids": []
+    },
+    {
+      "id": 3,
+      "name": "Bera Reed",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": null,
+      "parent_ids": []
+    },
+    {
+      "id": 4,
+      "name": "Ansel Fen",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 10440,
+      "parent_ids": []
+    },
+    {
+      "id": 5,
+      "name": "Willa Thorn",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 9360,
+      "parent_ids": []
+    },
+    {
+      "id": 6,
+      "name": "Mara Reed",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 21600,
+      "parent_ids": []
+    },
+    {
+      "id": 7,
+      "name": "Leof Mere",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 20880,
+      "parent_ids": []
+    },
+    {
+      "id": 8,
+      "name": "Mara Crow",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 18000,
+      "parent_ids": []
+    },
+    {
+      "id": 9,
+      "name": "Ivo Gorse",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 17640,
+      "parent_ids": []
+    },
+    {
+      "id": 10,
+      "name": "Toma Vale",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 7560,
+      "parent_ids": []
+    },
+    {
+      "id": 11,
+      "name": "Runa Oak",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 20880,
+      "parent_ids": []
+    },
+    {
+      "id": 12,
+      "name": "Runa Crow",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 18000,
+      "parent_ids": []
+    },
+    {
+      "id": 13,
+      "name": "Ivo Thorn",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 17640,
+      "parent_ids": []
+    },
+    {
+      "id": 14,
+      "name": "Garin Fen",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 9720,
+      "parent_ids": []
+    },
+    {
+      "id": 15,
+      "name": "Leof Marsh",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 16200,
+      "parent_ids": []
+    },
+    {
+      "id": 16,
+      "name": "Bera Fen",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 21600,
+      "parent_ids": []
+    },
+    {
+      "id": 17,
+      "name": "Mara Hearth",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 16560,
+      "parent_ids": []
+    },
+    {
+      "id": 18,
+      "name": "Odel Reed",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": null,
+      "parent_ids": []
+    },
+    {
+      "id": 19,
+      "name": "Garin Crow",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 17280,
+      "parent_ids": []
+    },
+    {
+      "id": 20,
+      "name": "Alda Mere",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 15840,
+      "parent_ids": []
+    },
+    {
+      "id": 21,
+      "name": "Garin Vale",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": null,
+      "parent_ids": []
+    },
+    {
+      "id": 22,
+      "name": "Dunstan Dale",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": null,
+      "parent_ids": []
+    },
+    {
+      "id": 23,
+      "name": "Elian Oak",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 19440,
+      "parent_ids": []
+    },
+    {
+      "id": 24,
+      "name": "Garin Dale",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 20880,
+      "parent_ids": []
+    },
+    {
+      "id": 25,
+      "name": "Frida Gorse",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 18720,
+      "parent_ids": []
+    },
+    {
+      "id": 26,
+      "name": "Odel Oak",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": null,
+      "parent_ids": []
+    },
+    {
+      "id": 27,
+      "name": "Bera Reed",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 10440,
+      "parent_ids": []
+    },
+    {
+      "id": 28,
+      "name": "Ansel Bell",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 16920,
+      "parent_ids": []
+    },
+    {
+      "id": 29,
+      "name": "Frida Crow",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": null,
+      "parent_ids": []
+    },
+    {
+      "id": 30,
+      "name": "Willa Dale",
+      "generation": 0,
+      "starting_age_years": 18,
+      "birth_day": null,
+      "death_day": 16560,
+      "parent_ids": []
+    },
+    {
+      "id": 31,
+      "name": "Elian Thorn",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 720,
+      "death_day": 19440,
+      "parent_ids": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": 32,
+      "name": "Runa Fen",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 720,
+      "death_day": null,
+      "parent_ids": [
+        3,
+        4
+      ]
+    },
+    {
+      "id": 33,
+      "name": "Ansel Reed",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 720,
+      "death_day": null,
+      "parent_ids": [
+        5,
+        6
+      ]
+    },
+    {
+      "id": 34,
+      "name": "Runa Mere",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 720,
+      "death_day": null,
+      "parent_ids": [
+        7,
+        8
+      ]
+    },
+    {
+      "id": 35,
+      "name": "Runa Vale",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 720,
+      "death_day": null,
+      "parent_ids": [
+        9,
+        10
+      ]
+    },
+    {
+      "id": 36,
+      "name": "Ivo Oak",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 720,
+      "death_day": null,
+      "parent_ids": [
+        11,
+        12
+      ]
+    },
+    {
+      "id": 37,
+      "name": "Sella Fen",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 720,
+      "death_day": 7920,
+      "parent_ids": [
+        13,
+        14
+      ]
+    },
+    {
+      "id": 38,
+      "name": "Hilda Marsh",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 720,
+      "death_day": null,
+      "parent_ids": [
+        15,
+        16
+      ]
+    },
+    {
+      "id": 39,
+      "name": "Bera Hearth",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 720,
+      "death_day": null,
+      "parent_ids": [
+        17,
+        18
+      ]
+    },
+    {
+      "id": 40,
+      "name": "Cerdic Crow",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 720,
+      "death_day": null,
+      "parent_ids": [
+        19,
+        20
+      ]
+    },
+    {
+      "id": 41,
+      "name": "Frida Vale",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 720,
+      "death_day": null,
+      "parent_ids": [
+        21,
+        22
+      ]
+    },
+    {
+      "id": 42,
+      "name": "Garin Dale",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 720,
+      "death_day": null,
+      "parent_ids": [
+        23,
+        24
+      ]
+    },
+    {
+      "id": 43,
+      "name": "Ivo Gorse",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 720,
+      "death_day": null,
+      "parent_ids": [
+        25,
+        26
+      ]
+    },
+    {
+      "id": 44,
+      "name": "Elian Reed",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 720,
+      "death_day": null,
+      "parent_ids": [
+        27,
+        28
+      ]
+    },
+    {
+      "id": 45,
+      "name": "Hilda Dale",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 720,
+      "death_day": null,
+      "parent_ids": [
+        29,
+        30
+      ]
+    },
+    {
+      "id": 46,
+      "name": "Ansel Thorn",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 2160,
+      "death_day": null,
+      "parent_ids": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": 47,
+      "name": "Odel Fen",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 2160,
+      "death_day": null,
+      "parent_ids": [
+        3,
+        4
+      ]
+    },
+    {
+      "id": 48,
+      "name": "Mara Reed",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 2160,
+      "death_day": null,
+      "parent_ids": [
+        5,
+        6
+      ]
+    },
+    {
+      "id": 49,
+      "name": "Frida Mere",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 2160,
+      "death_day": null,
+      "parent_ids": [
+        7,
+        8
+      ]
+    },
+    {
+      "id": 50,
+      "name": "Runa Vale",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 2160,
+      "death_day": null,
+      "parent_ids": [
+        9,
+        10
+      ]
+    },
+    {
+      "id": 51,
+      "name": "Runa Oak",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 2160,
+      "death_day": null,
+      "parent_ids": [
+        11,
+        12
+      ]
+    },
+    {
+      "id": 52,
+      "name": "Bera Fen",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 2160,
+      "death_day": null,
+      "parent_ids": [
+        13,
+        14
+      ]
+    },
+    {
+      "id": 53,
+      "name": "Dunstan Marsh",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 2160,
+      "death_day": 9000,
+      "parent_ids": [
+        15,
+        16
+      ]
+    },
+    {
+      "id": 54,
+      "name": "Hilda Hearth",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 2160,
+      "death_day": null,
+      "parent_ids": [
+        17,
+        18
+      ]
+    },
+    {
+      "id": 55,
+      "name": "Ansel Crow",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 2160,
+      "death_day": 19080,
+      "parent_ids": [
+        19,
+        20
+      ]
+    },
+    {
+      "id": 56,
+      "name": "Elian Vale",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 2160,
+      "death_day": null,
+      "parent_ids": [
+        21,
+        22
+      ]
+    },
+    {
+      "id": 57,
+      "name": "Elian Dale",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 2160,
+      "death_day": null,
+      "parent_ids": [
+        23,
+        24
+      ]
+    },
+    {
+      "id": 58,
+      "name": "Hilda Gorse",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 2160,
+      "death_day": null,
+      "parent_ids": [
+        25,
+        26
+      ]
+    },
+    {
+      "id": 59,
+      "name": "Runa Reed",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 2160,
+      "death_day": null,
+      "parent_ids": [
+        27,
+        28
+      ]
+    },
+    {
+      "id": 60,
+      "name": "Toma Dale",
+      "generation": 1,
+      "starting_age_years": 0,
+      "birth_day": 2160,
+      "death_day": 3240,
+      "parent_ids": [
+        29,
+        30
+      ]
+    },
+    {
+      "id": 61,
+      "name": "Leof Fen",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 7920,
+      "death_day": null,
+      "parent_ids": [
+        31,
+        32
+      ]
+    },
+    {
+      "id": 62,
+      "name": "Hilda Reed",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 7920,
+      "death_day": null,
+      "parent_ids": [
+        33,
+        34
+      ]
+    },
+    {
+      "id": 63,
+      "name": "Odel Vale",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 7920,
+      "death_day": null,
+      "parent_ids": [
+        35,
+        36
+      ]
+    },
+    {
+      "id": 64,
+      "name": "Bera Crow",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 7920,
+      "death_day": 13320,
+      "parent_ids": [
+        39,
+        40
+      ]
+    },
+    {
+      "id": 65,
+      "name": "Odel Vale",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 7920,
+      "death_day": null,
+      "parent_ids": [
+        41,
+        42
+      ]
+    },
+    {
+      "id": 66,
+      "name": "Willa Reed",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 7920,
+      "death_day": null,
+      "parent_ids": [
+        43,
+        44
+      ]
+    },
+    {
+      "id": 67,
+      "name": "Bera Marsh",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 8280,
+      "death_day": null,
+      "parent_ids": [
+        38,
+        45
+      ]
+    },
+    {
+      "id": 68,
+      "name": "Elian Fen",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 9360,
+      "death_day": null,
+      "parent_ids": [
+        31,
+        32
+      ]
+    },
+    {
+      "id": 69,
+      "name": "Elian Reed",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 9360,
+      "death_day": null,
+      "parent_ids": [
+        33,
+        34
+      ]
+    },
+    {
+      "id": 70,
+      "name": "Hilda Vale",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 9360,
+      "death_day": 18720,
+      "parent_ids": [
+        35,
+        36
+      ]
+    },
+    {
+      "id": 71,
+      "name": "Bera Crow",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 9360,
+      "death_day": null,
+      "parent_ids": [
+        39,
+        40
+      ]
+    },
+    {
+      "id": 72,
+      "name": "Bera Vale",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 9360,
+      "death_day": null,
+      "parent_ids": [
+        41,
+        42
+      ]
+    },
+    {
+      "id": 73,
+      "name": "Willa Reed",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 9360,
+      "death_day": null,
+      "parent_ids": [
+        43,
+        44
+      ]
+    },
+    {
+      "id": 74,
+      "name": "Edith Fen",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 9360,
+      "death_day": null,
+      "parent_ids": [
+        46,
+        47
+      ]
+    },
+    {
+      "id": 75,
+      "name": "Hilda Mere",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 9360,
+      "death_day": null,
+      "parent_ids": [
+        48,
+        49
+      ]
+    },
+    {
+      "id": 76,
+      "name": "Ansel Oak",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 9360,
+      "death_day": null,
+      "parent_ids": [
+        50,
+        51
+      ]
+    },
+    {
+      "id": 77,
+      "name": "Garin Hearth",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 9360,
+      "death_day": null,
+      "parent_ids": [
+        54,
+        55
+      ]
+    },
+    {
+      "id": 78,
+      "name": "Frida Dale",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 9360,
+      "death_day": null,
+      "parent_ids": [
+        56,
+        57
+      ]
+    },
+    {
+      "id": 79,
+      "name": "Cerdic Reed",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 9360,
+      "death_day": null,
+      "parent_ids": [
+        58,
+        59
+      ]
+    },
+    {
+      "id": 80,
+      "name": "Willa Marsh",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 9720,
+      "death_day": null,
+      "parent_ids": [
+        38,
+        45
+      ]
+    },
+    {
+      "id": 81,
+      "name": "Alda Fen",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 10800,
+      "death_day": null,
+      "parent_ids": [
+        46,
+        47
+      ]
+    },
+    {
+      "id": 82,
+      "name": "Dunstan Mere",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 10800,
+      "death_day": 15480,
+      "parent_ids": [
+        48,
+        49
+      ]
+    },
+    {
+      "id": 83,
+      "name": "Bera Oak",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 10800,
+      "death_day": null,
+      "parent_ids": [
+        50,
+        51
+      ]
+    },
+    {
+      "id": 84,
+      "name": "Ansel Hearth",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 10800,
+      "death_day": null,
+      "parent_ids": [
+        54,
+        55
+      ]
+    },
+    {
+      "id": 85,
+      "name": "Garin Dale",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 10800,
+      "death_day": 11880,
+      "parent_ids": [
+        56,
+        57
+      ]
+    },
+    {
+      "id": 86,
+      "name": "Odel Reed",
+      "generation": 2,
+      "starting_age_years": 0,
+      "birth_day": 10800,
+      "death_day": 15840,
+      "parent_ids": [
+        58,
+        59
+      ]
+    },
+    {
+      "id": 87,
+      "name": "Frida Fen",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 15120,
+      "death_day": null,
+      "parent_ids": [
+        61,
+        62
+      ]
+    },
+    {
+      "id": 88,
+      "name": "Dunstan Vale",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 15120,
+      "death_day": null,
+      "parent_ids": [
+        63,
+        65
+      ]
+    },
+    {
+      "id": 89,
+      "name": "Cerdic Marsh",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 15480,
+      "death_day": null,
+      "parent_ids": [
+        66,
+        67
+      ]
+    },
+    {
+      "id": 90,
+      "name": "Ansel Fen",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 16560,
+      "death_day": 17640,
+      "parent_ids": [
+        61,
+        62
+      ]
+    },
+    {
+      "id": 91,
+      "name": "Garin Vale",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 16560,
+      "death_day": null,
+      "parent_ids": [
+        63,
+        65
+      ]
+    },
+    {
+      "id": 92,
+      "name": "Willa Fen",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 16560,
+      "death_day": null,
+      "parent_ids": [
+        68,
+        69
+      ]
+    },
+    {
+      "id": 93,
+      "name": "Alda Vale",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 16560,
+      "death_day": null,
+      "parent_ids": [
+        70,
+        71
+      ]
+    },
+    {
+      "id": 94,
+      "name": "Ivo Vale",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 16560,
+      "death_day": null,
+      "parent_ids": [
+        72,
+        73
+      ]
+    },
+    {
+      "id": 95,
+      "name": "Alda Fen",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 16560,
+      "death_day": null,
+      "parent_ids": [
+        74,
+        75
+      ]
+    },
+    {
+      "id": 96,
+      "name": "Elian Hearth",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 16560,
+      "death_day": null,
+      "parent_ids": [
+        76,
+        77
+      ]
+    },
+    {
+      "id": 97,
+      "name": "Edith Reed",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 16560,
+      "death_day": null,
+      "parent_ids": [
+        78,
+        79
+      ]
+    },
+    {
+      "id": 98,
+      "name": "Ansel Marsh",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 16920,
+      "death_day": null,
+      "parent_ids": [
+        66,
+        67
+      ]
+    },
+    {
+      "id": 99,
+      "name": "Mara Fen",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 18000,
+      "death_day": null,
+      "parent_ids": [
+        68,
+        69
+      ]
+    },
+    {
+      "id": 100,
+      "name": "Mara Vale",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 18000,
+      "death_day": null,
+      "parent_ids": [
+        70,
+        71
+      ]
+    },
+    {
+      "id": 101,
+      "name": "Garin Vale",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 18000,
+      "death_day": null,
+      "parent_ids": [
+        72,
+        73
+      ]
+    },
+    {
+      "id": 102,
+      "name": "Hilda Fen",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 18000,
+      "death_day": null,
+      "parent_ids": [
+        74,
+        75
+      ]
+    },
+    {
+      "id": 103,
+      "name": "Ansel Hearth",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 18000,
+      "death_day": null,
+      "parent_ids": [
+        76,
+        77
+      ]
+    },
+    {
+      "id": 104,
+      "name": "Frida Reed",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 18000,
+      "death_day": 19440,
+      "parent_ids": [
+        78,
+        79
+      ]
+    },
+    {
+      "id": 105,
+      "name": "Leof Marsh",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 18000,
+      "death_day": null,
+      "parent_ids": [
+        80,
+        81
+      ]
+    },
+    {
+      "id": 106,
+      "name": "Sella Oak",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 18000,
+      "death_day": null,
+      "parent_ids": [
+        83,
+        84
+      ]
+    },
+    {
+      "id": 107,
+      "name": "Alda Marsh",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 19440,
+      "death_day": null,
+      "parent_ids": [
+        80,
+        81
+      ]
+    },
+    {
+      "id": 108,
+      "name": "Dunstan Oak",
+      "generation": 3,
+      "starting_age_years": 0,
+      "birth_day": 19440,
+      "death_day": null,
+      "parent_ids": [
+        83,
+        84
+      ]
+    }
+  ],
+  "events": [
+    {
+      "type": "household_settled",
+      "event_id": 5,
+      "day": 0,
+      "household_id": 1,
+      "origin_location_ids": [],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        1,
+        2
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 0,
+      "reason": "macro_projection"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 8,
+      "day": 0,
+      "household_id": 2,
+      "origin_location_ids": [],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        3,
+        4
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 0,
+      "reason": "macro_projection"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 11,
+      "day": 0,
+      "household_id": 3,
+      "origin_location_ids": [],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        5,
+        6
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 0,
+      "reason": "macro_projection"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 14,
+      "day": 0,
+      "household_id": 4,
+      "origin_location_ids": [],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        7,
+        8
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 0,
+      "reason": "macro_projection"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 17,
+      "day": 0,
+      "household_id": 5,
+      "origin_location_ids": [],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        9,
+        10
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 0,
+      "reason": "macro_projection"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 20,
+      "day": 0,
+      "household_id": 6,
+      "origin_location_ids": [],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        11,
+        12
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 0,
+      "reason": "macro_projection"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 23,
+      "day": 0,
+      "household_id": 7,
+      "origin_location_ids": [],
+      "destination_location_id": 11,
+      "traveler_ids": [
+        13,
+        14
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 0,
+      "reason": "macro_projection"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 26,
+      "day": 0,
+      "household_id": 8,
+      "origin_location_ids": [],
+      "destination_location_id": 11,
+      "traveler_ids": [
+        15,
+        16
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 0,
+      "reason": "macro_projection"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 29,
+      "day": 0,
+      "household_id": 9,
+      "origin_location_ids": [],
+      "destination_location_id": 11,
+      "traveler_ids": [
+        17,
+        18
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 0,
+      "reason": "macro_projection"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 32,
+      "day": 0,
+      "household_id": 10,
+      "origin_location_ids": [],
+      "destination_location_id": 17,
+      "traveler_ids": [
+        19,
+        20
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 0,
+      "reason": "macro_projection"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 35,
+      "day": 0,
+      "household_id": 11,
+      "origin_location_ids": [],
+      "destination_location_id": 17,
+      "traveler_ids": [
+        21,
+        22
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 0,
+      "reason": "macro_projection"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 38,
+      "day": 0,
+      "household_id": 12,
+      "origin_location_ids": [],
+      "destination_location_id": 28,
+      "traveler_ids": [
+        23,
+        24
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 0,
+      "reason": "macro_projection"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 41,
+      "day": 0,
+      "household_id": 13,
+      "origin_location_ids": [],
+      "destination_location_id": 28,
+      "traveler_ids": [
+        25,
+        26
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 0,
+      "reason": "macro_projection"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 44,
+      "day": 0,
+      "household_id": 14,
+      "origin_location_ids": [],
+      "destination_location_id": 27,
+      "traveler_ids": [
+        27,
+        28
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 0,
+      "reason": "macro_projection"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 47,
+      "day": 0,
+      "household_id": 15,
+      "origin_location_ids": [],
+      "destination_location_id": 27,
+      "traveler_ids": [
+        29,
+        30
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 0,
+      "reason": "macro_projection"
+    },
+    {
+      "type": "person_born",
+      "event_id": 65,
+      "day": 720,
+      "person_id": 31,
+      "household_id": 1,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 66,
+      "day": 720,
+      "person_id": 32,
+      "household_id": 2,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 67,
+      "day": 720,
+      "person_id": 33,
+      "household_id": 3,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 68,
+      "day": 720,
+      "person_id": 34,
+      "household_id": 4,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 69,
+      "day": 720,
+      "person_id": 35,
+      "household_id": 5,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 70,
+      "day": 720,
+      "person_id": 36,
+      "household_id": 6,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 71,
+      "day": 720,
+      "person_id": 37,
+      "household_id": 7,
+      "location_id": 11
+    },
+    {
+      "type": "person_born",
+      "event_id": 72,
+      "day": 720,
+      "person_id": 38,
+      "household_id": 8,
+      "location_id": 11
+    },
+    {
+      "type": "person_born",
+      "event_id": 73,
+      "day": 720,
+      "person_id": 39,
+      "household_id": 9,
+      "location_id": 11
+    },
+    {
+      "type": "person_born",
+      "event_id": 74,
+      "day": 720,
+      "person_id": 40,
+      "household_id": 10,
+      "location_id": 17
+    },
+    {
+      "type": "person_born",
+      "event_id": 75,
+      "day": 720,
+      "person_id": 41,
+      "household_id": 11,
+      "location_id": 17
+    },
+    {
+      "type": "person_born",
+      "event_id": 76,
+      "day": 720,
+      "person_id": 42,
+      "household_id": 12,
+      "location_id": 28
+    },
+    {
+      "type": "person_born",
+      "event_id": 77,
+      "day": 720,
+      "person_id": 43,
+      "household_id": 13,
+      "location_id": 28
+    },
+    {
+      "type": "person_born",
+      "event_id": 78,
+      "day": 720,
+      "person_id": 44,
+      "household_id": 14,
+      "location_id": 27
+    },
+    {
+      "type": "person_born",
+      "event_id": 79,
+      "day": 720,
+      "person_id": 45,
+      "household_id": 15,
+      "location_id": 27
+    },
+    {
+      "type": "person_born",
+      "event_id": 112,
+      "day": 2160,
+      "person_id": 46,
+      "household_id": 1,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 113,
+      "day": 2160,
+      "person_id": 47,
+      "household_id": 2,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 114,
+      "day": 2160,
+      "person_id": 48,
+      "household_id": 3,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 115,
+      "day": 2160,
+      "person_id": 49,
+      "household_id": 4,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 116,
+      "day": 2160,
+      "person_id": 50,
+      "household_id": 5,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 117,
+      "day": 2160,
+      "person_id": 51,
+      "household_id": 6,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 118,
+      "day": 2160,
+      "person_id": 52,
+      "household_id": 7,
+      "location_id": 11
+    },
+    {
+      "type": "person_born",
+      "event_id": 119,
+      "day": 2160,
+      "person_id": 53,
+      "household_id": 8,
+      "location_id": 11
+    },
+    {
+      "type": "person_born",
+      "event_id": 120,
+      "day": 2160,
+      "person_id": 54,
+      "household_id": 9,
+      "location_id": 11
+    },
+    {
+      "type": "person_born",
+      "event_id": 121,
+      "day": 2160,
+      "person_id": 55,
+      "household_id": 10,
+      "location_id": 17
+    },
+    {
+      "type": "person_born",
+      "event_id": 122,
+      "day": 2160,
+      "person_id": 56,
+      "household_id": 11,
+      "location_id": 17
+    },
+    {
+      "type": "person_born",
+      "event_id": 123,
+      "day": 2160,
+      "person_id": 57,
+      "household_id": 12,
+      "location_id": 28
+    },
+    {
+      "type": "person_born",
+      "event_id": 124,
+      "day": 2160,
+      "person_id": 58,
+      "household_id": 13,
+      "location_id": 28
+    },
+    {
+      "type": "person_born",
+      "event_id": 125,
+      "day": 2160,
+      "person_id": 59,
+      "household_id": 14,
+      "location_id": 27
+    },
+    {
+      "type": "person_born",
+      "event_id": 126,
+      "day": 2160,
+      "person_id": 60,
+      "household_id": 15,
+      "location_id": 27
+    },
+    {
+      "type": "person_died",
+      "event_id": 151,
+      "day": 3240,
+      "person_id": 60,
+      "age_years": 3,
+      "location_id": 27
+    },
+    {
+      "type": "household_settled",
+      "event_id": 241,
+      "day": 7200,
+      "household_id": 16,
+      "origin_location_ids": [
+        20
+      ],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        31,
+        32
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 6,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 244,
+      "day": 7200,
+      "household_id": 17,
+      "origin_location_ids": [
+        20
+      ],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        33,
+        34
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 6,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 247,
+      "day": 7200,
+      "household_id": 18,
+      "origin_location_ids": [
+        20
+      ],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        35,
+        36
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 6,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 250,
+      "day": 7200,
+      "household_id": 19,
+      "origin_location_ids": [
+        11
+      ],
+      "destination_location_id": 11,
+      "traveler_ids": [
+        37,
+        38
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 6,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 253,
+      "day": 7200,
+      "household_id": 20,
+      "origin_location_ids": [
+        11,
+        17
+      ],
+      "destination_location_id": 17,
+      "traveler_ids": [
+        39,
+        40
+      ],
+      "route_ids": [
+        16
+      ],
+      "travel_cost": 6,
+      "travel_days": 12,
+      "living_kin_support": 3,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 256,
+      "day": 7200,
+      "household_id": 21,
+      "origin_location_ids": [
+        17,
+        28
+      ],
+      "destination_location_id": 17,
+      "traveler_ids": [
+        41,
+        42
+      ],
+      "route_ids": [
+        27,
+        43
+      ],
+      "travel_cost": 76,
+      "travel_days": 152,
+      "living_kin_support": 3,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 259,
+      "day": 7200,
+      "household_id": 22,
+      "origin_location_ids": [
+        27,
+        28
+      ],
+      "destination_location_id": 28,
+      "traveler_ids": [
+        43,
+        44
+      ],
+      "route_ids": [
+        38
+      ],
+      "travel_cost": 6,
+      "travel_days": 12,
+      "living_kin_support": 3,
+      "reason": "living_kin"
+    },
+    {
+      "type": "person_died",
+      "event_id": 269,
+      "day": 7560,
+      "person_id": 10,
+      "age_years": 39,
+      "location_id": 20
+    },
+    {
+      "type": "person_died",
+      "event_id": 279,
+      "day": 7920,
+      "person_id": 37,
+      "age_years": 20,
+      "location_id": 11
+    },
+    {
+      "type": "household_settled",
+      "event_id": 282,
+      "day": 7920,
+      "household_id": 23,
+      "origin_location_ids": [
+        11,
+        27
+      ],
+      "destination_location_id": 11,
+      "traveler_ids": [
+        38,
+        45
+      ],
+      "route_ids": [
+        26,
+        38,
+        43
+      ],
+      "travel_cost": 82,
+      "travel_days": 164,
+      "living_kin_support": 3,
+      "reason": "living_kin"
+    },
+    {
+      "type": "person_born",
+      "event_id": 285,
+      "day": 7920,
+      "person_id": 61,
+      "household_id": 16,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 286,
+      "day": 7920,
+      "person_id": 62,
+      "household_id": 17,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 287,
+      "day": 7920,
+      "person_id": 63,
+      "household_id": 18,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 288,
+      "day": 7920,
+      "person_id": 64,
+      "household_id": 20,
+      "location_id": 17
+    },
+    {
+      "type": "person_born",
+      "event_id": 289,
+      "day": 7920,
+      "person_id": 65,
+      "household_id": 21,
+      "location_id": 17
+    },
+    {
+      "type": "person_born",
+      "event_id": 290,
+      "day": 7920,
+      "person_id": 66,
+      "household_id": 22,
+      "location_id": 28
+    },
+    {
+      "type": "person_born",
+      "event_id": 299,
+      "day": 8280,
+      "person_id": 67,
+      "household_id": 23,
+      "location_id": 11
+    },
+    {
+      "type": "household_settled",
+      "event_id": 309,
+      "day": 8640,
+      "household_id": 24,
+      "origin_location_ids": [
+        20
+      ],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        46,
+        47
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 6,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 312,
+      "day": 8640,
+      "household_id": 25,
+      "origin_location_ids": [
+        20
+      ],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        48,
+        49
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 6,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 315,
+      "day": 8640,
+      "household_id": 26,
+      "origin_location_ids": [
+        20
+      ],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        50,
+        51
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 5,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 318,
+      "day": 8640,
+      "household_id": 27,
+      "origin_location_ids": [
+        11
+      ],
+      "destination_location_id": 11,
+      "traveler_ids": [
+        52,
+        53
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 5,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 321,
+      "day": 8640,
+      "household_id": 28,
+      "origin_location_ids": [
+        11,
+        17
+      ],
+      "destination_location_id": 17,
+      "traveler_ids": [
+        54,
+        55
+      ],
+      "route_ids": [
+        16
+      ],
+      "travel_cost": 6,
+      "travel_days": 12,
+      "living_kin_support": 4,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 324,
+      "day": 8640,
+      "household_id": 29,
+      "origin_location_ids": [
+        17,
+        28
+      ],
+      "destination_location_id": 17,
+      "traveler_ids": [
+        56,
+        57
+      ],
+      "route_ids": [
+        27,
+        43
+      ],
+      "travel_cost": 76,
+      "travel_days": 152,
+      "living_kin_support": 4,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 327,
+      "day": 8640,
+      "household_id": 30,
+      "origin_location_ids": [
+        27,
+        28
+      ],
+      "destination_location_id": 28,
+      "traveler_ids": [
+        58,
+        59
+      ],
+      "route_ids": [
+        38
+      ],
+      "travel_cost": 6,
+      "travel_days": 12,
+      "living_kin_support": 4,
+      "reason": "living_kin"
+    },
+    {
+      "type": "person_died",
+      "event_id": 337,
+      "day": 9000,
+      "person_id": 53,
+      "age_years": 19,
+      "location_id": 11
+    },
+    {
+      "type": "person_died",
+      "event_id": 347,
+      "day": 9360,
+      "person_id": 5,
+      "age_years": 44,
+      "location_id": 20
+    },
+    {
+      "type": "household_settled",
+      "event_id": 350,
+      "day": 9360,
+      "household_id": 31,
+      "origin_location_ids": [
+        20
+      ],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        6,
+        9
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 4,
+      "reason": "living_kin"
+    },
+    {
+      "type": "person_born",
+      "event_id": 354,
+      "day": 9360,
+      "person_id": 68,
+      "household_id": 16,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 355,
+      "day": 9360,
+      "person_id": 69,
+      "household_id": 17,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 356,
+      "day": 9360,
+      "person_id": 70,
+      "household_id": 18,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 357,
+      "day": 9360,
+      "person_id": 71,
+      "household_id": 20,
+      "location_id": 17
+    },
+    {
+      "type": "person_born",
+      "event_id": 358,
+      "day": 9360,
+      "person_id": 72,
+      "household_id": 21,
+      "location_id": 17
+    },
+    {
+      "type": "person_born",
+      "event_id": 359,
+      "day": 9360,
+      "person_id": 73,
+      "household_id": 22,
+      "location_id": 28
+    },
+    {
+      "type": "person_born",
+      "event_id": 360,
+      "day": 9360,
+      "person_id": 74,
+      "household_id": 24,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 361,
+      "day": 9360,
+      "person_id": 75,
+      "household_id": 25,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 362,
+      "day": 9360,
+      "person_id": 76,
+      "household_id": 26,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 363,
+      "day": 9360,
+      "person_id": 77,
+      "household_id": 28,
+      "location_id": 17
+    },
+    {
+      "type": "person_born",
+      "event_id": 364,
+      "day": 9360,
+      "person_id": 78,
+      "household_id": 29,
+      "location_id": 17
+    },
+    {
+      "type": "person_born",
+      "event_id": 365,
+      "day": 9360,
+      "person_id": 79,
+      "household_id": 30,
+      "location_id": 28
+    },
+    {
+      "type": "person_died",
+      "event_id": 374,
+      "day": 9720,
+      "person_id": 14,
+      "age_years": 45,
+      "location_id": 11
+    },
+    {
+      "type": "person_born",
+      "event_id": 376,
+      "day": 9720,
+      "person_id": 80,
+      "household_id": 23,
+      "location_id": 11
+    },
+    {
+      "type": "person_died",
+      "event_id": 393,
+      "day": 10440,
+      "person_id": 4,
+      "age_years": 47,
+      "location_id": 20
+    },
+    {
+      "type": "person_died",
+      "event_id": 394,
+      "day": 10440,
+      "person_id": 27,
+      "age_years": 47,
+      "location_id": 27
+    },
+    {
+      "type": "household_settled",
+      "event_id": 398,
+      "day": 10440,
+      "household_id": 32,
+      "origin_location_ids": [
+        11,
+        20
+      ],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        3,
+        13
+      ],
+      "route_ids": [
+        26
+      ],
+      "travel_cost": 8,
+      "travel_days": 16,
+      "living_kin_support": 2,
+      "reason": "living_kin"
+    },
+    {
+      "type": "person_born",
+      "event_id": 410,
+      "day": 10800,
+      "person_id": 81,
+      "household_id": 24,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 411,
+      "day": 10800,
+      "person_id": 82,
+      "household_id": 25,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 412,
+      "day": 10800,
+      "person_id": 83,
+      "household_id": 26,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 413,
+      "day": 10800,
+      "person_id": 84,
+      "household_id": 28,
+      "location_id": 17
+    },
+    {
+      "type": "person_born",
+      "event_id": 414,
+      "day": 10800,
+      "person_id": 85,
+      "household_id": 29,
+      "location_id": 17
+    },
+    {
+      "type": "person_born",
+      "event_id": 415,
+      "day": 10800,
+      "person_id": 86,
+      "household_id": 30,
+      "location_id": 28
+    },
+    {
+      "type": "person_died",
+      "event_id": 440,
+      "day": 11880,
+      "person_id": 85,
+      "age_years": 3,
+      "location_id": 17
+    },
+    {
+      "type": "person_died",
+      "event_id": 473,
+      "day": 13320,
+      "person_id": 64,
+      "age_years": 15,
+      "location_id": 17
+    },
+    {
+      "type": "household_settled",
+      "event_id": 499,
+      "day": 14400,
+      "household_id": 33,
+      "origin_location_ids": [
+        20
+      ],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        61,
+        62
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 6,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 502,
+      "day": 14400,
+      "household_id": 34,
+      "origin_location_ids": [
+        17,
+        20
+      ],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        63,
+        65
+      ],
+      "route_ids": [
+        27
+      ],
+      "travel_cost": 8,
+      "travel_days": 16,
+      "living_kin_support": 3,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 513,
+      "day": 14760,
+      "household_id": 35,
+      "origin_location_ids": [
+        11,
+        28
+      ],
+      "destination_location_id": 28,
+      "traveler_ids": [
+        66,
+        67
+      ],
+      "route_ids": [
+        26,
+        43
+      ],
+      "travel_cost": 76,
+      "travel_days": 152,
+      "living_kin_support": 3,
+      "reason": "living_kin"
+    },
+    {
+      "type": "person_born",
+      "event_id": 523,
+      "day": 15120,
+      "person_id": 87,
+      "household_id": 33,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 524,
+      "day": 15120,
+      "person_id": 88,
+      "household_id": 34,
+      "location_id": 20
+    },
+    {
+      "type": "person_died",
+      "event_id": 533,
+      "day": 15480,
+      "person_id": 82,
+      "age_years": 13,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 534,
+      "day": 15480,
+      "person_id": 89,
+      "household_id": 35,
+      "location_id": 28
+    },
+    {
+      "type": "person_died",
+      "event_id": 543,
+      "day": 15840,
+      "person_id": 20,
+      "age_years": 62,
+      "location_id": 17
+    },
+    {
+      "type": "person_died",
+      "event_id": 544,
+      "day": 15840,
+      "person_id": 86,
+      "age_years": 14,
+      "location_id": 28
+    },
+    {
+      "type": "household_settled",
+      "event_id": 547,
+      "day": 15840,
+      "household_id": 36,
+      "origin_location_ids": [
+        17,
+        27
+      ],
+      "destination_location_id": 28,
+      "traveler_ids": [
+        19,
+        28
+      ],
+      "route_ids": [
+        27,
+        38,
+        43
+      ],
+      "travel_cost": 76,
+      "travel_days": 152,
+      "living_kin_support": 2,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 550,
+      "day": 15840,
+      "household_id": 37,
+      "origin_location_ids": [
+        20
+      ],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        68,
+        69
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 6,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 553,
+      "day": 15840,
+      "household_id": 38,
+      "origin_location_ids": [
+        17,
+        20
+      ],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        70,
+        71
+      ],
+      "route_ids": [
+        27
+      ],
+      "travel_cost": 8,
+      "travel_days": 16,
+      "living_kin_support": 3,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 556,
+      "day": 15840,
+      "household_id": 39,
+      "origin_location_ids": [
+        17,
+        28
+      ],
+      "destination_location_id": 28,
+      "traveler_ids": [
+        72,
+        73
+      ],
+      "route_ids": [
+        27,
+        43
+      ],
+      "travel_cost": 76,
+      "travel_days": 152,
+      "living_kin_support": 3,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 559,
+      "day": 15840,
+      "household_id": 40,
+      "origin_location_ids": [
+        20
+      ],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        74,
+        75
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 5,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 562,
+      "day": 15840,
+      "household_id": 41,
+      "origin_location_ids": [
+        17,
+        20
+      ],
+      "destination_location_id": 17,
+      "traveler_ids": [
+        76,
+        77
+      ],
+      "route_ids": [
+        27
+      ],
+      "travel_cost": 8,
+      "travel_days": 16,
+      "living_kin_support": 3,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 565,
+      "day": 15840,
+      "household_id": 42,
+      "origin_location_ids": [
+        17,
+        28
+      ],
+      "destination_location_id": 28,
+      "traveler_ids": [
+        78,
+        79
+      ],
+      "route_ids": [
+        27,
+        43
+      ],
+      "travel_cost": 76,
+      "travel_days": 152,
+      "living_kin_support": 2,
+      "reason": "living_kin"
+    },
+    {
+      "type": "person_died",
+      "event_id": 577,
+      "day": 16200,
+      "person_id": 15,
+      "age_years": 63,
+      "location_id": 11
+    },
+    {
+      "type": "person_died",
+      "event_id": 587,
+      "day": 16560,
+      "person_id": 17,
+      "age_years": 64,
+      "location_id": 11
+    },
+    {
+      "type": "person_died",
+      "event_id": 588,
+      "day": 16560,
+      "person_id": 30,
+      "age_years": 64,
+      "location_id": 27
+    },
+    {
+      "type": "household_settled",
+      "event_id": 592,
+      "day": 16560,
+      "household_id": 43,
+      "origin_location_ids": [
+        11
+      ],
+      "destination_location_id": 17,
+      "traveler_ids": [
+        16,
+        18
+      ],
+      "route_ids": [
+        16
+      ],
+      "travel_cost": 6,
+      "travel_days": 12,
+      "living_kin_support": 2,
+      "reason": "living_kin"
+    },
+    {
+      "type": "person_born",
+      "event_id": 596,
+      "day": 16560,
+      "person_id": 90,
+      "household_id": 33,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 597,
+      "day": 16560,
+      "person_id": 91,
+      "household_id": 34,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 598,
+      "day": 16560,
+      "person_id": 92,
+      "household_id": 37,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 599,
+      "day": 16560,
+      "person_id": 93,
+      "household_id": 38,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 600,
+      "day": 16560,
+      "person_id": 94,
+      "household_id": 39,
+      "location_id": 28
+    },
+    {
+      "type": "person_born",
+      "event_id": 601,
+      "day": 16560,
+      "person_id": 95,
+      "household_id": 40,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 602,
+      "day": 16560,
+      "person_id": 96,
+      "household_id": 41,
+      "location_id": 17
+    },
+    {
+      "type": "person_born",
+      "event_id": 603,
+      "day": 16560,
+      "person_id": 97,
+      "household_id": 42,
+      "location_id": 28
+    },
+    {
+      "type": "person_died",
+      "event_id": 612,
+      "day": 16920,
+      "person_id": 28,
+      "age_years": 65,
+      "location_id": 28
+    },
+    {
+      "type": "household_settled",
+      "event_id": 615,
+      "day": 16920,
+      "household_id": 44,
+      "origin_location_ids": [
+        27,
+        28
+      ],
+      "destination_location_id": 17,
+      "traveler_ids": [
+        19,
+        29
+      ],
+      "route_ids": [
+        27,
+        38,
+        43
+      ],
+      "travel_cost": 82,
+      "travel_days": 164,
+      "living_kin_support": 2,
+      "reason": "living_kin"
+    },
+    {
+      "type": "person_born",
+      "event_id": 619,
+      "day": 16920,
+      "person_id": 98,
+      "household_id": 35,
+      "location_id": 28
+    },
+    {
+      "type": "person_died",
+      "event_id": 628,
+      "day": 17280,
+      "person_id": 19,
+      "age_years": 66,
+      "location_id": 17
+    },
+    {
+      "type": "household_settled",
+      "event_id": 631,
+      "day": 17280,
+      "household_id": 45,
+      "origin_location_ids": [
+        11,
+        20
+      ],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        80,
+        81
+      ],
+      "route_ids": [
+        26
+      ],
+      "travel_cost": 8,
+      "travel_days": 16,
+      "living_kin_support": 3,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 634,
+      "day": 17280,
+      "household_id": 46,
+      "origin_location_ids": [
+        17,
+        20
+      ],
+      "destination_location_id": 17,
+      "traveler_ids": [
+        83,
+        84
+      ],
+      "route_ids": [
+        27
+      ],
+      "travel_cost": 8,
+      "travel_days": 16,
+      "living_kin_support": 4,
+      "reason": "living_kin"
+    },
+    {
+      "type": "person_died",
+      "event_id": 644,
+      "day": 17640,
+      "person_id": 9,
+      "age_years": 67,
+      "location_id": 20
+    },
+    {
+      "type": "person_died",
+      "event_id": 645,
+      "day": 17640,
+      "person_id": 13,
+      "age_years": 67,
+      "location_id": 20
+    },
+    {
+      "type": "person_died",
+      "event_id": 646,
+      "day": 17640,
+      "person_id": 90,
+      "age_years": 3,
+      "location_id": 20
+    },
+    {
+      "type": "household_settled",
+      "event_id": 650,
+      "day": 17640,
+      "household_id": 47,
+      "origin_location_ids": [
+        20
+      ],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        3,
+        6
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 4,
+      "reason": "living_kin"
+    },
+    {
+      "type": "person_died",
+      "event_id": 662,
+      "day": 18000,
+      "person_id": 8,
+      "age_years": 68,
+      "location_id": 20
+    },
+    {
+      "type": "person_died",
+      "event_id": 663,
+      "day": 18000,
+      "person_id": 12,
+      "age_years": 68,
+      "location_id": 20
+    },
+    {
+      "type": "household_settled",
+      "event_id": 667,
+      "day": 18000,
+      "household_id": 48,
+      "origin_location_ids": [
+        20
+      ],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        7,
+        11
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 4,
+      "reason": "living_kin"
+    },
+    {
+      "type": "person_born",
+      "event_id": 671,
+      "day": 18000,
+      "person_id": 99,
+      "household_id": 37,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 672,
+      "day": 18000,
+      "person_id": 100,
+      "household_id": 38,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 673,
+      "day": 18000,
+      "person_id": 101,
+      "household_id": 39,
+      "location_id": 28
+    },
+    {
+      "type": "person_born",
+      "event_id": 674,
+      "day": 18000,
+      "person_id": 102,
+      "household_id": 40,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 675,
+      "day": 18000,
+      "person_id": 103,
+      "household_id": 41,
+      "location_id": 17
+    },
+    {
+      "type": "person_born",
+      "event_id": 676,
+      "day": 18000,
+      "person_id": 104,
+      "household_id": 42,
+      "location_id": 28
+    },
+    {
+      "type": "person_born",
+      "event_id": 677,
+      "day": 18000,
+      "person_id": 105,
+      "household_id": 45,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 678,
+      "day": 18000,
+      "person_id": 106,
+      "household_id": 46,
+      "location_id": 17
+    },
+    {
+      "type": "person_died",
+      "event_id": 695,
+      "day": 18720,
+      "person_id": 25,
+      "age_years": 70,
+      "location_id": 28
+    },
+    {
+      "type": "person_died",
+      "event_id": 696,
+      "day": 18720,
+      "person_id": 70,
+      "age_years": 26,
+      "location_id": 20
+    },
+    {
+      "type": "household_settled",
+      "event_id": 700,
+      "day": 18720,
+      "household_id": 49,
+      "origin_location_ids": [
+        17,
+        28
+      ],
+      "destination_location_id": 28,
+      "traveler_ids": [
+        26,
+        29
+      ],
+      "route_ids": [
+        27,
+        43
+      ],
+      "travel_cost": 76,
+      "travel_days": 152,
+      "living_kin_support": 2,
+      "reason": "living_kin"
+    },
+    {
+      "type": "person_died",
+      "event_id": 712,
+      "day": 19080,
+      "person_id": 55,
+      "age_years": 47,
+      "location_id": 17
+    },
+    {
+      "type": "household_settled",
+      "event_id": 715,
+      "day": 19080,
+      "household_id": 50,
+      "origin_location_ids": [
+        11,
+        17
+      ],
+      "destination_location_id": 17,
+      "traveler_ids": [
+        52,
+        54
+      ],
+      "route_ids": [
+        16
+      ],
+      "travel_cost": 6,
+      "travel_days": 12,
+      "living_kin_support": 4,
+      "reason": "living_kin"
+    },
+    {
+      "type": "person_died",
+      "event_id": 727,
+      "day": 19440,
+      "person_id": 23,
+      "age_years": 72,
+      "location_id": 28
+    },
+    {
+      "type": "person_died",
+      "event_id": 728,
+      "day": 19440,
+      "person_id": 31,
+      "age_years": 52,
+      "location_id": 20
+    },
+    {
+      "type": "person_died",
+      "event_id": 729,
+      "day": 19440,
+      "person_id": 104,
+      "age_years": 4,
+      "location_id": 28
+    },
+    {
+      "type": "person_born",
+      "event_id": 732,
+      "day": 19440,
+      "person_id": 107,
+      "household_id": 45,
+      "location_id": 20
+    },
+    {
+      "type": "person_born",
+      "event_id": 733,
+      "day": 19440,
+      "person_id": 108,
+      "household_id": 46,
+      "location_id": 17
+    },
+    {
+      "type": "person_died",
+      "event_id": 766,
+      "day": 20880,
+      "person_id": 7,
+      "age_years": 76,
+      "location_id": 20
+    },
+    {
+      "type": "person_died",
+      "event_id": 767,
+      "day": 20880,
+      "person_id": 11,
+      "age_years": 76,
+      "location_id": 20
+    },
+    {
+      "type": "person_died",
+      "event_id": 768,
+      "day": 20880,
+      "person_id": 24,
+      "age_years": 76,
+      "location_id": 28
+    },
+    {
+      "type": "person_died",
+      "event_id": 788,
+      "day": 21600,
+      "person_id": 6,
+      "age_years": 78,
+      "location_id": 20
+    },
+    {
+      "type": "person_died",
+      "event_id": 789,
+      "day": 21600,
+      "person_id": 16,
+      "age_years": 78,
+      "location_id": 17
+    },
+    {
+      "type": "household_settled",
+      "event_id": 793,
+      "day": 21600,
+      "household_id": 51,
+      "origin_location_ids": [
+        17,
+        20
+      ],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        3,
+        18
+      ],
+      "route_ids": [
+        27
+      ],
+      "travel_cost": 8,
+      "travel_days": 16,
+      "living_kin_support": 2,
+      "reason": "living_kin"
+    },
+    {
+      "type": "household_settled",
+      "event_id": 796,
+      "day": 21600,
+      "household_id": 52,
+      "origin_location_ids": [
+        20
+      ],
+      "destination_location_id": 20,
+      "traveler_ids": [
+        87,
+        88
+      ],
+      "route_ids": [],
+      "travel_cost": 0,
+      "travel_days": 0,
+      "living_kin_support": 5,
+      "reason": "living_kin"
+    }
+  ]
+}

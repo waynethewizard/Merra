@@ -1,0 +1,57 @@
+[
+  {
+    "id": 1,
+    "key": "river-folk",
+    "name": "River Folk",
+    "founded_year": 0,
+    "origin_event": 2,
+    "ritual_days_per_year": 6,
+    "sacred_contribution_per_10_000": 200,
+    "institutional_preservation_per_10_000": 10000,
+    "faith_transmission_per_10_000": 10000
+  },
+  {
+    "id": 2,
+    "key": "upland-kin",
+    "name": "Upland Kin",
+    "founded_year": 0,
+    "origin_event": 3,
+    "ritual_days_per_year": 8,
+    "sacred_contribution_per_10_000": 250,
+    "institutional_preservation_per_10_000": 10500,
+    "faith_transmission_per_10_000": 9500
+  },
+  {
+    "id": 3,
+    "key": "western-marches",
+    "name": "Western Marches",
+    "founded_year": 0,
+    "origin_event": 4,
+    "ritual_days_per_year": 4,
+    "sacred_contribution_per_10_000": 150,
+    "institutional_preservation_per_10_000": 9500,
+    "faith_transmission_per_10_000": 10500
+  },
+  {
+    "id": 4,
+    "key": "ring-keepers",
+    "name": "Keepers of the Ring",
+    "founded_year": 0,
+    "origin_event": 5,
+    "ritual_days_per_year": 24,
+    "sacred_contribution_per_10_000": 750,
+    "institutional_preservation_per_10_000": 14000,
+    "faith_transmission_per_10_000": 12500
+  },
+  {
+    "id": 5,
+    "key": "tidebound",
+    "name": "Tidebound",
+    "founded_year": 293,
+    "origin_event": 38,
+    "ritual_days_per_year": 12,
+    "sacred_contribution_per_10_000": 400,
+    "institutional_preservation_per_10_000": 11500,
+    "faith_transmission_per_10_000": 11000
+  }
+]

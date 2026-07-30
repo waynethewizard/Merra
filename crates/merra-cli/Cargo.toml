@@ -17,6 +17,7 @@ blake3.workspace = true
 clap.workspace = true
 merra-core.workspace = true
 merra-sim.workspace = true
+merra-worldgen.workspace = true
 ron.workspace = true
 serde.workspace = true
 serde_json.workspace = true

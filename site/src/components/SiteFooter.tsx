@@ -14,6 +14,9 @@ export function SiteFooter() {
         </div>
         <div className="footer-links">
           <span>Project</span>
+          <Link href="/history/">History &amp; lore</Link>
+          <Link href="/villages/">Village playback</Link>
+          <Link href="/objects/">Object lineages</Link>
           <Link href="/explore/">Run explorer</Link>
           <Link href="/chronicle/">Development chronicle</Link>
           <a href="https://github.com/waynethewizard/Merra">Source code</a>

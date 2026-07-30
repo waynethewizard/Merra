@@ -6,11 +6,11 @@
   "bevy_version": "0.19.0",
   "rust_version": "1.97.1",
   "source": {
-    "git_commit": "ff63830a74b62501427450bbd73a92841f9e6443",
+    "git_commit": "d4323bc8488f5e6fc7a4ed8b25dcf6499a62d729",
     "dirty": false
   },
   "scenario_id": "era-01-smoke",
-  "scenario_hash": "f83eab98246e010fdcd5f610a941f4b3581267b68fae5c9fc46310b69fee1366",
+  "scenario_hash": "5d7382f433ecafbb1f007dae51291f92c15232309d636043f7b6d28a4e9b269b",
   "seed": 42,
   "years": 1,
   "days": 360

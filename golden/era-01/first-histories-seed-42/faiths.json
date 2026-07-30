@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "key": "ring-witness",
+    "name": "The Ring Witness",
+    "founded_year": 0,
+    "origin_event": 14,
+    "source_feature_id": 7,
+    "parent_faith_id": null
+  },
+  {
+    "id": 2,
+    "key": "river-witness",
+    "name": "The River Witness",
+    "founded_year": 120,
+    "origin_event": 23,
+    "source_feature_id": null,
+    "parent_faith_id": null
+  },
+  {
+    "id": 3,
+    "key": "open-hand",
+    "name": "Open Hand of The Ring Witness",
+    "founded_year": 373,
+    "origin_event": 48,
+    "source_feature_id": 7,
+    "parent_faith_id": 1
+  }
+]

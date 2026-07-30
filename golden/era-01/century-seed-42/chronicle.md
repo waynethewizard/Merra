@@ -3,9 +3,10 @@
 - Scenario: `era-01-century`
 - Seed: `42`
 - Calendar: 360 days per year
+- Seasons: Thaw (90 days), Bloom (90 days), Highsun (90 days), Emberfall (90 days)
 - Elapsed: 36000 days (100 complete years)
 - Population: 100 initialized, 0 living, 100 deaths
-- Structured events: 203
+- Structured events: 904
 
 The clock advanced deterministically from Day 0 to Day 36000.
 
