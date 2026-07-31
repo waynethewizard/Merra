@@ -101,6 +101,9 @@ playback evidence. These indexes contain exact living-person locations and
 recorded household migration trails; family trees derive only from stable
 parent identities visible at the selected year. Reserved typed media wells are
 presentation slots keyed by domain identity, not new simulation state.
+The versioned media registry validates captions, alt text, provenance, safe
+manifest-relative paths, file availability, and optional content hashes before
+the presentation layer can resolve an asset.
 
 The terminal inspector may derive population series, generation and surname
 outcomes, partnership histories, and household timelines from an immutable

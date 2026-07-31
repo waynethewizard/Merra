@@ -1,12 +1,17 @@
 //! Story-first terminal rendering and navigation for Merra simulation evidence.
 
 mod local;
+mod media;
 mod model;
 mod observatory;
 mod observatory_render;
 mod render;
 
 pub use local::{LocalInspector, LocalView, render_local_snapshot};
+pub use media::{
+    MediaCatalog, MediaEntry, MediaEntryV1, MediaError, MediaManifestV1, MediaProvenanceV1,
+    MediaStatusV1, OBSERVATORY_MEDIA_SCHEMA_V1,
+};
 pub use model::{EventFilter, Focus, HouseholdSort, Inspector, PersonSort, View};
 pub use observatory::{
     CatalogKind, EntityRef, Observatory, ObservatoryData, ObservatoryError, ObservatoryLayer,
@@ -314,8 +319,9 @@ mod tests {
         assert_eq!(observatory.maximum_year(), 660);
         assert!(observatory.local_state().is_some());
 
-        let atlas = render_observatory_snapshot(&observatory, 100, 30);
+        let atlas = render_observatory_snapshot(&observatory, 120, 30);
         assert!(atlas.contains("HISTORICAL OBSERVATORY"));
+        assert!(atlas.contains("8 media briefs"));
         assert!(atlas.contains("World Atlas · history"));
         assert!(atlas.contains("contact Y293"));
         assert!(atlas.contains("local Y600"));
@@ -336,6 +342,8 @@ mod tests {
         let catalog = render_observatory_snapshot(&observatory, 100, 30);
         assert!(catalog.contains("Catalog · Items"));
         assert!(catalog.contains("item"));
+        assert!(catalog.contains("ART BRIEF REGISTERED"));
+        assert!(catalog.contains("Thorn harvest sickle"));
         Ok(())
     }
 

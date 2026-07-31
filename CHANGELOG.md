@@ -21,6 +21,9 @@ interfaces stabilize.
   migration trails, forward and reverse animation, time-aware family-tree
   visualization, and typed media wells for future portraits, family images,
   objects, places, cultures, events, and lore.
+- Versioned observatory media registry with stable typed keys, planned and
+  available asset states, captions, alt text, creator/license/source evidence,
+  safe relative-path resolution, and optional BLAKE3 verification.
 - Stable durable-item identities with typed provenance graphs, separate legal
   ownership and physical custody, deterministic work and wear, repair,
   inheritance, settlement escheat, relocation, and identity-changing

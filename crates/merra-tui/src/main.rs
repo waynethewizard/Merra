@@ -28,8 +28,8 @@ use merra_core::{
 };
 use merra_sim::run_years;
 use merra_tui::{
-    EntityRef, Focus, Inspector, LocalInspector, LocalView, Observatory, ObservatoryData,
-    ObservatoryError, ObservatoryTheme, ObservatoryView, PaneFocus, View, render,
+    EntityRef, Focus, Inspector, LocalInspector, LocalView, MediaCatalog, MediaError, Observatory,
+    ObservatoryData, ObservatoryError, ObservatoryTheme, ObservatoryView, PaneFocus, View, render,
     render_local_snapshot, render_observatory, render_observatory_snapshot, render_snapshot,
 };
 use merra_worldgen::{AtlasLayer, render_snapshot as render_world_snapshot};
@@ -80,6 +80,9 @@ struct Args {
     /// Disable transition effects while retaining live playback.
     #[arg(long)]
     no_motion: bool,
+    /// Custom observatory media manifest; assets resolve relative to this JSON file.
+    #[arg(long, value_name = "MANIFEST.json")]
+    media: Option<PathBuf>,
 }
 
 #[derive(Debug, ClapArgs)]
@@ -312,6 +315,11 @@ fn run_observatory(args: Args) -> Result<(), TuiError> {
         args.local.as_deref(),
     )?;
     let mut observatory = Observatory::new(data);
+    let media = args
+        .media
+        .as_deref()
+        .map_or_else(MediaCatalog::canonical, MediaCatalog::load)?;
+    observatory.set_media_catalog(media);
     observatory.set_view(args.workspace.into());
     if matches!(args.theme, InitialTheme::Monochrome) || std::env::var_os("NO_COLOR").is_some() {
         observatory.set_theme(ObservatoryTheme::Monochrome);
@@ -955,6 +963,8 @@ enum TuiError {
     Simulation(#[from] merra_sim::SimulationError),
     #[error(transparent)]
     Observatory(#[from] ObservatoryError),
+    #[error(transparent)]
+    Media(#[from] MediaError),
     #[error("interactive mode requires a terminal; use --snapshot for redirected output")]
     InteractiveTerminalRequired,
     #[error("requested stable focus does not exist: {0:?}")]
@@ -983,6 +993,8 @@ mod tests {
             "610",
             "--focus",
             "person:17",
+            "--media",
+            "assets/observatory/media.json",
         ])?;
 
         assert!(args.command.is_none());
@@ -990,6 +1002,10 @@ mod tests {
         assert!(matches!(args.workspace, InitialObservatoryView::Relations));
         assert_eq!(args.year, Some(610));
         assert_eq!(args.focus, Some("person:17".parse::<EntityRef>()?));
+        assert_eq!(
+            args.media.as_deref(),
+            Some(std::path::Path::new("assets/observatory/media.json"))
+        );
         Ok(())
     }
 

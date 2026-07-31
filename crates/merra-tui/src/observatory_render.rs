@@ -13,6 +13,7 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Clear, Paragraph, Wrap},
 };
 
+use crate::media::MediaStatusV1;
 use crate::observatory::{
     CatalogKind, EntityRef, HitRegions, Observatory, ObservatoryLayer, ObservatoryTheme,
     ObservatoryView, PaneFocus, PersonPhase,
@@ -205,7 +206,7 @@ fn render_header(frame: &mut Frame<'_>, area: Rect, app: &Observatory, palette: 
         |entity| app.label(entity),
     );
     let evidence = format!(
-        "{} regions · {} places{}{}",
+        "{} regions · {} places{}{} · {} media briefs",
         app.data.world.cells.len(),
         app.data.world.places.locations.len(),
         history.map_or_else(String::new, |report| format!(
@@ -218,6 +219,7 @@ fn render_header(frame: &mut Frame<'_>, area: Rect, app: &Observatory, palette: 
             report.people.len(),
             report.items.len()
         )),
+        app.media_count(),
     );
     let text = Text::from(vec![
         Line::from(vec![
@@ -321,14 +323,14 @@ fn render_atlas_detail(frame: &mut Frame<'_>, area: Rect, app: &Observatory, pal
     let block = archive_block(&title, palette);
     let inner = block.inner(area);
     frame.render_widget(block, area);
-    let (image_area, content_area) = if inner.height >= 18 {
-        let rows = Layout::vertical([Constraint::Length(6), Constraint::Min(1)]).split(inner);
+    let (image_area, content_area) = if inner.height >= 20 {
+        let rows = Layout::vertical([Constraint::Length(8), Constraint::Min(1)]).split(inner);
         (Some(rows[0]), rows[1])
     } else {
         (None, inner)
     };
     if let Some(image_area) = image_area {
-        render_image_well(frame, image_area, app.focus, palette);
+        render_image_well(frame, image_area, app, app.focus, palette);
     }
     let mut lines = vec![
         Line::styled(
@@ -1177,14 +1179,14 @@ fn render_detail(frame: &mut Frame<'_>, area: Rect, app: &Observatory, palette: 
     let block = archive_block(&title, palette);
     let inner = block.inner(area);
     frame.render_widget(block, area);
-    let (image_area, text_area) = if inner.height >= 12 {
-        let rows = Layout::vertical([Constraint::Length(6), Constraint::Min(1)]).split(inner);
+    let (image_area, text_area) = if inner.height >= 14 {
+        let rows = Layout::vertical([Constraint::Length(8), Constraint::Min(1)]).split(inner);
         (Some(rows[0]), rows[1])
     } else {
         (None, inner)
     };
     if let Some(image_area) = image_area {
-        render_image_well(frame, image_area, focus, palette);
+        render_image_well(frame, image_area, app, focus, palette);
     }
     let lines = detail_lines(app, focus, palette);
     frame.render_widget(
@@ -1198,6 +1200,7 @@ fn render_detail(frame: &mut Frame<'_>, area: Rect, app: &Observatory, palette: 
 fn render_image_well(
     frame: &mut Frame<'_>,
     area: Rect,
+    app: &Observatory,
     focus: Option<EntityRef>,
     palette: Palette,
 ) {
@@ -1220,6 +1223,33 @@ fn render_image_well(
         };
         (plate, entity.to_string())
     });
+    let media = focus.and_then(|entity| app.media_entry(entity));
+    let (status, caption, provenance) = media.map_or_else(
+        || {
+            (
+                String::from("UNREGISTERED SLOT"),
+                String::from("Add this typed key to the media manifest."),
+                String::from("No provenance record"),
+            )
+        },
+        |entry| {
+            let status = match entry.status {
+                MediaStatusV1::Planned => String::from("ART BRIEF REGISTERED"),
+                MediaStatusV1::Available => entry.asset.as_ref().map_or_else(
+                    || String::from("ASSET READY"),
+                    |asset| format!("ASSET READY · {}", asset.display()),
+                ),
+            };
+            (
+                status,
+                entry.caption.clone(),
+                format!(
+                    "{} · {}",
+                    entry.provenance.creator, entry.provenance.license
+                ),
+            )
+        },
+    );
     frame.render_widget(
         Paragraph::new(vec![
             Line::styled(
@@ -1228,10 +1258,12 @@ fn render_image_well(
                     .fg(palette.copper)
                     .add_modifier(Modifier::BOLD),
             ),
-            Line::styled("image archive slot", Style::default().fg(palette.dim)),
+            Line::styled(status, Style::default().fg(palette.teal)),
+            Line::styled(caption, Style::default().fg(palette.ink)),
+            Line::styled(provenance, Style::default().fg(palette.dim)),
             Line::styled(
                 format!("media key · {key}"),
-                Style::default().fg(palette.ink),
+                Style::default().fg(palette.copper),
             ),
         ])
         .alignment(Alignment::Center)
@@ -1274,6 +1306,28 @@ fn detail_lines(
         body.push(String::from("No additional structured evidence."));
     }
     lines.extend(body.into_iter().map(Line::from));
+    if let Some(media) = app.media_entry(focus) {
+        lines.push(Line::default());
+        lines.push(Line::styled(
+            "MEDIA REGISTRY",
+            Style::default()
+                .fg(palette.copper)
+                .add_modifier(Modifier::BOLD),
+        ));
+        lines.push(Line::from(format!("Caption: {}", media.caption)));
+        lines.push(Line::from(format!("Alt text: {}", media.alt_text)));
+        lines.push(Line::from(format!(
+            "Creator: {} · license {}",
+            media.provenance.creator, media.provenance.license
+        )));
+        if let Some(source) = &media.provenance.source_url {
+            lines.push(Line::from(format!("Source: {source}")));
+        }
+        lines.push(Line::from(format!(
+            "Modifications: {}",
+            media.provenance.modifications
+        )));
+    }
     let relation_count = app.relations.get(&focus).map_or(0, Vec::len);
     lines.push(Line::default());
     lines.push(Line::styled(

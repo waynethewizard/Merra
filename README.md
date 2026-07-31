@@ -77,6 +77,19 @@ year rather than leaking future descendants. Entity detail panes reserve stable
 portrait, family, object, place, culture, event, and lore image wells keyed by
 typed identity for future media.
 
+The default media registry includes eight canonical art briefs. Supply a
+different versioned registry to preview its captions, accessibility copy, and
+provenance in the same entity wells:
+
+```sh
+cargo tui --media assets/observatory/media.json
+```
+
+Available entries resolve image paths relative to their manifest and validate
+file existence plus an optional BLAKE3 hash. The full contract and asset-policy
+workflow are documented in
+[`assets/observatory/README.md`](assets/observatory/README.md).
+
 `L` changes the Atlas layer, `+`/`-` zooms, and `?` opens the complete keyboard
 and mouse guide.
 

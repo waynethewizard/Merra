@@ -20,6 +20,8 @@ use merra_worldgen::generate_world;
 use ratatui::layout::Rect;
 use thiserror::Error;
 
+use crate::media::{MediaCatalog, MediaEntry};
+
 const CANONICAL_SEED: u64 = 42;
 const WORLD_SCENARIO: &str = include_str!("../../../scenarios/era-01/before-memory.ron");
 const HISTORY_SCENARIO: &str = include_str!("../../../scenarios/era-01/first-histories.ron");
@@ -476,6 +478,7 @@ pub struct HitRegions {
 #[derive(Clone, Debug)]
 pub struct Observatory {
     pub(crate) data: ObservatoryData,
+    pub(crate) media: MediaCatalog,
     pub(crate) names: BTreeMap<EntityRef, String>,
     pub(crate) relations: BTreeMap<EntityRef, Vec<Relation>>,
     pub(crate) moments: Vec<ObservatoryMoment>,
@@ -521,6 +524,7 @@ impl Observatory {
         );
         let mut observatory = Self {
             data,
+            media: MediaCatalog::canonical().unwrap_or_default(),
             names: BTreeMap::new(),
             relations: BTreeMap::new(),
             moments: Vec::new(),
@@ -628,6 +632,20 @@ impl Observatory {
     #[must_use]
     pub const fn hit_regions(&self) -> &HitRegions {
         &self.hits
+    }
+
+    pub fn set_media_catalog(&mut self, media: MediaCatalog) {
+        self.media = media;
+    }
+
+    #[must_use]
+    pub fn media_entry(&self, entity: EntityRef) -> Option<&MediaEntry> {
+        self.media.entry(entity)
+    }
+
+    #[must_use]
+    pub fn media_count(&self) -> usize {
+        self.media.len()
     }
 
     #[must_use]

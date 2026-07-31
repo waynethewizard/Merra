@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "key": "location:20",
+      "status": "planned",
+      "caption": "Fenstead where the first sea-crossing contact became a shared settlement.",
+      "alt_text": "A river settlement at a coastal meeting point, with continental and island travelers arriving together.",
+      "provenance": {
+        "creator": "Merra project art brief",
+        "license": "CC BY 4.0",
+        "modifications": "No image asset is currently attached."
+      }
+    },
+    {
+      "key": "person:1",
+      "status": "planned",
+      "caption": "Garin Thorn, a projected founder whose descendants cross the five-village record.",
+      "alt_text": "An archival portrait study of Garin Thorn with practical village clothing and family tokens.",
+      "provenance": {
+        "creator": "Merra project art brief",
+        "license": "CC BY 4.0",
+        "modifications": "No image asset is currently attached."
+      }
+    },
+    {
+      "key": "household:1",
+      "status": "planned",
+      "caption": "The Thorn household at Fenstead across its recorded generations.",
+      "alt_text": "A multigenerational household portrait with members gathered outside their Fenstead residence.",
+      "provenance": {
+        "creator": "Merra project art brief",
+        "license": "CC BY 4.0",
+        "modifications": "No image asset is currently attached."
+      }
+    },
+    {
+      "key": "item:1",
+      "status": "planned",
+      "caption": "The Thorn harvest sickle before its identity-changing rework descendants.",
+      "alt_text": "A worn iron harvest sickle showing repairs, a polished grip, and marks from repeated field work.",
+      "provenance": {
+        "creator": "Merra project art brief",
+        "license": "CC BY 4.0",
+        "modifications": "No image asset is currently attached."
+      }
+    },
+    {
+      "key": "culture:1",
+      "status": "planned",
+      "caption": "The River Folk and the material culture of their continental waterways.",
+      "alt_text": "River Folk boats, woven river maps, tools, and clothing arranged as an ethnographic archive plate.",
+      "provenance": {
+        "creator": "Merra project art brief",
+        "license": "CC BY 4.0",
+        "modifications": "No image asset is currently attached."
+      }
+    },
+    {
+      "key": "faith:1",
+      "status": "planned",
+      "caption": "The Ring Witness tradition carried by the island homeland.",
+      "alt_text": "A circular island shrine and ritual objects associated with the Ring Witness faith.",
+      "provenance": {
+        "creator": "Merra project art brief",
+        "license": "CC BY 4.0",
+        "modifications": "No image asset is currently attached."
+      }
+    },
+    {
+      "key": "macro-event:37",
+      "status": "planned",
+      "caption": "First cross-homeland contact at Fenstead in Year 293.",
+      "alt_text": "Continental sailors and island residents meeting at Fenstead after the sea route opens.",
+      "provenance": {
+        "creator": "Merra project art brief",
+        "license": "CC BY 4.0",
+        "modifications": "No image asset is currently attached."
+      }
+    },
+    {
+      "key": "claim:1",
+      "status": "planned",
+      "caption": "The Discovery of the Outer Shore as remembered by River Folk narrators.",
+      "alt_text": "A deliberately interpretive manuscript scene depicting the continental discovery claim, marked as contested lore.",
+      "provenance": {
+        "creator": "Merra project art brief",
+        "license": "CC BY 4.0",
+        "modifications": "No image asset is currently attached."
+      }
+    }
+  ]
+}
