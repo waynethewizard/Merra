@@ -34,6 +34,7 @@ ratatui = { version = "0.30.2", default-features = false, features = ["crossterm
 ron = "0.12.2"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
+tachyonfx = { version = "0.25.1", default-features = false, features = ["std", "std-duration"] }
 thiserror = "2.0.19"
 
 [workspace.lints.rust]

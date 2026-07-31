@@ -46,19 +46,19 @@ jobs:
 
       - name: Render terminal evidence
         run: |
-          cargo run --locked -p merra-tui -- \
+          cargo run --locked -p merra-tui -- dynasty \
             --scenario scenarios/era-01/century.ron \
             --seed 42 \
             --years 100 \
             --snapshot \
             --view overview > runs/actions-century/tui-overview.txt
-          cargo run --locked -p merra-tui -- \
+          cargo run --locked -p merra-tui -- dynasty \
             --scenario scenarios/era-01/century.ron \
             --seed 42 \
             --years 100 \
             --snapshot \
             --view history > runs/actions-century/tui-history.txt
-          cargo run --locked -p merra-tui -- \
+          cargo run --locked -p merra-tui -- dynasty \
             --scenario scenarios/era-01/century.ron \
             --seed 42 \
             --years 100 \
@@ -106,26 +106,26 @@ jobs:
 
       - name: Render historical showcase
         run: |
-          cargo run --locked -p merra-tui -- \
+          cargo run --locked -p merra-tui -- dynasty \
             --scenario scenarios/era-01/dynasty.ron \
             --seed 42 \
             --years 60 \
             --snapshot \
             --view overview > runs/actions-dynasty/tui-overview.txt
-          cargo run --locked -p merra-tui -- \
+          cargo run --locked -p merra-tui -- dynasty \
             --scenario scenarios/era-01/dynasty.ron \
             --seed 42 \
             --years 60 \
             --snapshot \
             --view history > runs/actions-dynasty/tui-history.txt
-          cargo run --locked -p merra-tui -- \
+          cargo run --locked -p merra-tui -- dynasty \
             --scenario scenarios/era-01/dynasty.ron \
             --seed 42 \
             --years 60 \
             --snapshot \
             --view lineage \
             --focus-person 1 > runs/actions-dynasty/tui-lineage.txt
-          cargo run --locked -p merra-tui -- \
+          cargo run --locked -p merra-tui -- dynasty \
             --scenario scenarios/era-01/dynasty.ron \
             --seed 42 \
             --years 60 \
@@ -198,6 +198,15 @@ jobs:
           --snapshot
           --layer biome
           > runs/actions-first-histories/tui-biome.txt
+
+      - name: Render the connected historical observatory
+        run: >-
+          cargo run --locked -p merra-tui --
+          --history runs/actions-first-histories
+          --local runs/actions-five-villages
+          --snapshot
+          --workspace chronicle
+          > runs/actions-first-histories/tui-observatory.txt
 
       - name: Render the five-village field report
         run: |

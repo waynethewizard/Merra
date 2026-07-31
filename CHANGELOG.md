@@ -12,6 +12,15 @@ interfaces stabilize.
 
 ### Added
 
+- Unified historical observatory TUI with Atlas, Chronicle, Relations, and
+  Catalog workspaces over one connected world-to-village evidence stack,
+  cross-scale typed identity links, global and focused playback, complete
+  search, mouse navigation, portable snapshots, monochrome/no-motion modes,
+  and custom generated-artifact loading.
+- Reversible Atlas playback with exact named-person positions, yearly
+  migration trails, forward and reverse animation, time-aware family-tree
+  visualization, and typed media wells for future portraits, family images,
+  objects, places, cultures, events, and lore.
 - Stable durable-item identities with typed provenance graphs, separate legal
   ownership and physical custody, deterministic work and wear, repair,
   inheritance, settlement escheat, relocation, and identity-changing

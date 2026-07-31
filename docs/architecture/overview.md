@@ -87,17 +87,32 @@ participate in authoritative world updates. Era II will add a graphical
 application and presentation boundary. Simulation crates must not depend on
 rendering, UI, audio, or platform windows.
 
+The default terminal application is a unified historical observatory. It
+indexes the immutable surface world, optional macro history, and optional local
+history into typed cross-scale identities and four presentation workspaces:
+Atlas, Chronicle, Relations, and Catalog. The canonical launch generates the
+seed-42 stack in memory; custom launches read and hash-check existing run
+artifacts. Its combined timeline advances macro history by recorded event and
+the focused local period by exact year. Neither path reruns or mutates history
+after the evidence has been loaded.
+
+The observatory derives reversible yearly presentation indexes from immutable
+playback evidence. These indexes contain exact living-person locations and
+recorded household migration trails; family trees derive only from stable
+parent identities visible at the selected year. Reserved typed media wells are
+presentation slots keyed by domain identity, not new simulation state.
+
 The terminal inspector may derive population series, generation and surname
 outcomes, partnership histories, and household timelines from an immutable
 `SimulationReport`. Those are presentation indexes, not competing world state.
 Interactive and ANSI-free snapshot modes share the same renderer and stable
 domain-ID focus controls.
 
-World mode reads completed world or historical run directories. It can inspect
+The legacy world mode reads completed world or historical run directories. It can inspect
 terrain, biome, habitability, resource, and mythic layers and summarize the
 macro-history handoff. It never advances either simulation.
 
-Five-village mode reads `LocalHistoryReportV1`. Its consequence overview,
+The legacy five-village mode reads `LocalHistoryReportV1`. Its consequence overview,
 shortest-path road matrix, settlement comparison, causal migration list, and
 household historical context are all views over immutable output. It never
 changes residence or recalculates the simulation.
