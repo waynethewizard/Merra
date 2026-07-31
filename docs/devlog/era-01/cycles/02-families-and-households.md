@@ -175,15 +175,15 @@ cargo merra run \
   --years 60 \
   --output runs/dynasty-seed-42
 
-cargo tui \
+cargo tui dynasty \
   --view overview
 
-cargo tui \
+cargo tui dynasty \
   --snapshot \
   --view lineage \
   --focus-person 1
 
-cargo tui \
+cargo tui dynasty \
   --snapshot \
   --view households \
   --focus-household 1

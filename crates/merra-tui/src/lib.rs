@@ -2,10 +2,17 @@
 
 mod local;
 mod model;
+mod observatory;
+mod observatory_render;
 mod render;
 
 pub use local::{LocalInspector, LocalView, render_local_snapshot};
 pub use model::{EventFilter, Focus, HouseholdSort, Inspector, PersonSort, View};
+pub use observatory::{
+    CatalogKind, EntityRef, Observatory, ObservatoryData, ObservatoryError, ObservatoryLayer,
+    ObservatoryTheme, ObservatoryView, PaneFocus,
+};
+pub use observatory_render::{render_observatory, render_observatory_snapshot};
 pub use render::{render, render_snapshot, snapshot, snapshot_view, snapshot_view_with_focus};
 
 #[cfg(test)]
@@ -23,7 +30,8 @@ mod tests {
     use merra_worldgen::generate_world;
 
     use super::{
-        Focus, Inspector, LocalInspector, LocalView, View, render_local_snapshot, render_snapshot,
+        EntityRef, Focus, Inspector, LocalInspector, LocalView, Observatory, ObservatoryData,
+        ObservatoryView, View, render_local_snapshot, render_observatory_snapshot, render_snapshot,
         snapshot, snapshot_view, snapshot_view_with_focus,
     };
 
@@ -296,6 +304,50 @@ mod tests {
             items,
             include_str!("../../../golden/era-01/item-lineage-seed-42/tui-items.txt")
         );
+        Ok(())
+    }
+
+    #[test]
+    fn historical_observatory_connects_every_scale_and_workspace()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut observatory = Observatory::new(ObservatoryData::canonical()?);
+        assert_eq!(observatory.maximum_year(), 660);
+        assert!(observatory.local_state().is_some());
+
+        let atlas = render_observatory_snapshot(&observatory, 100, 30);
+        assert!(atlas.contains("HISTORICAL OBSERVATORY"));
+        assert!(atlas.contains("World Atlas · history"));
+        assert!(atlas.contains("contact Y293"));
+        assert!(atlas.contains("local Y600"));
+        assert!(!atlas.contains('\u{1b}'));
+
+        observatory.set_view(ObservatoryView::Chronicle);
+        let chronicle = render_observatory_snapshot(&observatory, 100, 30);
+        assert!(chronicle.contains("Chronicle"));
+        assert!(chronicle.contains("Authoritative event"));
+
+        assert!(observatory.focus_entity("item:1".parse::<EntityRef>()?));
+        observatory.set_view(ObservatoryView::Relations);
+        let relations = render_observatory_snapshot(&observatory, 100, 30);
+        assert!(relations.contains("Typed Relations"));
+        assert!(relations.contains("linked records"));
+
+        observatory.set_view(ObservatoryView::Catalog);
+        let catalog = render_observatory_snapshot(&observatory, 100, 30);
+        assert!(catalog.contains("Catalog · Items"));
+        assert!(catalog.contains("item"));
+        Ok(())
+    }
+
+    #[test]
+    fn observatory_keeps_macro_and_local_event_id_scopes_distinct()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let macro_event = "macro-event:1".parse::<EntityRef>()?;
+        let local_event = "event:1".parse::<EntityRef>()?;
+        assert_ne!(macro_event, local_event);
+        assert_eq!(macro_event.to_string(), "macro-event:1");
+        assert_eq!(local_event.to_string(), "local-event:1");
+        assert!("person".parse::<EntityRef>().is_err());
         Ok(())
     }
 

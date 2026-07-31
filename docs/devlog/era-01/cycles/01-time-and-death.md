@@ -131,7 +131,7 @@ cargo merra run \
   --years 100 \
   --output runs/century-seed-42
 
-cargo tui \
+cargo tui dynasty \
   --scenario scenarios/era-01/century.ron \
   --years 100 \
   --snapshot \
