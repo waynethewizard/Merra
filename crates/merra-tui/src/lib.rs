@@ -351,6 +351,42 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn observatory_rewinds_people_motion_and_grows_family_trees()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut observatory = Observatory::new(ObservatoryData::canonical()?);
+        observatory.set_year(620);
+        let Some(local) = observatory.local_state() else {
+            return Err(std::io::Error::other("canonical local playback is missing").into());
+        };
+        assert_eq!(local.people.len(), 59);
+        assert!(!local.movements.is_empty());
+
+        assert!(observatory.focus_entity("person:25".parse::<EntityRef>()?));
+        let atlas = render_observatory_snapshot(&observatory, 120, 40);
+        assert!(atlas.contains("MOTION AT THIS DATE"));
+        assert!(atlas.contains("59 named people alive"));
+        assert!(atlas.contains("[ PORTRAIT PLATE ]"));
+        assert!(atlas.contains('»'));
+
+        observatory.set_view(ObservatoryView::Relations);
+        let early_family = observatory.family_tree_rows().len();
+        let family = render_observatory_snapshot(&observatory, 120, 40);
+        assert!(family.contains("Family Tree · Year 620"));
+        assert!(family.contains("←"));
+
+        observatory.set_year(660);
+        assert!(observatory.family_tree_rows().len() > early_family);
+        observatory.set_year(620);
+        observatory.toggle_reverse_playback();
+        observatory.playback_tick();
+        assert_eq!(observatory.cursor_year(), 619);
+        assert_eq!(observatory.playback_direction(), -1);
+        observatory.toggle_reverse_playback();
+        assert!(!observatory.is_playing());
+        Ok(())
+    }
+
     fn render_snapshot_from_inspector(inspector: &Inspector) -> String {
         render_snapshot(inspector, 120, 36)
     }

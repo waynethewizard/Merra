@@ -274,10 +274,54 @@ pub struct ObservatoryMoment {
 pub struct LocalYearState {
     pub year: u32,
     pub residents: BTreeMap<LocationId, u32>,
+    pub people: BTreeMap<PersonId, LocationId>,
+    pub movements: Vec<PersonMovement>,
     pub births: usize,
     pub deaths: usize,
     pub migrations: usize,
     pub item_events: usize,
+}
+
+/// One exact named-person relocation visible during a local playback year.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PersonMovement {
+    pub event_id: EventId,
+    pub people: Vec<PersonId>,
+    pub from: LocationId,
+    pub to: LocationId,
+}
+
+/// One aggregate migration recorded during a macro-history year.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MacroMovement {
+    pub event_id: EventId,
+    pub population_id: PopulationId,
+    pub people: u32,
+    pub from: LocationId,
+    pub to: LocationId,
+}
+
+/// Aggregate motion that can be projected onto the Atlas for one year.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct MacroYearState {
+    pub year: u32,
+    pub movements: Vec<MacroMovement>,
+}
+
+/// A person's state at the selected point on the local timeline.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum PersonPhase {
+    NotYetBorn,
+    Living,
+    Dead,
+}
+
+/// One time-aware row in the family-tree visualization.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct FamilyTreeRow {
+    pub entity: EntityRef,
+    pub label: String,
+    pub phase: PersonPhase,
 }
 
 /// All causally connected evidence consumed by the observatory.
@@ -435,6 +479,7 @@ pub struct Observatory {
     pub(crate) names: BTreeMap<EntityRef, String>,
     pub(crate) relations: BTreeMap<EntityRef, Vec<Relation>>,
     pub(crate) moments: Vec<ObservatoryMoment>,
+    pub(crate) macro_years: Vec<MacroYearState>,
     pub(crate) local_years: Vec<LocalYearState>,
     pub(crate) catalog: BTreeMap<CatalogKind, Vec<EntityRef>>,
     pub(crate) entity_locations: BTreeMap<EntityRef, LocationId>,
@@ -447,6 +492,7 @@ pub struct Observatory {
     pub(crate) cursor_year: u32,
     pub(crate) maximum_year: u32,
     pub(crate) playing: bool,
+    pub(crate) playback_direction: i8,
     pub(crate) query: String,
     pub(crate) searching: bool,
     pub(crate) search_results: Vec<EntityRef>,
@@ -457,6 +503,7 @@ pub struct Observatory {
     pub(crate) map_y: u16,
     pub(crate) map_zoom: u8,
     pub(crate) detail_scroll: u16,
+    pub(crate) family_tree: bool,
     pub(crate) show_help: bool,
     pub(crate) show_debug: bool,
     pub(crate) transition_epoch: u64,
@@ -477,6 +524,7 @@ impl Observatory {
             names: BTreeMap::new(),
             relations: BTreeMap::new(),
             moments: Vec::new(),
+            macro_years: Vec::new(),
             local_years: Vec::new(),
             catalog: BTreeMap::new(),
             entity_locations: BTreeMap::new(),
@@ -489,6 +537,7 @@ impl Observatory {
             cursor_year: maximum_year,
             maximum_year,
             playing: false,
+            playback_direction: 1,
             query: String::new(),
             searching: false,
             search_results: Vec::new(),
@@ -499,6 +548,7 @@ impl Observatory {
             map_y: 0,
             map_zoom: 1,
             detail_scroll: 0,
+            family_tree: true,
             show_help: false,
             show_debug: false,
             transition_epoch: 0,
@@ -566,6 +616,11 @@ impl Observatory {
     }
 
     #[must_use]
+    pub const fn playback_direction(&self) -> i8 {
+        self.playback_direction
+    }
+
+    #[must_use]
     pub const fn transition_epoch(&self) -> u64 {
         self.transition_epoch
     }
@@ -616,6 +671,187 @@ impl Observatory {
         self.local_years
             .iter()
             .find(|state| state.year == self.cursor_year)
+    }
+
+    #[must_use]
+    pub fn macro_state(&self) -> Option<&MacroYearState> {
+        self.macro_years
+            .iter()
+            .find(|state| state.year == self.cursor_year)
+    }
+
+    #[must_use]
+    pub(crate) fn person_phase(&self, id: PersonId) -> PersonPhase {
+        let Some(local) = self.data.local.as_ref() else {
+            return PersonPhase::NotYetBorn;
+        };
+        if self.cursor_year < local.summary.projection_year {
+            return PersonPhase::NotYetBorn;
+        }
+        let Some(person) = local.people.iter().find(|person| person.id == id) else {
+            return PersonPhase::NotYetBorn;
+        };
+        let elapsed = self
+            .cursor_year
+            .saturating_sub(local.summary.projection_year);
+        let day = u64::from(elapsed).saturating_mul(self.local_days_per_year());
+        if person.birth_day.is_some_and(|birth| birth > day) {
+            PersonPhase::NotYetBorn
+        } else if person.death_day.is_some_and(|death| death <= day) {
+            PersonPhase::Dead
+        } else {
+            PersonPhase::Living
+        }
+    }
+
+    #[must_use]
+    pub(crate) fn family_tree_visible(&self) -> bool {
+        self.family_tree
+            && matches!(
+                self.focus,
+                Some(EntityRef::Person(_) | EntityRef::Household(_))
+            )
+            && self.data.local.is_some()
+    }
+
+    #[must_use]
+    pub(crate) fn family_tree_rows(&self) -> Vec<FamilyTreeRow> {
+        let Some(local) = self.data.local.as_ref() else {
+            return Vec::new();
+        };
+        let mut seeds = BTreeSet::<PersonId>::new();
+        match self.focus {
+            Some(EntityRef::Person(person)) => {
+                seeds.insert(person);
+            }
+            Some(EntityRef::Household(household)) => {
+                if let Some(record) = local
+                    .households
+                    .iter()
+                    .find(|record| record.id == household)
+                {
+                    seeds.extend(record.member_ids.iter().copied());
+                }
+                for event in &local.events {
+                    match &event.payload {
+                        EventPayloadV1::HouseholdFormed {
+                            household_id,
+                            member_ids,
+                            ..
+                        } if *household_id == household => {
+                            seeds.extend(member_ids.iter().copied());
+                        }
+                        EventPayloadV1::PersonBorn {
+                            person_id,
+                            household_id,
+                            ..
+                        } if *household_id == household => {
+                            seeds.insert(*person_id);
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            _ => return Vec::new(),
+        }
+        let people = local
+            .people
+            .iter()
+            .map(|person| (person.id, person))
+            .collect::<BTreeMap<_, _>>();
+        let mut children = BTreeMap::<PersonId, Vec<PersonId>>::new();
+        for person in &local.people {
+            for parent in &person.parent_ids {
+                children.entry(*parent).or_default().push(person.id);
+            }
+        }
+        let mut component = seeds.clone();
+        let mut ancestors = seeds.iter().copied().collect::<Vec<_>>();
+        while let Some(person) = ancestors.pop() {
+            if let Some(record) = people.get(&person) {
+                for parent in &record.parent_ids {
+                    if component.insert(*parent) {
+                        ancestors.push(*parent);
+                    }
+                }
+            }
+        }
+        let mut descendants = seeds.into_iter().collect::<Vec<_>>();
+        let mut traversed_descendants = BTreeSet::new();
+        while let Some(person) = descendants.pop() {
+            if !traversed_descendants.insert(person) {
+                continue;
+            }
+            if let Some(record) = people.get(&person)
+                && let Some(partner) = record.partner_id
+            {
+                component.insert(partner);
+            }
+            if let Some(children) = children.get(&person) {
+                for child in children {
+                    component.insert(*child);
+                    descendants.push(*child);
+                    if let Some(record) = people.get(child) {
+                        component.extend(record.parent_ids.iter().copied());
+                    }
+                }
+            }
+        }
+        let mut visible = component
+            .into_iter()
+            .filter_map(|id| {
+                let record = people.get(&id)?;
+                let phase = self.person_phase(id);
+                (phase != PersonPhase::NotYetBorn || self.focus == Some(EntityRef::Person(id)))
+                    .then_some((*record, phase))
+            })
+            .collect::<Vec<_>>();
+        visible.sort_by(|(left, _), (right, _)| {
+            (left.generation, left.name.as_str(), left.id).cmp(&(
+                right.generation,
+                right.name.as_str(),
+                right.id,
+            ))
+        });
+        let minimum_generation = visible.first().map_or(0, |(person, _)| person.generation);
+        visible
+            .iter()
+            .enumerate()
+            .map(|(index, (person, phase))| {
+                let last_in_generation = visible
+                    .get(index + 1)
+                    .is_none_or(|(next, _)| next.generation != person.generation);
+                let depth = usize::from(person.generation.saturating_sub(minimum_generation));
+                let connector = if last_in_generation {
+                    "└─"
+                } else {
+                    "├─"
+                };
+                let parents = person
+                    .parent_ids
+                    .iter()
+                    .filter(|parent| self.person_phase(**parent) != PersonPhase::NotYetBorn)
+                    .map(|parent| self.label(EntityRef::Person(*parent)))
+                    .collect::<Vec<_>>();
+                FamilyTreeRow {
+                    entity: EntityRef::Person(person.id),
+                    label: format!(
+                        "G{} {}{} {} #{}{}",
+                        person.generation,
+                        "│ ".repeat(depth),
+                        connector,
+                        person.name,
+                        person.id.0,
+                        if parents.is_empty() {
+                            String::new()
+                        } else {
+                            format!("  ← {}", parents.join(" + "))
+                        }
+                    ),
+                    phase: *phase,
+                }
+            })
+            .collect()
     }
 
     #[must_use]
@@ -707,6 +943,15 @@ impl Observatory {
                             self.selection = index;
                         }
                     }
+                    ObservatoryView::Relations if self.family_tree_visible() => {
+                        if let Some(index) = self
+                            .family_tree_rows()
+                            .iter()
+                            .position(|row| row.entity == focus)
+                        {
+                            self.selection = index;
+                        }
+                    }
                     ObservatoryView::Atlas | ObservatoryView::Relations => {}
                 }
             }
@@ -737,17 +982,36 @@ impl Observatory {
     }
 
     pub fn toggle_playback(&mut self) {
+        self.toggle_playback_in_direction(1);
+    }
+
+    pub fn toggle_reverse_playback(&mut self) {
+        self.toggle_playback_in_direction(-1);
+    }
+
+    fn toggle_playback_in_direction(&mut self, direction: i8) {
         if self.maximum_year == 0 {
             return;
         }
-        if self.cursor_year == self.maximum_year {
-            self.cursor_year = 0;
+        if self.playing && self.playback_direction == direction {
+            self.playing = false;
+            return;
         }
-        self.playing = !self.playing;
+        self.playback_direction = direction;
+        if direction > 0 && self.cursor_year == self.maximum_year {
+            self.cursor_year = 0;
+        } else if direction < 0 && self.cursor_year == 0 {
+            self.cursor_year = self.maximum_year;
+        }
+        self.playing = true;
     }
 
     pub fn playback_tick(&mut self) {
         if !self.playing {
+            return;
+        }
+        if self.playback_direction < 0 {
+            self.playback_tick_backward();
             return;
         }
         if self.cursor_year >= self.maximum_year {
@@ -765,11 +1029,34 @@ impl Observatory {
         } else {
             self.cursor_year = self.cursor_year.saturating_add(1).min(self.maximum_year);
         }
+        self.sync_focus_to_time();
+    }
+
+    fn playback_tick_backward(&mut self) {
+        if self.cursor_year == 0 {
+            self.playing = false;
+            return;
+        }
+        if self.cursor_year > self.local_start_year().unwrap_or(self.maximum_year + 1) {
+            self.cursor_year = self.cursor_year.saturating_sub(1);
+            self.sync_focus_to_time();
+            return;
+        }
+        let previous = self
+            .moments
+            .iter()
+            .rev()
+            .map(|moment| moment.year)
+            .find(|year| *year < self.cursor_year)
+            .unwrap_or_else(|| self.cursor_year.saturating_sub(1));
+        self.cursor_year = previous;
+        self.sync_focus_to_time();
     }
 
     pub fn set_year(&mut self, year: u32) {
         self.cursor_year = year.min(self.maximum_year);
         self.playing = false;
+        self.sync_focus_to_time();
     }
 
     pub fn step_year(&mut self, forward: bool) {
@@ -778,6 +1065,14 @@ impl Observatory {
         } else {
             self.set_year(self.cursor_year.saturating_sub(1));
         }
+    }
+
+    pub fn first_year(&mut self) {
+        self.set_year(0);
+    }
+
+    pub fn last_year(&mut self) {
+        self.set_year(self.maximum_year);
     }
 
     pub fn step_event(&mut self, forward: bool) {
@@ -879,6 +1174,9 @@ impl Observatory {
         } else {
             match self.view {
                 ObservatoryView::Chronicle => self.visible_moments().len(),
+                ObservatoryView::Relations if self.family_tree_visible() => {
+                    self.family_tree_rows().len()
+                }
                 ObservatoryView::Relations => self.relation_list().len(),
                 ObservatoryView::Catalog => self.catalog_entities().len(),
                 ObservatoryView::Atlas => 0,
@@ -924,12 +1222,37 @@ impl Observatory {
                 .visible_moments()
                 .get(self.selection)
                 .map(|moment| moment.entity),
+            ObservatoryView::Relations if self.family_tree_visible() => self
+                .family_tree_rows()
+                .get(self.selection)
+                .map(|row| row.entity),
             ObservatoryView::Relations => self
                 .relation_list()
                 .get(self.selection)
                 .map(|edge| edge.target),
             ObservatoryView::Catalog => self.catalog_entities().get(self.selection).copied(),
-            ObservatoryView::Atlas => self.focus,
+            ObservatoryView::Atlas => {
+                if matches!(self.focus, Some(EntityRef::Person(_))) {
+                    self.show_family_tree();
+                    return;
+                }
+                let location = match self.focus {
+                    Some(EntityRef::Location(location)) => Some(location),
+                    _ => None,
+                };
+                if let Some(location) = location
+                    && let Some(person) = self.local_state().and_then(|state| {
+                        state
+                            .people
+                            .iter()
+                            .find_map(|(person, current)| (*current == location).then_some(*person))
+                    })
+                {
+                    self.set_focus(EntityRef::Person(person), true);
+                    return;
+                }
+                self.focus
+            }
         };
         if let Some(entity) = entity {
             self.set_focus(entity, true);
@@ -957,6 +1280,70 @@ impl Observatory {
 
     pub fn set_pane(&mut self, pane: PaneFocus) {
         self.pane = pane;
+    }
+
+    pub fn toggle_family_tree(&mut self) {
+        self.family_tree = !self.family_tree;
+        self.selection = 0;
+        if self.family_tree
+            && let Some(focus) = self.focus
+            && let Some(index) = self
+                .family_tree_rows()
+                .iter()
+                .position(|row| row.entity == focus)
+        {
+            self.selection = index;
+        }
+        self.transition_epoch = self.transition_epoch.saturating_add(1);
+    }
+
+    pub fn show_family_tree(&mut self) {
+        self.family_tree = true;
+        self.set_view(ObservatoryView::Relations);
+        self.selection = self
+            .focus
+            .and_then(|focus| {
+                self.family_tree_rows()
+                    .iter()
+                    .position(|row| row.entity == focus)
+            })
+            .unwrap_or(0);
+    }
+
+    pub fn cycle_person_at_focus(&mut self, forward: bool) {
+        let location = match self.focus {
+            Some(EntityRef::Location(location)) => Some(location),
+            Some(EntityRef::Person(person)) => self
+                .local_state()
+                .and_then(|state| state.people.get(&person).copied()),
+            _ => None,
+        };
+        let Some(location) = location else {
+            return;
+        };
+        let mut people = self
+            .local_state()
+            .into_iter()
+            .flat_map(|state| &state.people)
+            .filter(|(_, candidate)| **candidate == location)
+            .map(|(person, _)| *person)
+            .collect::<Vec<_>>();
+        people.sort_by_key(|person| self.label(EntityRef::Person(*person)));
+        if people.is_empty() {
+            return;
+        }
+        let current = self.focus.and_then(|focus| match focus {
+            EntityRef::Person(person) => people.iter().position(|candidate| *candidate == person),
+            _ => None,
+        });
+        let index = if forward {
+            current.map_or(0, |index| (index + 1) % people.len())
+        } else {
+            current.map_or(people.len() - 1, |index| {
+                (index + people.len() - 1) % people.len()
+            })
+        };
+        self.set_focus(EntityRef::Person(people[index]), true);
     }
 
     pub fn move_map_cursor(&mut self, dx: i16, dy: i16) {
@@ -1070,7 +1457,15 @@ impl Observatory {
             self.detail_scroll = 0;
         }
         self.focus = Some(entity);
-        if let Some(location) = self.entity_locations.get(&entity).copied() {
+        let playback_location = match entity {
+            EntityRef::Person(person) => self
+                .local_state()
+                .and_then(|state| state.people.get(&person).copied()),
+            _ => None,
+        };
+        if let Some(location) =
+            playback_location.or_else(|| self.entity_locations.get(&entity).copied())
+        {
             self.sync_map_to_location(location);
         } else if let EntityRef::Region(region) = entity
             && let Some(cell) = self.data.world.cells.iter().find(|cell| cell.id == region)
@@ -1083,6 +1478,14 @@ impl Observatory {
                 .visible_moments()
                 .iter()
                 .position(|moment| moment.entity == entity)
+        {
+            self.selection = index;
+        } else if self.view == ObservatoryView::Relations
+            && self.family_tree_visible()
+            && let Some(index) = self
+                .family_tree_rows()
+                .iter()
+                .position(|row| row.entity == entity)
         {
             self.selection = index;
         }
@@ -1102,6 +1505,18 @@ impl Observatory {
         {
             self.map_x = cell.coordinate.x;
             self.map_y = cell.coordinate.y;
+        }
+    }
+
+    fn sync_focus_to_time(&mut self) {
+        let location = match self.focus {
+            Some(EntityRef::Person(person)) => self
+                .local_state()
+                .and_then(|state| state.people.get(&person).copied()),
+            _ => None,
+        };
+        if let Some(location) = location {
+            self.sync_map_to_location(location);
         }
     }
 
@@ -1206,6 +1621,8 @@ impl Observatory {
             });
             entities.dedup();
         }
+        self.macro_years =
+            build_macro_years(self.data.history.as_ref(), self.macro_days_per_year());
         self.local_years = build_local_years(self.data.local.as_ref());
     }
 
@@ -2077,6 +2494,46 @@ fn local_event_label(event: &merra_core::WorldEventV1) -> String {
     }
 }
 
+fn build_macro_years(
+    history: Option<&HistoricalReport>,
+    days_per_year: u64,
+) -> Vec<MacroYearState> {
+    let Some(history) = history else {
+        return Vec::new();
+    };
+    (0..=history.years)
+        .map(|year| {
+            let movements = history
+                .events
+                .iter()
+                .filter(|event| {
+                    u32::try_from(event.time.day() / days_per_year)
+                        .is_ok_and(|event_year| event_year == year)
+                })
+                .filter_map(|event| {
+                    let HistoricalEventPayloadV1::PopulationMigrated {
+                        population_id,
+                        from,
+                        to,
+                        people,
+                    } = &event.payload
+                    else {
+                        return None;
+                    };
+                    Some(MacroMovement {
+                        event_id: event.id,
+                        population_id: *population_id,
+                        people: *people,
+                        from: *from,
+                        to: *to,
+                    })
+                })
+                .collect();
+            MacroYearState { year, movements }
+        })
+        .collect()
+}
+
 fn build_local_years(local: Option<&LocalHistoryReportV1>) -> Vec<LocalYearState> {
     let Some(local) = local else {
         return Vec::new();
@@ -2096,6 +2553,8 @@ fn local_state_at_year(
 ) -> LocalYearState {
     let elapsed = year.saturating_sub(playback.projection_year);
     let through_day = u64::from(elapsed).saturating_mul(u64::from(playback.days_per_year));
+    let period_start =
+        u64::from(elapsed.saturating_sub(1)).saturating_mul(u64::from(playback.days_per_year));
     let mut alive = playback
         .people
         .iter()
@@ -2106,6 +2565,7 @@ fn local_state_at_year(
     let mut births = 0;
     let mut deaths = 0;
     let mut migrations = 0;
+    let mut movements = Vec::<PersonMovement>::new();
     for event in &playback.events {
         let day = match event {
             LocalPlaybackEventV1::HouseholdSettled { day, .. }
@@ -2117,6 +2577,7 @@ fn local_state_at_year(
         }
         match event {
             LocalPlaybackEventV1::HouseholdSettled {
+                event_id,
                 destination_location_id,
                 traveler_ids,
                 origin_location_ids,
@@ -2128,6 +2589,28 @@ fn local_state_at_year(
                         .any(|origin| *origin != *destination_location_id)
                 {
                     migrations += 1;
+                }
+                let occurs_this_year = if elapsed == 0 {
+                    day == 0
+                } else {
+                    day > period_start
+                };
+                if occurs_this_year {
+                    let mut by_origin = BTreeMap::<LocationId, Vec<PersonId>>::new();
+                    for person in traveler_ids {
+                        if alive.contains(person)
+                            && let Some(origin) = locations.get(person).copied()
+                            && origin != *destination_location_id
+                        {
+                            by_origin.entry(origin).or_default().push(*person);
+                        }
+                    }
+                    movements.extend(by_origin.into_iter().map(|(from, people)| PersonMovement {
+                        event_id: *event_id,
+                        people,
+                        from,
+                        to: *destination_location_id,
+                    }));
                 }
                 for person in traveler_ids {
                     locations.insert(*person, *destination_location_id);
@@ -2149,9 +2632,11 @@ fn local_state_at_year(
         }
     }
     let mut residents = BTreeMap::<LocationId, u32>::new();
+    let mut people = BTreeMap::<PersonId, LocationId>::new();
     for person in alive {
         if let Some(location) = locations.get(&person) {
             *residents.entry(*location).or_default() += 1;
+            people.insert(person, *location);
         }
     }
     let item_events = local
@@ -2168,6 +2653,8 @@ fn local_state_at_year(
     LocalYearState {
         year,
         residents,
+        people,
+        movements,
         births,
         deaths,
         migrations,

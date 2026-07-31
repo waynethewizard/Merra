@@ -58,15 +58,27 @@ four workspaces are complementary views over those same stable identities:
 
 - **Atlas** overlays terrain, routes, settlements, and local population.
 - **Chronicle** joins macro milestones to exact local events on one timeline.
-- **Relations** follows typed links among places, peoples, beliefs, lives,
-  artifacts, events, and claims.
+- **Relations** follows typed links or visualizes a time-aware family tree for
+  a selected person or household.
 - **Catalog** searches and inspects the complete archive by record type.
 
 Use `1`–`4` to switch workspaces, arrows or `hjkl` to move, `Enter` to follow
-evidence, `/` to search all named records, `[`/`]` to jump between events, and
-`Space` to play or pause history. The macro era advances by recorded event and
-the detailed local era advances year by year. `L` changes the Atlas layer,
-`+`/`-` zooms, and `?` opens the complete keyboard and mouse guide.
+evidence, `/` to search all named records, `,`/`.` to step backward or forward
+one year, and `[`/`]` to jump between events. `Space` plays forward and `r`
+plays backward; repeating either key pauses. The macro era advances by recorded
+event and the detailed local era advances year by year.
+
+During Years 600–660 the Atlas plots exact living-person counts, highlights a
+focused person, and draws that year's household migration trails. Press `p` to
+cycle through residents at the selected settlement and `Enter` to open the
+person's family tree. In Relations, `g` toggles between the family tree and the
+general typed network. Family trees reveal births and deaths at the selected
+year rather than leaking future descendants. Entity detail panes reserve stable
+portrait, family, object, place, culture, event, and lore image wells keyed by
+typed identity for future media.
+
+`L` changes the Atlas layer, `+`/`-` zooms, and `?` opens the complete keyboard
+and mouse guide.
 
 Portable snapshots use the same renderer and contain no ANSI escapes:
 

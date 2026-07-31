@@ -15,7 +15,7 @@ use ratatui::{
 
 use crate::observatory::{
     CatalogKind, EntityRef, HitRegions, Observatory, ObservatoryLayer, ObservatoryTheme,
-    ObservatoryView, PaneFocus,
+    ObservatoryView, PaneFocus, PersonPhase,
 };
 
 #[derive(Clone, Copy)]
@@ -313,7 +313,100 @@ fn render_atlas(frame: &mut Frame<'_>, area: Rect, app: &mut Observatory, palett
     let inner = map_block.inner(map_area);
     frame.render_widget(map_block, map_area);
     render_world_map(frame.buffer_mut(), inner, app, palette);
-    render_detail(frame, detail_area, app, palette);
+    render_atlas_detail(frame, detail_area, app, palette);
+}
+
+fn render_atlas_detail(frame: &mut Frame<'_>, area: Rect, app: &Observatory, palette: Palette) {
+    let title = format!("Time Lens · Year {}", app.cursor_year);
+    let block = archive_block(&title, palette);
+    let inner = block.inner(area);
+    frame.render_widget(block, area);
+    let (image_area, content_area) = if inner.height >= 18 {
+        let rows = Layout::vertical([Constraint::Length(6), Constraint::Min(1)]).split(inner);
+        (Some(rows[0]), rows[1])
+    } else {
+        (None, inner)
+    };
+    if let Some(image_area) = image_area {
+        render_image_well(frame, image_area, app.focus, palette);
+    }
+    let mut lines = vec![
+        Line::styled(
+            "MOTION AT THIS DATE",
+            Style::default()
+                .fg(palette.teal)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Line::styled(
+            ", / . step year · r reverse · Space forward",
+            Style::default().fg(palette.dim),
+        ),
+    ];
+    let mut movement_lines = Vec::<String>::new();
+    if let Some(state) = app.macro_state() {
+        movement_lines.extend(state.movements.iter().map(|movement| {
+            format!(
+                "{} people · {} → {}",
+                movement.people,
+                app.label(EntityRef::Location(movement.from)),
+                app.label(EntityRef::Location(movement.to))
+            )
+        }));
+    }
+    if let Some(state) = app.local_state() {
+        lines.push(Line::styled(
+            format!(
+                "{} named people alive across {} settlement(s)",
+                state.people.len(),
+                state.residents.len()
+            ),
+            Style::default().fg(palette.ink),
+        ));
+        movement_lines.extend(state.movements.iter().map(|movement| {
+            let mut names = movement
+                .people
+                .iter()
+                .take(2)
+                .map(|person| app.label(EntityRef::Person(*person)))
+                .collect::<Vec<_>>();
+            if movement.people.len() > names.len() {
+                names.push(format!("+{}", movement.people.len() - names.len()));
+            }
+            format!(
+                "{} · {} → {}",
+                names.join(", "),
+                app.label(EntityRef::Location(movement.from)),
+                app.label(EntityRef::Location(movement.to))
+            )
+        }));
+    }
+    if movement_lines.is_empty() {
+        lines.push(Line::styled(
+            "No recorded migration in this year.",
+            Style::default().fg(palette.dim),
+        ));
+    } else {
+        lines.extend(
+            movement_lines
+                .into_iter()
+                .take(5)
+                .map(|movement| Line::from(format!("» {movement}"))),
+        );
+    }
+    lines.push(Line::default());
+    lines.push(Line::styled(
+        "FOCUSED EVIDENCE",
+        Style::default()
+            .fg(palette.copper)
+            .add_modifier(Modifier::BOLD),
+    ));
+    lines.extend(detail_lines(app, app.focus, palette));
+    frame.render_widget(
+        Paragraph::new(lines)
+            .wrap(Wrap { trim: false })
+            .scroll((app.detail_scroll, 0)),
+        content_area,
+    );
 }
 
 fn render_world_map(buffer: &mut Buffer, area: Rect, app: &Observatory, palette: Palette) {
@@ -331,6 +424,9 @@ fn render_world_map(buffer: &mut Buffer, area: Rect, app: &Observatory, palette:
         .collect::<BTreeMap<_, _>>();
     let selected_location = match app.focus {
         Some(EntityRef::Location(location)) => Some(location),
+        Some(EntityRef::Person(person)) => app
+            .local_state()
+            .and_then(|state| state.people.get(&person).copied()),
         _ => None,
     };
 
@@ -368,6 +464,13 @@ fn render_world_map(buffer: &mut Buffer, area: Rect, app: &Observatory, palette:
         palette,
         (start_x, start_y, visible_width, visible_height),
     );
+    render_movements(
+        buffer,
+        area,
+        app,
+        palette,
+        (start_x, start_y, visible_width, visible_height),
+    );
 
     for (region, location) in locations_by_region {
         let Some(cell) = app
@@ -390,16 +493,38 @@ fn render_world_map(buffer: &mut Buffer, area: Rect, app: &Observatory, palette:
         ) else {
             continue;
         };
-        let residents = app
-            .local_state()
-            .and_then(|state| state.residents.get(&location))
-            .copied()
-            .unwrap_or(0);
+        let residents = app.local_state().map_or(0, |state| {
+            state
+                .people
+                .values()
+                .filter(|current| **current == location)
+                .count()
+        });
         let selected = selected_location == Some(location);
-        let symbol = if selected {
+        let selected_person_here = match app.focus {
+            Some(EntityRef::Person(person)) => app
+                .local_state()
+                .and_then(|state| state.people.get(&person))
+                .is_some_and(|current| *current == location),
+            _ => false,
+        };
+        let symbol = if selected_person_here {
             "◆"
+        } else if selected {
+            "◇"
         } else if residents > 0 {
-            "●"
+            match residents {
+                1 => "1",
+                2 => "2",
+                3 => "3",
+                4 => "4",
+                5 => "5",
+                6 => "6",
+                7 => "7",
+                8 => "8",
+                9 => "9",
+                _ => "+",
+            }
         } else if app.data.local.as_ref().is_some_and(|local| {
             local
                 .settlements
@@ -444,6 +569,110 @@ fn render_world_map(buffer: &mut Buffer, area: Rect, app: &Observatory, palette:
                 .set_style(Style::default().fg(palette.copper).bg(palette.background));
         }
     }
+}
+
+fn render_movements(
+    buffer: &mut Buffer,
+    area: Rect,
+    app: &Observatory,
+    palette: Palette,
+    window: (u16, u16, u16, u16),
+) {
+    let coordinates = location_coordinates(app);
+    if let Some(state) = app.macro_state() {
+        for movement in &state.movements {
+            draw_movement(
+                buffer,
+                area,
+                coordinates.get(&movement.from).copied(),
+                coordinates.get(&movement.to).copied(),
+                window,
+                Style::default()
+                    .fg(palette.rust)
+                    .bg(palette.background)
+                    .add_modifier(Modifier::BOLD),
+            );
+        }
+    }
+    if let Some(state) = app.local_state() {
+        for movement in &state.movements {
+            let focused = match app.focus {
+                Some(EntityRef::Person(person)) => movement.people.contains(&person),
+                _ => false,
+            };
+            draw_movement(
+                buffer,
+                area,
+                coordinates.get(&movement.from).copied(),
+                coordinates.get(&movement.to).copied(),
+                window,
+                Style::default()
+                    .fg(if focused {
+                        palette.copper
+                    } else {
+                        palette.teal
+                    })
+                    .bg(palette.background)
+                    .add_modifier(Modifier::BOLD),
+            );
+        }
+    }
+}
+
+fn draw_movement(
+    buffer: &mut Buffer,
+    area: Rect,
+    from: Option<(u16, u16)>,
+    to: Option<(u16, u16)>,
+    window: (u16, u16, u16, u16),
+    style: Style,
+) {
+    let (Some(from), Some(to)) = (from, to) else {
+        return;
+    };
+    let (start_x, start_y, visible_width, visible_height) = window;
+    let (Some(start), Some(end)) = (
+        project_coordinate(
+            from.0,
+            from.1,
+            area,
+            start_x,
+            start_y,
+            visible_width,
+            visible_height,
+        ),
+        project_coordinate(
+            to.0,
+            to.1,
+            area,
+            start_x,
+            start_y,
+            visible_width,
+            visible_height,
+        ),
+    ) else {
+        return;
+    };
+    draw_line(buffer, start, end, "»", style);
+}
+
+fn location_coordinates(app: &Observatory) -> BTreeMap<LocationId, (u16, u16)> {
+    app.data
+        .world
+        .places
+        .locations
+        .iter()
+        .filter_map(|location| {
+            let region = location.region?;
+            let cell = app
+                .data
+                .world
+                .cells
+                .iter()
+                .find(|candidate| candidate.id == region)?;
+            Some((location.id, (cell.coordinate.x, cell.coordinate.y)))
+        })
+        .collect()
 }
 
 fn render_routes(
@@ -651,6 +880,10 @@ fn render_chronicle(frame: &mut Frame<'_>, area: Rect, app: &mut Observatory, pa
 }
 
 fn render_relations(frame: &mut Frame<'_>, area: Rect, app: &mut Observatory, palette: Palette) {
+    if app.family_tree_visible() {
+        render_family_tree(frame, area, app, palette);
+        return;
+    }
     let columns =
         Layout::horizontal([Constraint::Percentage(66), Constraint::Percentage(34)]).split(area);
     app.hits.primary = columns[0];
@@ -709,6 +942,124 @@ fn render_relations(frame: &mut Frame<'_>, area: Rect, app: &mut Observatory, pa
         palette,
     );
     render_detail(frame, columns[1], app, palette);
+}
+
+fn render_family_tree(frame: &mut Frame<'_>, area: Rect, app: &mut Observatory, palette: Palette) {
+    let columns =
+        Layout::horizontal([Constraint::Percentage(70), Constraint::Percentage(30)]).split(area);
+    app.hits.primary = columns[0];
+    app.hits.detail = columns[1];
+    let rows = app.family_tree_rows();
+    let focus = app.focus;
+    let title = format!("Family Tree · Year {} · g typed network", app.cursor_year);
+    let block = archive_block(&title, palette);
+    let inner = block.inner(columns[0]);
+    frame.render_widget(block, columns[0]);
+    let heading = Rect::new(inner.x, inner.y, inner.width, inner.height.min(3));
+    frame.render_widget(
+        Paragraph::new(vec![
+            Line::styled(
+                focus.map_or_else(
+                    || String::from("No family selected"),
+                    |entity| format!("◆ {}", app.label(entity)),
+                ),
+                Style::default()
+                    .fg(palette.copper)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Line::from(vec![
+                Span::styled("● living", Style::default().fg(palette.teal)),
+                Span::styled("  † dead", Style::default().fg(palette.dim)),
+                Span::styled("  ← recorded parents", Style::default().fg(palette.ink)),
+            ]),
+            Line::styled(
+                if rows.is_empty() {
+                    app.data.local.as_ref().map_or_else(
+                        || String::from("No local family evidence loaded."),
+                        |local| {
+                            format!(
+                                "Family evidence begins at the Year {} local handoff.",
+                                local.summary.projection_year
+                            )
+                        },
+                    )
+                } else {
+                    format!(
+                        "{} visible relative(s) · tree grows as time advances",
+                        rows.len()
+                    )
+                },
+                Style::default().fg(palette.dim),
+            ),
+        ]),
+        heading,
+    );
+    let rows_area = Rect::new(
+        inner.x,
+        inner.y.saturating_add(heading.height),
+        inner.width,
+        inner.height.saturating_sub(heading.height),
+    );
+    render_family_rows(frame, rows_area, app, &rows, palette);
+    render_detail(frame, columns[1], app, palette);
+}
+
+fn render_family_rows(
+    frame: &mut Frame<'_>,
+    area: Rect,
+    app: &mut Observatory,
+    rows: &[crate::observatory::FamilyTreeRow],
+    palette: Palette,
+) {
+    if area.height == 0 || rows.is_empty() {
+        return;
+    }
+    let selected = app.selection.min(rows.len().saturating_sub(1));
+    let height = usize::from(area.height);
+    let start = selected
+        .saturating_sub(height / 2)
+        .min(rows.len().saturating_sub(height));
+    let mut lines = Vec::new();
+    for (visible_index, (index, row)) in
+        rows.iter().enumerate().skip(start).take(height).enumerate()
+    {
+        let selected_row = index == selected;
+        let phase = match row.phase {
+            PersonPhase::Living => "●",
+            PersonPhase::Dead => "†",
+            PersonPhase::NotYetBorn => "○",
+        };
+        let style = if selected_row {
+            Style::default()
+                .fg(palette.background)
+                .bg(palette.copper)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(match row.phase {
+                PersonPhase::Living => palette.teal,
+                PersonPhase::Dead | PersonPhase::NotYetBorn => palette.dim,
+            })
+        };
+        lines.push(Line::styled(
+            format!(
+                "{} {phase} {}",
+                if selected_row { "▶" } else { " " },
+                row.label
+            ),
+            style,
+        ));
+        app.hits.rows.push((
+            row.entity,
+            Rect::new(
+                area.x,
+                area.y
+                    .saturating_add(u16::try_from(visible_index).unwrap_or(0)),
+                area.width,
+                1,
+            ),
+        ));
+    }
+    frame.render_widget(Paragraph::new(lines), area);
 }
 
 fn render_catalog(frame: &mut Frame<'_>, area: Rect, app: &mut Observatory, palette: Palette) {
@@ -826,12 +1177,71 @@ fn render_detail(frame: &mut Frame<'_>, area: Rect, app: &Observatory, palette: 
     let block = archive_block(&title, palette);
     let inner = block.inner(area);
     frame.render_widget(block, area);
+    let (image_area, text_area) = if inner.height >= 12 {
+        let rows = Layout::vertical([Constraint::Length(6), Constraint::Min(1)]).split(inner);
+        (Some(rows[0]), rows[1])
+    } else {
+        (None, inner)
+    };
+    if let Some(image_area) = image_area {
+        render_image_well(frame, image_area, focus, palette);
+    }
     let lines = detail_lines(app, focus, palette);
     frame.render_widget(
         Paragraph::new(lines)
             .wrap(Wrap { trim: false })
             .scroll((app.detail_scroll, 0)),
-        inner,
+        text_area,
+    );
+}
+
+fn render_image_well(
+    frame: &mut Frame<'_>,
+    area: Rect,
+    focus: Option<EntityRef>,
+    palette: Palette,
+) {
+    let (plate, key) = focus.map_or(("ARCHIVE PLATE", String::from("no-selection")), |entity| {
+        let plate = match entity {
+            EntityRef::Person(_) => "PORTRAIT PLATE",
+            EntityRef::Household(_) => "FAMILY PLATE",
+            EntityRef::Item(_) => "OBJECT PLATE",
+            EntityRef::Region(_)
+            | EntityRef::Feature(_)
+            | EntityRef::Location(_)
+            | EntityRef::Route(_) => "PLACE PLATE",
+            EntityRef::Population(_)
+            | EntityRef::Culture(_)
+            | EntityRef::Faith(_)
+            | EntityRef::Institution(_)
+            | EntityRef::Polity(_) => "CULTURE PLATE",
+            EntityRef::MacroEvent(_) | EntityRef::LocalEvent(_) => "EVENT PLATE",
+            EntityRef::Claim(_) => "LORE PLATE",
+        };
+        (plate, entity.to_string())
+    });
+    frame.render_widget(
+        Paragraph::new(vec![
+            Line::styled(
+                format!("[ {plate} ]"),
+                Style::default()
+                    .fg(palette.copper)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Line::styled("image archive slot", Style::default().fg(palette.dim)),
+            Line::styled(
+                format!("media key · {key}"),
+                Style::default().fg(palette.ink),
+            ),
+        ])
+        .alignment(Alignment::Center)
+        .block(
+            Block::new()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Plain)
+                .border_style(Style::default().fg(palette.border)),
+        ),
+        area,
     );
 }
 
@@ -1102,13 +1512,46 @@ fn entity_details(app: &Observatory, focus: EntityRef) -> Vec<String> {
             .as_ref()
             .and_then(|local| local.people.iter().find(|record| record.id == id))
             .map(|record| {
+                let local = app.data.local.as_ref();
+                let projection = local.map_or(0, |local| local.summary.projection_year);
+                let elapsed_years = app.cursor_year.saturating_sub(projection);
+                let selected_day =
+                    u64::from(elapsed_years).saturating_mul(app.local_days_per_year());
+                let phase = app.person_phase(id);
+                let age = match phase {
+                    PersonPhase::NotYetBorn => String::from("not yet born"),
+                    PersonPhase::Dead => format!("died aged {}", record.final_age_years),
+                    PersonPhase::Living => {
+                        let years = record.birth_day.map_or_else(
+                            || {
+                                u64::from(record.starting_age_years)
+                                    .saturating_add(u64::from(elapsed_years))
+                            },
+                            |birth| selected_day.saturating_sub(birth)
+                                / app.local_days_per_year(),
+                        );
+                        format!("age {years}")
+                    }
+                };
+                let location = app
+                    .local_state()
+                    .and_then(|state| state.people.get(&id))
+                    .map_or_else(
+                        || String::from("not living at a recorded location"),
+                        |location| app.label(EntityRef::Location(*location)),
+                    );
                 vec![
                     format!(
-                        "Generation {} · age {} · {}",
+                        "Generation {} · {} · {}",
                         record.generation,
-                        record.final_age_years,
-                        if record.alive { "living" } else { "dead" }
+                        age,
+                        match phase {
+                            PersonPhase::NotYetBorn => "future record",
+                            PersonPhase::Living => "living",
+                            PersonPhase::Dead => "dead",
+                        }
                     ),
+                    format!("Location at Year {}: {location}", app.cursor_year),
                     format!(
                         "Parents: {}",
                         if record.parent_ids.is_empty() {
@@ -1123,7 +1566,7 @@ fn entity_details(app: &Observatory, focus: EntityRef) -> Vec<String> {
                         }
                     ),
                     format!(
-                        "Household: {} · partner: {}",
+                        "Final household: {} · final partner: {}",
                         record.household_id.map_or_else(
                             || String::from("none"),
                             |household| app.label(EntityRef::Household(household))
@@ -1316,7 +1759,15 @@ fn render_timeline(frame: &mut Frame<'_>, area: Rect, app: &mut Observatory, pal
         "Archive Time · Year {} / {} · {}",
         app.cursor_year,
         app.maximum_year,
-        if app.playing { "playing" } else { "paused" }
+        if app.playing {
+            if app.playback_direction() < 0 {
+                "playing ←"
+            } else {
+                "playing →"
+            }
+        } else {
+            "paused"
+        }
     );
     let block = archive_block(&timeline_title, palette);
     let inner = block.inner(area);
@@ -1408,7 +1859,7 @@ fn render_timeline(frame: &mut Frame<'_>, area: Rect, app: &mut Observatory, pal
 
 fn render_footer(frame: &mut Frame<'_>, area: Rect, app: &Observatory, palette: Palette) {
     let contextual = match app.view {
-        ObservatoryView::Atlas => "hjkl move · +/- zoom · L layer",
+        ObservatoryView::Atlas => "hjkl map · p person · Enter family · L layer",
         ObservatoryView::Chronicle => {
             if app.show_debug {
                 "↑↓ records · Enter inspect · f story stream"
@@ -1416,14 +1867,17 @@ fn render_footer(frame: &mut Frame<'_>, area: Rect, app: &Observatory, palette: 
                 "↑↓ records · Enter inspect · f complete stream"
             }
         }
-        ObservatoryView::Relations => "↑↓ edge · Enter follow · Esc back",
+        ObservatoryView::Relations if app.family_tree_visible() => {
+            "↑↓ relative · Enter center · g typed network"
+        }
+        ObservatoryView::Relations => "↑↓ edge · Enter follow · g family · Esc back",
         ObservatoryView::Catalog => "←→ category · ↑↓ record · Enter inspect",
     };
     let status = app.status.as_deref().unwrap_or("");
     frame.render_widget(
         Paragraph::new(Line::from(vec![
             Span::styled(
-                "1–4 workspace · Tab pane · / search · [ ] event · Space play · ? help · q quit",
+                "1–4 workspace · , . year · [ ] event · Space / r play · ? help · q quit",
                 Style::default().fg(palette.dim),
             ),
             Span::styled(format!("   {contextual}"), Style::default().fg(palette.ink)),
@@ -1444,7 +1898,7 @@ fn render_help(frame: &mut Frame<'_>, area: Rect, app: &Observatory, palette: Pa
     let popup = centered(
         area,
         72.min(area.width.saturating_sub(4)),
-        22.min(area.height - 2),
+        24.min(area.height - 2),
     );
     frame.render_widget(Clear, popup);
     frame.render_widget(
@@ -1462,9 +1916,12 @@ fn render_help(frame: &mut Frame<'_>, area: Rect, app: &Observatory, palette: Pa
             Line::from("Enter         follow the selected typed relation"),
             Line::from("Esc / b       close overlay / return through focus trail"),
             Line::from("/             search every named record"),
-            Line::from("← →           year step; [ ] previous/next recorded event"),
-            Line::from("Space         play/pause; macro jumps events, local advances yearly"),
-            Line::from("L / + / -     atlas layer / zoom in / zoom out"),
+            Line::from(", / .         previous / next year; Home / End timeline bounds"),
+            Line::from("[ / ]         previous / next recorded event"),
+            Line::from("Space / r     play forward / backward; repeat pauses"),
+            Line::from("p / Enter     cycle Atlas resident / open their family tree"),
+            Line::from("g             family tree / typed-relation network"),
+            Line::from("L / + / -     Atlas layer / zoom in / zoom out"),
             Line::from("f             reveal or hide clock/debug events"),
             Line::from("mouse         click records/map/timeline; wheel scrolls or zooms"),
             Line::from(""),

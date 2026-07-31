@@ -492,6 +492,21 @@ fn handle_observatory_key(app: &mut Observatory, key: KeyEvent) -> bool {
         KeyCode::Char('[') => app.step_event(false),
         KeyCode::Char(']') => app.step_event(true),
         KeyCode::Char(' ') => app.toggle_playback(),
+        KeyCode::Char('r') => app.toggle_reverse_playback(),
+        KeyCode::Char(',') | KeyCode::Char('<') => app.step_year(false),
+        KeyCode::Char('.') | KeyCode::Char('>') => app.step_year(true),
+        KeyCode::Home => app.first_year(),
+        KeyCode::End => app.last_year(),
+        KeyCode::Char('p') if app.view() == ObservatoryView::Atlas => {
+            app.cycle_person_at_focus(true);
+        }
+        KeyCode::Char('P') if app.view() == ObservatoryView::Atlas => {
+            app.cycle_person_at_focus(false);
+        }
+        KeyCode::Char('g') if app.view() == ObservatoryView::Relations => {
+            app.toggle_family_tree();
+        }
+        KeyCode::Char('g') => app.show_family_tree(),
         KeyCode::Char('f') => app.toggle_debug(),
         KeyCode::Char('L') => app.next_layer(),
         KeyCode::Char('+') | KeyCode::Char('=') => app.zoom_map(true),

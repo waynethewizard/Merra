@@ -96,6 +96,12 @@ artifacts. Its combined timeline advances macro history by recorded event and
 the focused local period by exact year. Neither path reruns or mutates history
 after the evidence has been loaded.
 
+The observatory derives reversible yearly presentation indexes from immutable
+playback evidence. These indexes contain exact living-person locations and
+recorded household migration trails; family trees derive only from stable
+parent identities visible at the selected year. Reserved typed media wells are
+presentation slots keyed by domain identity, not new simulation state.
+
 The terminal inspector may derive population series, generation and surname
 outcomes, partnership histories, and household timelines from an immutable
 `SimulationReport`. Those are presentation indexes, not competing world state.
