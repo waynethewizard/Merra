@@ -21,11 +21,11 @@
   "devDependencies": {
     "@opennextjs/cloudflare": "1.20.2",
     "@types/node": "26.1.2",
-    "@types/react": "19.2.17",
-    "@types/react-dom": "19.2.3",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
     "tsx": "4.23.1",
     "typescript": "7.0.2",
-    "wrangler": "4.114.0"
+    "wrangler": "4.118.0"
   },
   "overrides": {
     "postcss": "8.5.23",
